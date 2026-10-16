@@ -132,7 +132,8 @@ and set your physical keyboard range to practise further from the staff.
 
 ## Sound and metronome
 
-**Sound my playing** enables local sound for MIDI and on-screen keys. Choose piano
+**Sound my playing** enables local sound for MIDI and on-screen keys. MIDI velocity
+controls attack strength; restriking a note under sustain produces a fresh attack. Choose piano
 or organ synthesis and adjust its volume independently of **Reference sound**.
 **Hear target** plays the current target briefly without counting it as your input.
 The reference path also plays imported source passages; its instrument/volume are

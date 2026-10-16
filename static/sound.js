@@ -2,8 +2,8 @@ import {LocalAudio,MetronomeClock} from './audio.js';
 const $=id=>document.getElementById(id);
 const ids=['live-instrument','live-volume','reference-instrument','reference-volume','reference-sound','click-volume','tempo','beats','source-speed'];
 export class SoundPanel {
-  constructor(getTarget,getPitches) {
-    this.getTarget=getTarget; this.getPitches=getPitches; this.clock=new MetronomeClock(); this.engine=null; this.timer=null; this.revision=0; this.onReferenceStop=()=>{}; this.onConfigure=()=>{};
+  constructor(getTarget,getPitches,getAttacks=()=>new Map()) {
+    this.getTarget=getTarget; this.getPitches=getPitches; this.getAttacks=getAttacks; this.clock=new MetronomeClock(); this.engine=null; this.timer=null; this.revision=0; this.onReferenceStop=()=>{}; this.onConfigure=()=>{};
     try {const saved=JSON.parse(localStorage.getItem('piano-sight-reader-sound')||'{}');
       for(const id of ids) if(saved[id]!==undefined) {
         const element=$(id);
@@ -44,7 +44,7 @@ export class SoundPanel {
     if(!$('reference-sound').checked) this.engine.reference.stop();
     this.sync(); this.onConfigure();
   }
-  sync() {if(this.engine) this.engine.live.sync($('live-sound').checked ? this.getPitches() : []);}
+  sync() {if(this.engine) this.engine.live.sync($('live-sound').checked ? this.getPitches() : [],this.getAttacks());}
   pump() {this.clock.pump(this.engine.context.currentTime,event=>this.engine.click(event));}
   stopClock() {this.revision++; this.clock.stop(); this.engine?.stopClicks(); clearInterval(this.timer); this.timer=null; $('metronome').checked=false;}
   panic() {this.onReferenceStop(); this.stopClock(); if(this.engine) this.engine.panic(); $('live-sound').checked=false;}

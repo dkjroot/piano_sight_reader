@@ -137,23 +137,24 @@ export function match(target, held) {
 }
 
 export class Performance {
-  constructor() { this.sources = new Map(); }
+  constructor() { this.sources = new Map(); this.attackSerial=0; }
   source(id) {
-    if (!this.sources.has(id)) this.sources.set(id, {held: new Set(), sustained: new Set(), pedal: false});
+    if (!this.sources.has(id)) this.sources.set(id, {held: new Set(), sustained: new Set(), pedal: false, attacks:new Map()});
     return this.sources.get(id);
   }
-  noteOn(id, pitch) { const s = this.source(id); const changed = !s.held.has(pitch); s.held.add(pitch); s.sustained.delete(pitch); return changed; }
-  noteOff(id, pitch) { const s = this.source(id); const changed = s.held.delete(pitch); if (changed && s.pedal) s.sustained.add(pitch); return changed; }
-  sustain(id, down) { const s = this.source(id); const changed = s.pedal !== down; s.pedal = down; if (!down) s.sustained.clear(); return changed; }
+  noteOn(id, pitch, velocity=100) { const s = this.source(id); const changed = !s.held.has(pitch); s.held.add(pitch); s.sustained.delete(pitch); s.attacks.set(pitch,{serial:++this.attackSerial,velocity:Math.max(1,Math.min(127,Number(velocity)||100))}); return changed; }
+  noteOff(id, pitch) { const s = this.source(id); const changed = s.held.delete(pitch); if (changed && s.pedal) s.sustained.add(pitch); else if(changed) s.attacks.delete(pitch); return changed; }
+  sustain(id, down) { const s = this.source(id); const changed = s.pedal !== down; s.pedal = down; if (!down) {for(const pitch of s.sustained) s.attacks.delete(pitch); s.sustained.clear();} return changed; }
   clear(id) { if (id === undefined) this.sources.clear(); else this.sources.delete(id); }
   get held() { return new Set([...this.sources.values()].flatMap(s => [...s.held])); }
   get sustained() { return new Set([...this.sources.values()].flatMap(s => [...s.sustained]).filter(n => !this.held.has(n))); }
+  get attacks() {const attacks=new Map(); for(const source of this.sources.values()) for(const [pitch,attack] of source.attacks) if(!attacks.has(pitch) || attacks.get(pitch).serial<attack.serial) attacks.set(pitch,attack); return attacks;}
   get pedal() { return [...this.sources.values()].some(s => s.pedal); }
   midi(id, data) {
     const [status, pitch, velocity] = data;
     const source = `${id}:${status & 15}`;
     switch (status & 0xf0) {
-      case 0x90: return velocity ? this.noteOn(source, pitch) : this.noteOff(source, pitch);
+      case 0x90: return velocity ? this.noteOn(source, pitch, velocity) : this.noteOff(source, pitch);
       case 0x80: return this.noteOff(source, pitch);
       case 0xb0:
         if (pitch === 64) return this.sustain(source, velocity >= 64);

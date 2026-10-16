@@ -483,3 +483,25 @@ test('reading patterns require evidence and compare only matching single-note ex
   const duplicates=[...rows,...rows]; assert.equal(readingPatterns(duplicates)[0].count,16);
   assert.deepEqual(readingPatterns([]),[]);
 });
+
+test('live synth responds to velocity and retriggers a sustained pitch without inventing releases',()=>{
+  const p=new Performance(), context=fakeAudio(), path=new SynthPath(context,context.destination);
+  const sync=()=>path.sync(new Set([...p.held,...p.sustained]),p.attacks);
+  p.midi('piano',[0x90,60,25]); sync(); const soft=path.voices.get(60), softPeak=context.events.find(event=>event[0]==='linear' && event[1]>0)[1];
+  p.midi('piano',[0xb0,64,127]); p.midi('piano',[0x80,60,0]); sync(); assert.equal(path.voices.get(60),soft);
+  p.midi('piano',[0x90,60,120]); sync(); const hard=path.voices.get(60); assert.notEqual(hard,soft);
+  const peaks=context.events.filter(event=>event[0]==='linear' && event[1]>0).map(event=>event[1]); assert.ok(peaks.at(-1)>softPeak*4);
+  assert.equal(match([spell(60)],p.held).complete,true);
+  assert.equal(p.midi('piano',[0x90,60,80]),false,'duplicate held input keeps matching semantics'); sync(); assert.notEqual(path.voices.get(60),hard);
+  const latest=path.voices.get(60); p.midi('piano',[0x80,60,0]); sync(); assert.equal(path.voices.get(60),latest);
+  assert.equal(match([spell(60)],p.held).complete,false); p.midi('piano',[0xb0,64,0]); sync(); assert.equal(path.voices.size,0); assert.equal(p.attacks.size,0);
+});
+test('older held/sustained sources never reattack when a newer owner releases',()=>{
+  const p=new Performance(), context=fakeAudio(), path=new SynthPath(context,context.destination);
+  const sync=()=>path.sync(new Set([...p.held,...p.sustained]),p.attacks);
+  p.noteOn('a',60,30); sync(); p.noteOn('b',60,110); sync(); const latest=path.voices.get(60);
+  p.noteOff('b',60); sync(); assert.equal(path.voices.get(60),latest); assert.equal(p.attacks.get(60).velocity,30);
+  p.noteOff('a',60); sync(); assert.equal(path.voices.size,0);
+  p.noteOn('a',60,999); assert.equal(p.attacks.get(60).velocity,127); p.noteOn('a',60,'bad'); assert.equal(p.attacks.get(60).velocity,100);
+  p.sustain('a',true); p.noteOff('a',60); assert.equal(p.attacks.size,1); p.clear(); assert.equal(p.attacks.size,0);
+});

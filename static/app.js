@@ -23,7 +23,7 @@ let target = [], completed = 0, solved = false, settleTimer, nextTimer, access, 
 let phrase = [], phraseIndex = 0, waitingForRelease = false;
 let streamOffset = 0;
 let inputRevision = 0;
-const sound=new SoundPanel(()=>target,()=>new Set([...performance.held,...performance.sustained]));
+const sound=new SoundPanel(()=>target,()=>new Set([...performance.held,...performance.sustained]),()=>performance.attacks);
 const sourcePlayer=new SourcePlayer(sound,scorePanel);
 const SETTLE_MS = 120;
 const storageKey = 'piano-sight-reader-v1';
@@ -377,6 +377,7 @@ function onMidi(event, inputId) {
     return;
   }
   if (performance.midi(inputId, event.data)) update();
+  else if((status & 0xf0)===0x90 && velocity>0) sound.sync();
 }
 async function selectInput(id, reopen = false) {
   const revision = ++inputRevision;

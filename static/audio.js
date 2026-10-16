@@ -18,7 +18,7 @@ export class SynthPath {
     const organ=this.instrument==='organ', level=(organ ? .12 : .22)*Math.max(.01,Math.min(1,velocity));
     envelope.gain.setValueAtTime(0,time);
     envelope.gain.linearRampToValueAtTime(level,time+.008);
-    if (!organ) envelope.gain.exponentialRampToValueAtTime(.002,time+5);
+    if (!organ) envelope.gain.exponentialRampToValueAtTime(Math.max(.000001,level*.009),time+5);
     for (const [multiple,weight] of organ ? [[1,1],[2,.4],[3,.2],[4,.12]] : [[1,1],[2,.35],[3,.13]]) {
       const oscillator=this.context.createOscillator(), partial=this.context.createGain();
       oscillator.type='sine'; oscillator.frequency.value=440*2**((pitch-69)/12)*multiple;
@@ -42,10 +42,13 @@ export class SynthPath {
     for (const oscillator of voice.oscillators) oscillator.stop(end+.07);
   }
   noteOff(pitch,time=this.context.currentTime) {const voice=this.voices.get(pitch); if(voice) {this.voices.delete(pitch); this.release(pitch,voice,time);}}
-  sync(pitches) {
+  sync(pitches,attacks=new Map()) {
     const wanted=new Set(pitches);
     for (const pitch of this.voices.keys()) if(!wanted.has(pitch)) this.noteOff(pitch);
-    for (const pitch of wanted) if(!this.voices.has(pitch)) this.noteOn(pitch);
+    for (const pitch of wanted) {
+      const attack=attacks.get(pitch), serial=attack?.serial||0;
+      if(!this.voices.has(pitch) || serial>(this.voices.get(pitch).attack||0)) {this.noteOn(pitch,this.context.currentTime,null,pitch,attack ? attack.velocity/127 : 1); this.voices.get(pitch).attack=serial;}
+    }
   }
   stop() {this.voices.clear(); for(const voice of this.sounding) this.release(null,voice,this.context.currentTime);}
 }

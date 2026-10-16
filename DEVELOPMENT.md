@@ -298,3 +298,11 @@ attempts / 3 distinct written notes, and median >1.5*cohort median+200 ms. These
 transparent heuristics, not statistical diagnoses. Unknown identity versions and
 chords are excluded. Source data stay unchanged; the UI shows counts/context and
 uses text rather than colour-only warnings. Recommendations/drills remain future work.
+
+
+Live note attacks carry velocity and a monotonic serial per source/channel/pitch.
+The synth retriggers only for a newer attack, even if sustain kept the pitch sounding.
+Removing a newer owner never retriggers an older held owner. Duplicate held note-ons
+refresh audio while preserving existing pitch-set/completion behavior; unrelated CCs
+still do no rendering work. On-screen keys use a fixed default velocity. Source-aware
+release/pedal/reset clears attack metadata without changing physical-held matching.
