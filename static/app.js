@@ -2,6 +2,7 @@ import {WHITE, KEYS, keyAlterations, spell, noteName, staffStep, chordName, matc
 import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
 import {makePracticePhrase as makePhrase} from './harmony.js';
 import {ProgressPanel} from './progress.js';
+import {SoundPanel} from './sound.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
@@ -13,6 +14,7 @@ let target = [], completed = 0, solved = false, settleTimer, nextTimer, access, 
 let phrase = [], phraseIndex = 0, waitingForRelease = false;
 let streamOffset = 0;
 let inputRevision = 0;
+const sound=new SoundPanel(()=>target,()=>new Set([...performance.held,...performance.sustained]));
 const SETTLE_MS = 120;
 const storageKey = 'piano-sight-reader-v1';
 // Set bounds before restoring saved endpoints, avoiding browser clamping.
@@ -274,6 +276,7 @@ function advancePhrase() {
 }
 function update() {
   clearTimeout(settleTimer); clearTimeout(nextTimer);
+  sound.sync();
   const held = performance.held;
   const result = match(target, held);
   const hints = solved || waitingForRelease ? [] : result.hints;
@@ -353,7 +356,7 @@ async function selectInput(id, reopen = false) {
   if (previous) previous.onmidimessage = null;
   // Assign before opening: native open/close operations emit statechange events.
   selectedInput = input;
-  performance.clear();
+  performance.clear(); sound.engine?.live.stop();
   $('midi-activity').textContent = '';
   $('midi-status').textContent = input ? `Opening · ${input.name || 'MIDI keyboard'}…` : 'No MIDI input connected.';
   update();
@@ -397,8 +400,8 @@ $('connect').addEventListener('click', async () => {
     $('midi-status').textContent = error.name === 'NotAllowedError' ? 'MIDI permission was denied. Allow MIDI in your browser’s site settings, then reconnect.' : `MIDI could not start (${error.name}). Reconnect your keyboard and try again.`;
   } finally { $('connect').disabled = false; }
 });
-window.addEventListener('blur', () => {progress.pause(); performance.clear(); update();});
+window.addEventListener('blur', () => {sound.panic(); progress.pause(); performance.clear(); update();});
 window.addEventListener('focus', () => {progress.resume(); update();});
-document.addEventListener('visibilitychange', () => {if (document.hidden) {progress.pause(); performance.clear(); update();} else if (document.hasFocus()) {progress.resume(); update();}});
+document.addEventListener('visibilitychange', () => {if (document.hidden) {sound.panic(); progress.pause(); performance.clear(); update();} else if (document.hasFocus()) {progress.resume(); update();}});
 window.addEventListener('resize', () => {applyDensity(); drawStaff(); scrollToCurrent(); update();});
 rangeLabels(); drawKeyboard(); newTarget();

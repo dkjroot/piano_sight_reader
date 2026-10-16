@@ -269,6 +269,11 @@ identify specific reading weaknesses to practise. Rhythm-game scoring remains se
 
 ## Stage 6 — Beat clock, metronome and playback
 
+Shipped foundation: independent live-input and target-audition instruments/volumes,
+original local piano-like/organ synthesis, held/sustain release and panic, plus an
+optional accented audio-clock metronome. This does not yet play scored pieces or
+synchronise targets to rhythm. Sound starts only through a user gesture.
+
 - [ ] Add a monotonic musical transport with tempo changes, meter, count-in, seeking,
   pause/resume and fractional beat positions. Keep score time separate from wall time.
 - [ ] Implement a metronome with beat/bar accents, adjustable tempo and subdivision.

@@ -55,6 +55,24 @@
       <p id="range-status" class="small" role="status"></p>
     </div>
   </section>
+  <section class="settings-grid" aria-label="Sound settings">
+    <div class="card settings"><h2>Sound</h2>
+      <label class="check"><input id="live-sound" type="checkbox"> Sound my playing</label>
+      <label>Live instrument <select id="live-instrument"><option value="piano">Piano synth</option><option value="organ">Organ synth</option></select></label>
+      <label>Live volume <input id="live-volume" type="range" min="0" max="100" value="35"></label>
+      <label class="check"><input id="reference-sound" type="checkbox" checked> Target audition</label>
+      <label>Target instrument <select id="reference-instrument"><option value="piano">Piano synth</option><option value="organ">Organ synth</option></select></label>
+      <label>Target volume <input id="reference-volume" type="range" min="0" max="100" value="25"></label>
+      <div class="range-buttons"><button id="hear-target" class="quiet">Hear target</button><button id="sound-panic" class="quiet">Stop sound</button></div>
+      <p id="sound-status" class="small" role="status"></p>
+    </div>
+    <div class="card settings"><h2>Metronome</h2>
+      <label class="check"><input id="metronome" type="checkbox"> Metronome</label>
+      <label>Tempo <input id="tempo" type="number" min="30" max="240" value="80"></label>
+      <label>Beats per bar <select id="beats"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="6">6</option></select></label>
+      <label>Click volume <input id="click-volume" type="range" min="0" max="100" value="20"></label>
+    </div>
+  </section>
   <section class="progress-panel" aria-label="Practice progress">
     <div class="keyboard-heading"><h2>Progress</h2><div class="keyboard-options"><label class="check keyboard-option"><input id="save-history" type="checkbox"> Save history locally</label><button id="export-history" class="quiet">Export history</button><button id="clear-history" class="quiet">Clear history</button></div></div>
     <dl class="metrics-summary"><div><dt>Targets</dt><dd id="stats-count">0</dd></div><div><dt>Average response</dt><dd id="stats-mean">—</dd></div><div><dt>Median response</dt><dd id="stats-median">—</dd></div><div><dt>First-attempt accuracy</dt><dd id="stats-accuracy">—</dd></div><div><dt>Best for this target</dt><dd id="stats-best">—</dd></div></dl>

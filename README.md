@@ -126,6 +126,20 @@ The grand staff expands vertically for distant ledger notes above and below
 either staff, with extra room between the staves. Choose **All available notes**
 and set your physical keyboard range to practise further from the staff.
 
+## Sound and metronome
+
+**Sound my playing** enables local sound for MIDI and on-screen keys. Choose piano
+or organ synthesis and adjust its volume independently of **Target audition**.
+**Hear target** plays the current target briefly without counting it as your input.
+These are original synthetic instruments; no samples or downloads are needed.
+Your keyboard may also make its own sound: leave live sound off if you prefer that.
+
+The metronome has its own volume, tempo (30–240 BPM) and bar accent. It is a practice
+click: targets still wait for you, and these generated exercises have no timed rhythm.
+**Stop sound** silences both instruments and the click. Leaving the tab also stops
+sound. Instrument/volume/tempo choices are remembered; live sound and the metronome
+start off each visit. Audio requires a click/tap in the browser.
+
 ## Progress
 
 The Progress section measures targets correctly played, average/median response time,

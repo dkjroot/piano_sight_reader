@@ -127,3 +127,24 @@ and visual backlog. Backlog entries are not authorisation to implement them now.
 
 README is for end users. Keep setup, requirements and usage current in every
 change; put architecture, tests, plans and working notes here or in AGENTS.md.
+
+
+## Local audio foundation
+
+`audio.js` owns two independent additive-synthesis paths and a master limiter.
+Live voices follow the union of physically held and sustained notes; reference
+voices audition the active target for 0.8 seconds and never enter `Performance`.
+Both paths have independent instrument/gain controls. Original piano-like/organ
+oscillators require no third-party asset licence or download. Velocity-sensitive
+sampling, complete score playback and external MIDI output remain future work.
+
+`MetronomeClock` emits timestamped clicks into a 100 ms audio-clock look-ahead;
+a 25 ms scheduler pumps it. After a stall it re-anchors without a burst of overdue
+clicks. It is independent of untimed target progression. Backgrounding/panic stops
+both paths and the scheduler. Sound activation requires a user gesture; saved
+preferences never enable live sound or metronome on page load.
+
+Tests cover deterministic node ownership/releases, independent buses, timed voice
+cleanup, scheduler accents/stalls, real browser OfflineAudioContext waveform/tail,
+controls/persistence and unsupported-audio recovery. These do not verify perceived
+instrument quality or physical input/output latency.

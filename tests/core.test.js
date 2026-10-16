@@ -1,3 +1,4 @@
+import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
 import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily} from '../static/metrics.js';
 import {makePracticePhrase, harmonicPitchClasses} from '../static/harmony.js';
 import test from 'node:test';
@@ -254,4 +255,50 @@ test('history validation, comparable identities, summaries and sparse breakdowns
   assert.equal(id,exerciseIdentity([note],{key:'C',preview:3,endAction:'repeat'},[[note]]));
   assert.notEqual(id,exerciseIdentity([note],{key:'G',endAction:'repeat'},[[note]]));
   assert.notEqual(id,exerciseIdentity([note],{key:'C',endAction:'new'},[[note]]));
+});
+
+function fakeAudio() {
+  const events=[], nodes=[];
+  const param=()=>({value:0,setValueAtTime(...a){events.push(['set',...a]);},linearRampToValueAtTime(...a){events.push(['linear',...a]);},exponentialRampToValueAtTime(...a){events.push(['exp',...a]);},setTargetAtTime(...a){events.push(['target',...a]);},cancelAndHoldAtTime(t){events.push(['hold',t]);},cancelScheduledValues(t){events.push(['cancel',t]);}});
+  const node=()=>({gain:param(),frequency:param(),connect(){},disconnect(){this.disconnected=true;},start(t){this.started=t;},stop(t=0){this.stopped=t;}});
+  return {currentTime:1,destination:{},events,nodes,createGain:node,createDynamicsCompressor:node,createOscillator(){const n=node();nodes.push(n);return n;}};
+}
+test('audio paths independently sync held/sustained pitch sets, release and panic',()=>{
+  const context=fakeAudio(), audio=new LocalAudio(context);
+  audio.live.configure('piano',.4); audio.reference.configure('organ',.2);
+  audio.live.sync([60,64]); assert.equal(audio.live.voices.size,2); assert.equal(context.nodes.length,6);
+  audio.live.sync([60,64]); assert.equal(context.nodes.length,6);
+  audio.audition([67]); assert.equal(audio.reference.voices.size,1); assert.equal(context.nodes.length,10);
+  assert.ok(Math.abs(context.nodes[0].frequency.value-261.625565)<.00001);
+  audio.live.sync([64]); assert.equal(audio.live.voices.size,1); assert.equal(audio.reference.voices.size,1);
+  audio.live.configure('organ',2); assert.equal(audio.live.voices.size,0);
+  audio.live.sync([64]); audio.click({time:2,beat:0}); audio.click({time:2.5,beat:1});
+  assert.equal(audio.clicks.size,2); assert.equal(context.nodes.at(-2).frequency.value,1400); assert.equal(context.nodes.at(-1).frequency.value,900);
+  audio.panic(); assert.equal(audio.live.voices.size,0); assert.equal(audio.reference.voices.size,0); assert.equal(audio.clicks.size,0);
+  for(const oscillator of context.nodes) {assert.notEqual(oscillator.stopped,undefined); oscillator.onended(); assert.equal(oscillator.disconnected,true);}
+});
+test('audio validates notes and cleans up timed/retriggered voices without dropping replacements',()=>{
+  const context=fakeAudio(), path=new SynthPath(context,context.destination);
+  for(const pitch of [-1,128,60.1,NaN]) path.noteOn(pitch);
+  assert.equal(path.voices.size,0);
+  path.noteOn(60,1,.8); const old=path.voices.get(60);
+  path.noteOn(60); const replacement=path.voices.get(60); assert.notEqual(old,replacement);
+  old.oscillators.forEach(osc=>osc.onended()); assert.equal(path.voices.get(60),replacement);
+  path.configure('unknown',-1); assert.equal(path.instrument,'piano');
+  path.noteOn(65,1,.8); const timed=path.voices.get(65); timed.oscillators.forEach(osc=>osc.onended()); assert.equal(path.voices.has(65),false);
+  const voice=path.voices.get(60); voice.envelope.gain.cancelAndHoldAtTime=null;
+  path.noteOff(60); assert.equal(path.voices.size,0); assert.ok(context.events.some(event=>event[0]==='cancel'));
+  path.noteOff(60); path.stop();
+});
+test('metronome schedules on the audio clock with accents and bounded recovery',()=>{
+  const clock=new MetronomeClock(), beats=[];
+  clock.pump(0,event=>beats.push(event)); assert.equal(beats.length,0);
+  clock.start(0,120,3);
+  for(const now of [0,.45,.95,1.45,1.95]) clock.pump(now,event=>beats.push(event));
+  assert.deepEqual(beats.map(b=>b.beat),[0,1,2,0,1]); assert.equal(beats[3].bar,1);
+  assert.ok(Math.abs(beats[4].time-2.03)<.00001);
+  clock.pump(100,event=>beats.push(event)); assert.equal(beats.length,6); assert.equal(beats.at(-1).beat,0); assert.equal(beats.at(-1).time,100.03);
+  clock.stop(); clock.pump(200,event=>beats.push(event)); assert.equal(beats.length,6);
+  clock.start(0,999,99); assert.equal(clock.interval,.25); assert.equal(clock.beats,12);
+  clock.start(0,0,0); assert.equal(clock.interval,.75); assert.equal(clock.beats,4);
 });
