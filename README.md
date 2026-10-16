@@ -126,6 +126,23 @@ The grand staff expands vertically for distant ledger notes above and below
 either staff, with extra room between the staves. Choose **All available notes**
 and set your physical keyboard range to practise further from the staff.
 
+## Progress
+
+The Progress section measures targets correctly played, average/median response time,
+first-attempt accuracy and a clean best time for the current comparable target.
+Response time starts when the target activates and ends at the first stable correct
+pitch set; the deliberate 120 ms confirmation and release delay are excluded. Window
+pauses are excluded. Staggering chord fingers is allowed; wrong pitches affect accuracy.
+
+History is session-only unless **Save history locally** is checked. The browser keeps
+up to 1,000 attempts, including exercise settings and written pitches. **Export history**
+saves JSON; **Clear history** deletes the current history. Nothing is uploaded. Daily
+median response times and hand/key/note/staff-position/accidental breakdowns help spot
+patterns. Note-level breakdowns use single-note targets so chord mistakes are not
+arbitrarily blamed on one finger. Counts remain visible; small samples are not diagnoses.
+Personal bests compare the same target, settings and (in Repeat) phrase, not easier
+material against harder exercises. These are reading measurements, not game points.
+
 ## Troubleshooting
 
 - **Python is missing:** install Python 3.10+ from [python.org](https://www.python.org/downloads/),

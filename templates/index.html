@@ -55,6 +55,15 @@
       <p id="range-status" class="small" role="status"></p>
     </div>
   </section>
+  <section class="progress-panel" aria-label="Practice progress">
+    <div class="keyboard-heading"><h2>Progress</h2><div class="keyboard-options"><label class="check keyboard-option"><input id="save-history" type="checkbox"> Save history locally</label><button id="export-history" class="quiet">Export history</button><button id="clear-history" class="quiet">Clear history</button></div></div>
+    <dl class="metrics-summary"><div><dt>Targets</dt><dd id="stats-count">0</dd></div><div><dt>Average response</dt><dd id="stats-mean">—</dd></div><div><dt>Median response</dt><dd id="stats-median">—</dd></div><div><dt>First-attempt accuracy</dt><dd id="stats-accuracy">—</dd></div><div><dt>Best for this target</dt><dd id="stats-best">—</dd></div></dl>
+    <p id="history-status" class="small" role="status"></p>
+    <div id="progress-chart" aria-label="Daily median response times"></div>
+    <label class="analysis-choice">Breakdown <select id="analysis-dimension"><option value="hand">Hand</option><option value="key">Key</option><option value="note">Note</option><option value="position">Staff position</option><option value="accidental">Accidental</option></select></label>
+    <p class="small">Note and position breakdowns use single-note targets.</p>
+    <table class="analysis-table"><thead><tr><th>Group</th><th>Attempts</th><th>First try</th><th>Median</th></tr></thead><tbody id="analysis-rows"></tbody></table>
+  </section>
   <div class="end-ornament" aria-hidden="true">❦</div>
 </main>
 <script type="module" src="{{ url_for('static', filename='app.js') }}"></script>

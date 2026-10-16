@@ -63,6 +63,13 @@ future rendering of same-position altered unisons needs explicit voice engraving
 Accidentals occupy the nearest available column, separated only for vertical
 collisions. Target colours follow each key's actual light/dark background.
 
+`static/metrics.js` measures untimed attempts with an injectable monotonic clock.
+Stable-match onset is recorded before the confirmation timer, pauses freeze elapsed
+time, and extras are counted on new presses rather than every render. The progress
+panel keeps at most 1,000 records; saving is opt-in and debounced outside MIDI handlers.
+Identities exclude display-only settings and include material, written target and repeat
+phrase. No note-level fault attribution is attempted for multi-note targets.
+
 ## Checks
 
 ```powershell

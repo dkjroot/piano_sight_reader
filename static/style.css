@@ -128,3 +128,17 @@ input { accent-color:var(--green); }
 :root[data-density=compact] #keyboard { height:122px; }
 :root[data-density=compact] .key.white { height:118px; }
 :root[data-density=compact] .key.black { height:76px; }
+
+.progress-panel { margin-top:22px; padding-top:22px; border-top:3px double var(--line); }
+.metrics-summary { display:flex; gap:18px 32px; flex-wrap:wrap; }
+.metrics-summary dt { color:var(--muted); font-size:12px; }
+.metrics-summary dd { margin:4px 0 0; font:25px 'Palatino Linotype',Georgia,serif; }
+.analysis-choice { display:flex; align-items:center; gap:12px; font-size:13px; }
+.analysis-table { border-collapse:collapse; width:100%; font-size:12px; margin-top:12px; }
+.analysis-table th, .analysis-table td { text-align:left; padding:9px 8px; border-bottom:1px solid var(--line); }
+#progress-chart { max-width:640px; }
+#progress-chart svg { width:100%; display:block; }
+#progress-chart text { fill:var(--muted); font:11px 'Segoe UI',sans-serif; }
+.chart-axis { stroke:var(--line); fill:none; }
+.chart-line { fill:none; stroke:var(--green); stroke-width:2; }
+.chart-point { fill:var(--ink); }

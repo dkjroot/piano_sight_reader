@@ -228,6 +228,13 @@ Expand the catalogue only after the score/import/practice contracts are dependab
 Basic typing-tutor-style feedback can begin before rhythmic playback/scoring exists.
 Use it to show reading progress, not just a game score or eventual completion rate.
 
+Shipped foundation: per-target written/context records, mean/median response time,
+first-attempt accuracy, clean-response personal bests for matching exercises, optional
+local history (1,000 attempts), JSON export/deletion, daily median graph and hand/key/
+single-note pitch/accidental/ledger-position breakdowns. Background and unfocused time,
+release waits and the confirmation delay are excluded. The tasks below include the
+remaining session, rhythm, import, coverage and recommendation work.
+
 - [ ] Record local practice sessions and per-target attempts, with timestamps, written
   pitches, staff/hand assignment, key signature, generated seed or source passage IDs,
   exercise settings and scoring version. Preserve the context needed for fair comparison.

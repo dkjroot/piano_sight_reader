@@ -1,0 +1,62 @@
+// Untimed reading measurements. No DOM, storage or device dependencies.
+export class AttemptTracker {
+  constructor({now=()=>globalThis.performance.now(),stamp=()=>new Date().toISOString()}={}) {this.now=now; this.stamp=stamp; this.active=null;}
+  start(notes,context={}) {
+    this.active=notes.length ? {notes:notes.map(n=>({...n})),context:{...context},elapsed:0,started:this.now(),extras:new Set(),wrongPresses:0,wrongPitches:new Set(),candidate:null} : null;
+  }
+  pause() {const a=this.active; if (a && a.started!==null) {a.elapsed+=this.now()-a.started; a.started=null; a.candidate=null;}}
+  resume() {const a=this.active; if (a && a.started===null) a.started=this.now();}
+  observe(held) {
+    const a=this.active; if (!a || a.started===null) return;
+    const expected=new Set(a.notes.map(n=>n.midi));
+    const extras=new Set([...held].filter(n=>!expected.has(n)));
+    for (const pitch of extras) if (!a.extras.has(pitch)) {a.wrongPresses++; a.wrongPitches.add(pitch);}
+    a.extras=extras;
+    const complete=held.size===expected.size && [...expected].every(n=>held.has(n));
+    if (!complete) a.candidate=null;
+    else if (a.candidate===null) a.candidate=a.elapsed+this.now()-a.started;
+  }
+  finish() {
+    const a=this.active; this.active=null;
+    if (!a || a.started===null || a.candidate===null) return null;
+    return {version:1,at:this.stamp(),responseMs:Math.max(0,a.candidate),wrongPresses:a.wrongPresses,firstAttemptCorrect:a.wrongPresses===0,wrongPitches:[...a.wrongPitches],notes:a.notes,context:a.context};
+  }
+}
+
+export function cleanHistory(value) {
+  if (!Array.isArray(value)) return [];
+  return value.slice(-1000).filter(r=>r && r.version===1 && typeof r.at==='string' && Number.isFinite(Date.parse(r.at)) && Number.isFinite(r.responseMs) && r.responseMs>=0 && r.responseMs<=86400000 && Number.isInteger(r.wrongPresses) && r.wrongPresses>=0 && typeof r.firstAttemptCorrect==='boolean' && Array.isArray(r.notes) && r.notes.length>0 && r.notes.length<=10 && r.notes.every(n=>n && typeof n.letter==='string' && Number.isInteger(n.midi) && n.midi>=0 && n.midi<=127 && 'CDEFGAB'.includes(n.letter) && n.letter.length===1 && Number.isInteger(n.octave) && [-2,-1,0,1,2].includes(n.accidental) && ['bass','treble'].includes(n.staff)) && r.context && typeof r.context==='object');
+}
+export function summary(records) {
+  if (!records.length) return {count:0,mean:null,median:null,p90:null,accuracy:null};
+  const times=records.map(r=>r.responseMs).sort((a,b)=>a-b);
+  const middle=(times.length-1)/2;
+  return {count:times.length,mean:times.reduce((a,b)=>a+b,0)/times.length,median:(times[Math.floor(middle)]+times[Math.ceil(middle)])/2,p90:times[Math.ceil(times.length*.9)-1],accuracy:records.filter(r=>r.firstAttemptCorrect).length/times.length};
+}
+export function exerciseIdentity(notes,settings,phrase) {
+  const fields=['hand','key','source','material','span','low','high','size','min-size','harmony-scale','hand-span','endAction'];
+  return JSON.stringify([1,fields.map(field=>[field,settings[field]??null]),notes.map(n=>[n.midi,n.letter,n.accidental,n.octave,n.staff]),settings.endAction==='repeat' ? phrase.map(chord=>chord.map(n=>n.midi)) : null]);
+}
+export function grouped(records,dimension) {
+  const groups=new Map();
+  for (const record of records) {
+    if (['note','position','accidental'].includes(dimension) && record.notes.length!==1) continue;
+    const note=record.notes[0];
+    let key;
+    if (dimension==='position') {
+      const step=note.octave*7+'CDEFGAB'.indexOf(note.letter), bottom=note.staff==='bass' ? 18 : 30, top=bottom+8;
+      const distance=step<bottom ? bottom-step : step>top ? step-top : 0;
+      key=note.staff+': '+(distance ? (distance%2 ? 'space '+Math.ceil(distance/2) : 'ledger '+distance/2)+(step<bottom ? ' below' : ' above') : 'on staff');
+    } else if (dimension==='note') key=note.letter+({'-2':'𝄫','-1':'♭',0:'',1:'♯',2:'𝄪'})[note.accidental]+note.octave;
+    else if (dimension==='accidental') key=({'-2':'Double flat','-1':'Flat',0:'Natural',1:'Sharp',2:'Double sharp'})[note.accidental];
+    else key=String(record.context[dimension] || 'Unknown');
+    if (!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push(record);
+  }
+  return [...groups].map(([label,rows])=>({label,...summary(rows)})).sort((a,b)=>b.count-a.count || a.label.localeCompare(b.label));
+}
+export function daily(records) {
+  const groups=new Map();
+  for (const record of records) {const day=new Date(record.at).toISOString().slice(0,10); if (!groups.has(day)) groups.set(day,[]); groups.get(day).push(record);}
+  return [...groups].sort(([a],[b])=>a.localeCompare(b)).slice(-30).map(([day,rows])=>({day,...summary(rows)}));
+}

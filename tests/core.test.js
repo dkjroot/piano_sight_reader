@@ -1,3 +1,4 @@
+import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily} from '../static/metrics.js';
 import {makePracticePhrase, harmonicPitchClasses} from '../static/harmony.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -212,4 +213,45 @@ test('harmonic voicings honour physical ranges, hands and span, without blocking
   }
   assert.deepEqual(makePracticePhrase({...defaults,length:2},()=>.3),makePhrase({...defaults,length:2},()=>.3));
   assert.deepEqual(makePracticePhrase({...defaults,source:'cadence',low:61,high:61,length:2}),[[],[]]);
+});
+
+test('reading measurements allow staggered fingers and exclude confirmation delay', () => {
+  let time=0; const tracker=new AttemptTracker({now:()=>time,stamp:()=> '2026-10-16T12:00:00Z'});
+  tracker.start([60,64,67].map(midi=>({...spell(midi),staff:'treble'})),{key:'C'});
+  time=10; tracker.observe(new Set([60])); time=20; tracker.observe(new Set([60,64]));
+  time=30; tracker.observe(new Set([60,64,67])); time=150;
+  const record=tracker.finish(); assert.equal(record.responseMs,30); assert.equal(record.firstAttemptCorrect,true);
+  assert.equal(record.context.key,'C'); assert.equal(tracker.finish(),null);
+});
+test('reading measurements count new wrong presses, cancel brief matches and freeze while paused', () => {
+  let time=0; const tracker=new AttemptTracker({now:()=>time});
+  const target=[{...spell(60),staff:'treble'}]; tracker.start(target);
+  time=10; tracker.observe(new Set([61])); tracker.observe(new Set([61]));
+  time=20; tracker.observe(new Set()); time=30; tracker.observe(new Set([61]));
+  time=40; tracker.observe(new Set([60])); time=50; tracker.observe(new Set([60,61]));
+  time=60; tracker.observe(new Set([60])); time=100; tracker.pause();
+  time=1100; tracker.observe(new Set([60])); tracker.pause();
+  time=1200; tracker.resume(); tracker.resume(); time=1250; tracker.observe(new Set([60]));
+  const record=tracker.finish(); assert.equal(record.responseMs,150); assert.equal(record.wrongPresses,3); assert.equal(record.firstAttemptCorrect,false);
+  tracker.start(target); tracker.pause(); assert.equal(tracker.finish(),null);
+  tracker.start([]); tracker.observe(new Set()); tracker.pause(); tracker.resume(); assert.equal(tracker.finish(),null);
+});
+test('history validation, comparable identities, summaries and sparse breakdowns are explicit', () => {
+  const note={...spell(84),staff:'treble'};
+  const record=(ms,clean=true)=>({version:1,at:'2026-10-16T12:00:00Z',responseMs:ms,wrongPresses:clean?0:1,firstAttemptCorrect:clean,notes:[note],context:{hand:'right',key:'C'}});
+  const rows=[record(100),record(200,false),record(400)];
+  assert.equal(cleanHistory(null).length,0);
+  assert.equal(cleanHistory([null,{...record(0),notes:[null]},{...record(0),responseMs:-1},...rows]).length,3);
+  assert.deepEqual(summary([]),{count:0,mean:null,median:null,p90:null,accuracy:null});
+  assert.equal(summary(rows).median,200); assert.equal(summary(rows.slice(0,2)).median,150); assert.equal(summary(rows).p90,400);
+  assert.equal(summary(rows).accuracy,2/3);
+  assert.equal(grouped(rows,'position')[0].label,'treble: ledger 2 above');
+  assert.equal(grouped(rows,'note')[0].label,'C6'); assert.equal(grouped(rows,'accidental')[0].label,'Natural');
+  assert.equal(grouped([{...rows[0],notes:[note,note]}],'position').length,0);
+  assert.equal(grouped([{...rows[0],context:{}}],'key')[0].label,'Unknown');
+  assert.equal(daily(rows)[0].count,3);
+  const id=exerciseIdentity([note],{key:'C',preview:0,endAction:'repeat'},[[note]]);
+  assert.equal(id,exerciseIdentity([note],{key:'C',preview:3,endAction:'repeat'},[[note]]));
+  assert.notEqual(id,exerciseIdentity([note],{key:'G',endAction:'repeat'},[[note]]));
+  assert.notEqual(id,exerciseIdentity([note],{key:'C',endAction:'new'},[[note]]));
 });

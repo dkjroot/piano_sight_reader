@@ -1,9 +1,11 @@
 import {WHITE, KEYS, keyAlterations, spell, noteName, staffStep, chordName, match, Performance} from './core.js';
 import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
 import {makePracticePhrase as makePhrase} from './harmony.js';
+import {ProgressPanel} from './progress.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
+const progress = new ProgressPanel();
 const controls = ['hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
 for (const id of ['size','min-size']) $(id).replaceChildren(...Array.from({length:10}, (_, i) => new Option(String(i+1), String(i+1))));
 $('key').replaceChildren(...KEYS.map(key => new Option(key.label, key.id)));
@@ -249,6 +251,7 @@ function restartPhrase() {
   waitingForRelease = performance.held.size > 0;
   target = phrase[0] || []; $('chord-name').textContent = '';
   $('staff').scrollTop = 0; drawStaff(); scrollToCurrent();
+  progress.start(waitingForRelease ? [] : target,settings(),phrase);
   update();
 }
 function advancePhrase() {
@@ -266,6 +269,7 @@ function advancePhrase() {
     phraseIndex -= prune; target = phrase[phraseIndex];
   }
   drawStaff(); scrollToCurrent();
+  progress.start(target,settings(),phrase);
   update();
 }
 function update() {
@@ -281,12 +285,14 @@ function update() {
   if (waitingForRelease) {
     if (held.size) { $('feedback').textContent = 'Release keys'; $('detail').textContent = ''; return; }
     waitingForRelease = false;
+    progress.start(target,settings(),phrase);
   }
   if (!target.length) {
     $('feedback').textContent = 'No notes in this range';
     $('detail').textContent = 'Choose another hand, widen the reading range, or adjust the keyboard endpoints.';
     return;
   }
+  if (!solved) progress.observe(held);
   if (solved) {
     $('feedback').textContent = 'Correct. Release keys.';
     $('detail').textContent = '';
@@ -298,7 +304,7 @@ function update() {
     $('detail').textContent = 'Hold briefly…';
     settleTimer = setTimeout(() => {
       if (match(target, performance.held).complete) {
-        solved = true; $('chord-name').textContent = chordName(target);
+        solved = true; progress.complete(); $('chord-name').textContent = chordName(target);
         if (settings().endAction === 'new' || phraseIndex === phrase.length-1) {completed++; $('count').textContent = completed;}
         update();
       }
@@ -391,7 +397,8 @@ $('connect').addEventListener('click', async () => {
     $('midi-status').textContent = error.name === 'NotAllowedError' ? 'MIDI permission was denied. Allow MIDI in your browser’s site settings, then reconnect.' : `MIDI could not start (${error.name}). Reconnect your keyboard and try again.`;
   } finally { $('connect').disabled = false; }
 });
-window.addEventListener('blur', () => { performance.clear(); update(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { performance.clear(); update(); } });
+window.addEventListener('blur', () => {progress.pause(); performance.clear(); update();});
+window.addEventListener('focus', () => {progress.resume(); update();});
+document.addEventListener('visibilitychange', () => {if (document.hidden) {progress.pause(); performance.clear(); update();} else if (document.hasFocus()) {progress.resume(); update();}});
 window.addEventListener('resize', () => {applyDensity(); drawStaff(); scrollToCurrent(); update();});
 rangeLabels(); drawKeyboard(); newTarget();
