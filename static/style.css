@@ -254,10 +254,10 @@ h1 .subtitle { display:block; letter-spacing:0; }
 /* Single-line masthead frees vertical space without enlarging its controls. */
 .score-banner { padding-bottom:8px; margin-bottom:6px; min-height:48px; }
 .score-banner h1 { font-size:34px; line-height:1.12; margin:0; letter-spacing:.3px; white-space:nowrap; }
-.score-banner .header-actions button { padding:7px 11px; font-size:13px; line-height:1.15; }
+.score-banner .header-actions :is(button, .header-help) { padding:7px 11px; font-size:13px; line-height:1.15; }
 :root[data-density=compact] .score-banner { padding-bottom:5px; margin-bottom:5px; min-height:38px; }
 :root[data-density=compact] .score-banner h1 { font-size:28px; margin:0; }
-:root[data-density=compact] .score-banner .header-actions button { padding:6px 10px; font-size:12px; }
+:root[data-density=compact] .score-banner .header-actions :is(button, .header-help) { padding:6px 10px; font-size:12px; }
 :root[data-layout="720"] .score-banner { padding-bottom:4px; margin-bottom:4px; min-height:32px; }
 :root[data-layout="720"] .score-banner h1 { font-size:25px; }
 @media(max-width:650px) {
@@ -265,7 +265,7 @@ h1 .subtitle { display:block; letter-spacing:0; }
   .score-banner .title-block { min-width:0; }
   .score-banner h1, :root[data-density=compact] .score-banner h1, :root[data-layout="720"] .score-banner h1 { font-size:clamp(17px,4.4vw,28px); letter-spacing:0; }
   .score-banner .header-actions { max-width:none; flex:none; gap:4px; }
-  .score-banner .header-actions button, :root[data-density=compact] .score-banner .header-actions button { padding:5px 6px; font-size:11px; }
+  .score-banner .header-actions :is(button, .header-help), :root[data-density=compact] .score-banner .header-actions :is(button, .header-help) { padding:5px 6px; font-size:11px; }
 }
 
 @media(max-width:350px) {
@@ -341,3 +341,15 @@ h1 .subtitle { display:block; letter-spacing:0; }
 .help-page a:focus-visible, .help-link:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
 
 .support-panel + .score-panel { border-top:0; margin-top:0; padding-top:0; }
+
+.header-help { display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--line); border-radius:2px; color:var(--ink); text-decoration:none; font:inherit; }
+.header-help:hover { filter:brightness(1.12); }
+.header-help:focus-visible { outline:3px solid var(--accent); outline-offset:3px; }
+.help-icon { display:none; }
+@media(max-width:650px) {
+  .score-banner .header-actions { display:grid; grid-template-columns:auto 28px; }
+  .score-banner #theme-toggle { grid-column:1 / -1; }
+  .header-help { min-height:28px; }
+  .header-help .help-label { display:none; }
+  .header-help .help-icon { display:inline; font-weight:600; }
+}

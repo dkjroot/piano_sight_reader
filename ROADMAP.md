@@ -425,3 +425,5 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Clarify library preview/start/download actions and document the workflow in README.
 - [x] Add a local Help page for practice, passages, sound, history and MIDI troubleshooting.
 - [x] Share the approved support link above Music library and on Help, with matching double rules.
+
+- [x] Add Help beside Connect MIDI at the top, retaining contextual library help and compact narrow-screen controls.

@@ -984,14 +984,28 @@ const { chromium } = require('playwright');
     await page.locator('#theme-toggle').click();
     await page.screenshot({path:'test-results/library-light.png',fullPage:true});
     assert.deepEqual(errors, []);
-    for(const width of [320,390]) {
+    for(const width of [320,390,530,650]) {
       await page.setViewportSize({width,height:740});
       const title=await page.locator('h1').boundingBox(), actions=await page.locator('.header-actions').boundingBox();
       assert.ok(title.x+title.width<=actions.x-4,'single-line title must not overlap the buttons');
       assert.ok(title.height<40);
+      const connectBox=await page.locator('#connect').boundingBox(), helpBox=await page.locator('.header-help').boundingBox();
+      assert.ok(helpBox.x>=connectBox.x+connectBox.width,'Help stays beside Connect MIDI');
+      assert.ok(Math.abs(helpBox.y-connectBox.y)<4,'mobile Help shares the Connect MIDI row');
+      assert.equal(await page.locator('.header-help .help-icon').isVisible(),true);
       assert.ok(await support.evaluate(panel=>panel.scrollWidth<=panel.clientWidth),'support URL must wrap on narrow screens');
     }
     await page.setViewportSize({width:1280,height:1000});
+    const topHelp=page.locator('header').getByRole('link',{name:'Help',exact:true});
+    assert.equal(await topHelp.getAttribute('href'),'/help');
+    assert.equal(await topHelp.getAttribute('rel'),'noopener noreferrer');
+    const topConnectBox=await page.locator('#connect').boundingBox(), topHelpBox=await topHelp.boundingBox();
+    assert.ok(topHelpBox.x>=topConnectBox.x+topConnectBox.width);
+    assert.equal(await topHelp.locator('.help-label').isVisible(),true);
+    const [topGuide]=await Promise.all([page.waitForEvent('popup'),topHelp.click()]);
+    await topGuide.waitForURL('**/help');
+    assert.equal(await topGuide.getByRole('heading',{level:1}).innerText(),'Piano Sight Reader · Help');
+    await topGuide.close();
     const guide=page.getByRole('link',{name:'Help & guide'});
     const [help]=await Promise.all([page.waitForEvent('popup'),guide.click()]);
     await help.waitForURL('**/help'); await help.waitForSelector('#help-theme');

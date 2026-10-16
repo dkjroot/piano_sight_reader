@@ -465,3 +465,10 @@ match: Load piece previews; Start practising this passage activates; Download MI
 data (JSON) exports diagnostic performance data. No runtime dependency was added.
 The support partial uses equal 3px double theme-line borders; the adjacent library
 suppresses its own top rule to avoid a duplicate divider.
+
+
+Help entry points: the masthead has a Help link styled as a quiet button beside
+Connect MIDI; narrow screens show an accessible ? and arrange the theme control
+above the Connect/Help pair. The library keeps its contextual Help & guide link.
+Both open /help in another tab. Browser tests cover both actual popup routes and
+header control separation at 320, 390, 530 and 650 px without title overlap.

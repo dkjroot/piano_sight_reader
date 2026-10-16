@@ -200,7 +200,8 @@ not diagnoses of finger/hand ability or conclusions from sparse samples.
 
 ## Help
 
-Choose **Help & guide** beside Music library for the local help page. It opens in
+Choose **Help** beside **Connect MIDI** at the top (a **?** on narrow screens), or
+**Help & guide** beside Music library, for the local help page. Either link opens in
 a separate tab, with a quick start, piece/passage instructions, repeated-note
 behavior, sound controls, progress and MIDI troubleshooting.
 
