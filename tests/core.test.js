@@ -1,3 +1,4 @@
+import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
 import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily} from '../static/metrics.js';
 import {makePracticePhrase, harmonicPitchClasses} from '../static/harmony.js';
@@ -301,4 +302,52 @@ test('metronome schedules on the audio clock with accents and bounded recovery',
   clock.stop(); clock.pump(200,event=>beats.push(event)); assert.equal(beats.length,6);
   clock.start(0,999,99); assert.equal(clock.interval,.25); assert.equal(clock.beats,12);
   clock.start(0,0,0); assert.equal(clock.interval,.75); assert.equal(clock.beats,4);
+});
+
+test('MIDI pitch outlines retain source attack identity without changing timing or notes',()=>{
+  const score={notes:[{id:'a',midi:60,start_tick:0,end_tick:480,channel:0},{id:'b',midi:64,start_tick:0,end_tick:960,channel:0},{id:'c',midi:67,start_tick:480,end_tick:960,channel:1},{id:'drum',midi:60,start_tick:240,channel:9}]};
+  const original=JSON.stringify(score), settings={...defaults,size:3,key:'C'};
+  assert.deepEqual(attackGroups(score).map(group=>group.tick),[0,480]);
+  const outline=makeOutline(score,settings);
+  assert.deepEqual(outline.targets.map(chord=>chord.map(n=>n.midi)),[[60,64],[67]]);
+  assert.equal(outline.retainedNotes,3); assert.equal(outline.omittedNotes,0);
+  assert.equal(outline.targets[1][0].sourceTick,480); assert.equal(outline.targets[1][0].sourceOnset,2);
+  assert.deepEqual(outline.targets[1][0].sourceIds,['c']); assert.equal(outline.targets[1][0].staff,'treble');
+  assert.deepEqual(makeOutline(score,settings,{start:2,end:2}).targets.map(chord=>chord.map(n=>n.midi)),[[67]]);
+  assert.equal(JSON.stringify(score),original);
+  const simplified=makeOutline(score,{...settings,size:1});
+  assert.deepEqual(simplified.targets.map(chord=>chord.map(n=>n.midi)),[[64],[67]]); assert.equal(simplified.omittedNotes,1);
+  assert.equal(makeOutline(score,{...settings,low:90,high:100}).targets.length,0);
+  assert.equal(makeOutline(null,settings).targets.length,0);
+});
+test('outline reduction prefers outer voices, obeys filters and keeps distinct written positions',()=>{
+  const score={notes:[48,60,61,62,64,67,72].map((midi,i)=>({id:String(i),midi,start_tick:0,channel:0}))};
+  const settings={...defaults,low:0,high:127,span:'full',hand:'both',size:3,material:'sharps',key:'C'};
+  const reduced=makeOutline(score,settings);
+  assert.deepEqual(reduced.targets[0].map(n=>n.midi),[48,67,72]);
+  assert.deepEqual(reduced.targets[0].map(n=>n.staff),['bass','treble','treble']);
+  const chromatic=makeOutline(score,{...settings,size:10});
+  assert.equal(new Set(chromatic.targets[0].map(staffStep)).size,chromatic.targets[0].length);
+  assert.ok(chromatic.omittedNotes>0);
+  assert.ok(makeOutline(score,{...settings,hand:'left',material:'flats'}).targets[0].every(n=>n.staff==='bass' && n.midi<60));
+  const duplicates={notes:[{id:'a',midi:60,start_tick:0,channel:0},{id:'b',midi:60,start_tick:0,channel:1}]};
+  const duplicate=makeOutline(duplicates,settings); assert.equal(duplicate.retainedNotes,2); assert.deepEqual(duplicate.targets[0][0].sourceIds,['a','b']);
+  const long={notes:Array.from({length:1000},(_,i)=>({id:String(i),midi:60,start_tick:i,channel:0}))};
+  assert.equal(makeOutline(long,settings,{start:2,end:1000}).targets.length,512);
+  assert.equal(makeOutline(long,settings,{start:99999,end:1}).start,1000);
+  assert.equal(attackGroups({notes:[{midi:60,start_tick:0}]}).length,1);
+});
+
+test('imported progress identities compare exact source passage and attack with bounded size',()=>{
+  const note={...spell(60),staff:'treble',sourceOnset:2};
+  const settings={...defaults,source:'midi',endAction:'repeat',scoreId:'hash-a',passage:{start:1,end:512}};
+  const phrase=Array.from({length:512},()=>[note]);
+  const identity=exerciseIdentity([note],settings,phrase);
+  assert.ok(identity.length<800);
+  assert.notEqual(identity,exerciseIdentity([note],{...settings,scoreId:'hash-b'},phrase));
+  assert.notEqual(identity,exerciseIdentity([note],{...settings,passage:{start:2,end:512}},phrase));
+  assert.notEqual(identity,exerciseIdentity([{...note,sourceOnset:3}],settings,phrase));
+  const generated={...defaults,endAction:'repeat'}, fields=['hand','key','source','material','span','low','high','size','min-size','harmony-scale','hand-span','endAction'];
+  const legacy=JSON.stringify([1,fields.map(field=>[field,generated[field]??null]),[[60,'C',0,4,'treble']],[[60]]]);
+  assert.equal(exerciseIdentity([note],generated,[[note]]),legacy);
 });

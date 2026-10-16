@@ -117,7 +117,7 @@ You can practise without MIDI by using the on-screen keys.
 
 These are generated pitch exercises, not composed pieces or suggested fingerings.
 Large random chords can span wide intervals; use fewer notes and the near range
-for easier practice. Composed passages are planned.
+for easier practice. Local MIDI pitch outlines are also available; full score notation and rhythm are planned.
 Sharp/flat choices are preferences: chords use alternate enharmonic spellings
 when needed to keep notes on distinct staff positions (for example D–E♭–G).
 If a very narrow chromatic range cannot fit the requested count without a
@@ -166,6 +166,20 @@ messages, controllers and a source-file hash. Missing note-offs and ambiguous re
 pitches are reported. Your original file stays unchanged and is not saved by the app.
 The file is sent only to the Python server on this computer, with no external upload.
 
+Choose **First attack** and **Last attack**, then **Practise pitch outline** to loop
+that passage (up to 512 source onsets). The current range, hand, key, pitch material
+and maximum chord size filter the source. Reduction keeps the highest note, then
+the bass, then inner notes; it never adds notes. Empty attacks are omitted from this
+untimed reading exercise. Minimum chord size and generated phrase length do not
+apply. The preview reports retained/omitted notes before starting.
+
+Each target contains simultaneous note attacks, not every note still sounding.
+Play it, release and advance as in generated practice. Spelling and the middle-C
+staff split are derived choices, not original notation or detected hands. Source
+durations, overlaps, pedal, rests and tempo remain in the inspection but are not
+judged or drawn as timed music yet. Reloading clears the local file and returns
+to generated practice; personal bests retain its source hash and passage identity.
+
 This inspection step accepts synchronous MIDI formats 0/1 with ticks-per-quarter
 timing, up to 256 KB, 64 tracks and 25,000 events. MIDI does not preserve original
 spelling, printed voices, ties or notation; these are not inferred as authored facts.
@@ -191,7 +205,7 @@ This first source is [Mutopia](https://www.mutopiaproject.org/), using its expli
 public-domain/CC0 metadata. Candidates still need an edition/asset/jurisdiction
 review before redistribution; other licences are omitted for separate review.
 See [Mutopia's licence details](https://www.mutopiaproject.org/legal.html).
-Playing imported pieces is still planned; the current app uses generated exercises.
+MIDI pitch outlines can already be practised; full notation and rhythmic performance remain planned.
 
 ## Troubleshooting
 

@@ -186,3 +186,25 @@ assignments are absent from MIDI and must remain explicitly derived in future wo
 valid inspection. Tests use the project's original `tests/fixtures/polyphony.mid`,
 with independent overlapping notes, sustain and a tempo change (960 ticks / 1.1 s).
 Do not substitute an unverified third-party score into regression fixtures.
+
+
+## MIDI pitch outlines
+
+`static/outline.js` groups only exact simultaneous attacks, retains tick/onset/source
+note IDs, excludes percussion channel 10 from piano practice and derives a separate
+pitch outline. It does not mutate inspected events, durations, overlaps or controllers.
+Filters reuse physical/reading range, key material and staff choice; maximum chord
+size retains melody, bass, then inner pitches. Collision-safe inferred spelling may
+omit another pitch. Selected source-onset windows are limited to 512, with explicit
+retained/omitted counts. Empty filtered attacks are skipped only in this untimed view.
+
+The explicit Practise action activates a snapshot of the inspected file/passage;
+subsequent inspection previews do not replace active practice. Only Repeat is enabled
+for local outlines; generated phrase length/minimum chord size do not apply. Reloads
+return to generated practice because files are not persisted. Progress identities
+include source hash, passage and attack position without embedding an entire long
+piece per attempt; generated-exercise identities remain compatible.
+
+This is attack-reading practice, not a duration/tie/polyphonic score matcher or an
+original engraving. Sustained voices and rhythms must use the preserved source model
+when the future timed modes are implemented, not this reduced target list.

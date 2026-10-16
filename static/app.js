@@ -4,11 +4,16 @@ import {makePracticePhrase as makePhrase} from './harmony.js';
 import {ProgressPanel} from './progress.js';
 import {SoundPanel} from './sound.js';
 import {ScorePanel} from './score.js';
+import {makeOutline} from './outline.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
 const progress = new ProgressPanel();
-const scorePanel = new ScorePanel();
+let activePiece=null;
+const scorePanel = new ScorePanel((score,bounds,filename)=>{
+  activePiece={score,bounds,filename}; $('source-midi').disabled=false; $('source').value='midi'; $('end-repeat').checked=true;
+  completed=0; $('count').textContent='0'; persist(); syncMode(); newTarget();
+},()=>settings());
 const controls = ['hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
 for (const id of ['size','min-size']) $(id).replaceChildren(...Array.from({length:10}, (_, i) => new Option(String(i+1), String(i+1))));
 $('key').replaceChildren(...KEYS.map(key => new Option(key.label, key.id)));
@@ -25,21 +30,24 @@ $('low').max = $('high').max = 127;
 try {
   const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
   for (const id of controls) {
-    if (saved[id] !== undefined && (['low', 'high'].includes(id) ? Number.isInteger(+saved[id]) && +saved[id] >= 0 && +saved[id] <= 127 : [...$(id).options].some(o => o.value === String(saved[id])))) $(id).value = saved[id];
+    if (saved[id] !== undefined && (['low', 'high'].includes(id) ? Number.isInteger(+saved[id]) && +saved[id] >= 0 && +saved[id] <= 127 : [...$(id).options].some(o => !o.disabled && o.value === String(saved[id])))) $(id).value = saved[id];
   }
   if (['repeat','new'].includes(saved.endAction)) $(`end-${saved.endAction}`).checked = true;
 } catch { /* Restricted storage or an old setting must not prevent practice. */ }
 if (+$('low').value > +$('high').value) $('high').value = $('low').value;
 if (+$('min-size').value > +$('size').value) $('min-size').value = $('size').value;
-function settings() { return {...Object.fromEntries(controls.map(id => [id, ['low', 'high', 'size','min-size','length','preview'].includes(id) ? +$(id).value : $(id).value])), endAction:document.querySelector('[name="end-action"]:checked').value}; }
+function settings() { return {...Object.fromEntries(controls.map(id => [id, ['low', 'high', 'size','min-size','length','preview'].includes(id) ? +$(id).value : $(id).value])), endAction:document.querySelector('[name="end-action"]:checked').value,scoreId:$('source').value==='midi' ? activePiece?.score.sha256 : null,passage:$('source').value==='midi' ? activePiece?.bounds : null}; }
 function persist() { try { localStorage.setItem(storageKey, JSON.stringify(settings())); } catch { /* Session still works. */ } }
 function syncMode() {
+  const imported=$('source').value==='midi';
+  $('end-new').disabled=imported;
+  if(imported) $('end-repeat').checked=true;
   const continuous = settings().endAction === 'new';
-  $('length').disabled = continuous;
-  const harmonic=$('source').value !== 'random';
+  $('length').disabled = continuous || imported; $('min-size').disabled=imported;
+  const harmonic=['triads','cadence'].includes($('source').value);
   $('harmony-scale').disabled=!harmonic; $('hand-span').disabled=!harmonic;
   $('material').disabled=harmonic;
-  $('practice-title').textContent = continuous ? 'Practice' : 'Phrase';
+  $('practice-title').textContent = imported ? 'Pitch outline' : continuous ? 'Practice' : 'Phrase';
   $('count-label').textContent = continuous ? 'targets completed' : 'repetitions completed';
 }
 syncMode();
@@ -169,7 +177,7 @@ function drawStaff() {
   systems += svg;
   }
   $('staff').innerHTML = systems;
-  $('phrase-position').textContent = settings().endAction === 'new' ? String(streamOffset+phraseIndex+1) : `${phraseIndex+1} / ${phrase.length}`;
+  $('phrase-position').textContent = !phrase.length ? '—' : settings().endAction === 'new' ? String(streamOffset+phraseIndex+1) : `${phraseIndex+1} / ${phrase.length}`;
   $('note-names').textContent = target.map(noteName).join(' · ');
 }
 
@@ -245,7 +253,9 @@ function paintKeys(hints = []) {
 }
 function newTarget() {
   clearTimeout(settleTimer); clearTimeout(nextTimer);
-  phrase = makePhrase({...settings(), length:settings().endAction === 'new' ? 32 : settings().length});
+  phrase = settings().source==='midi' ? makeOutline(activePiece?.score,settings(),activePiece?.bounds).targets : makePhrase({...settings(), length:settings().endAction === 'new' ? 32 : settings().length});
+  $('score-playing').textContent=settings().source==='midi' && activePiece ? `Practising ${activePiece.filename} · source attacks ${activePiece.bounds.start}–${activePiece.bounds.end}` : '';
+  scorePanel.refresh();
   streamOffset = 0;
   restartPhrase();
 }
@@ -318,7 +328,7 @@ function update() {
     $('feedback').textContent = result.extra.length ? hints.length ? 'Adjust the marked notes' : 'Extra notes — release the red keys' : result.correct.length ? 'Add the missing notes' : '';
     const available = settings();
     const outside = [...held].filter(n => n < available.low || n > available.high);
-    $('detail').textContent = `${result.correct.length} of ${target.length} matched · ${result.missing.length} missing${result.extra.length ? ` · ${result.extra.length} extra` : ''}${outside.length ? ` · Outside keyboard range: ${outside.map(n => noteName(spell(n))).join(', ')}` : ''}${settings()['min-size'] > target.length ? ' · Fewer distinct written notes fit this range.' : ''}`;
+    $('detail').textContent = `${result.correct.length} of ${target.length} matched · ${result.missing.length} missing${result.extra.length ? ` · ${result.extra.length} extra` : ''}${outside.length ? ` · Outside keyboard range: ${outside.map(n => noteName(spell(n))).join(', ')}` : ''}${settings().source!=='midi' && settings()['min-size'] > target.length ? ' · Fewer distinct written notes fit this range.' : ''}`;
   }
 }
 

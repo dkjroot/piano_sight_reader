@@ -57,6 +57,13 @@ Web MIDI without a front-end build step.
   enharmonically where needed, and skip additions that cannot be spelled without
   collisions. Keep naturals natural; sharp/flat modes are spelling preferences.
   Place accidentals in nearby collision-aware columns, never by note index.
+- Local MIDI outlines are derived untimed attack exercises, not original notation.
+  Preserve imported tick/event/track/channel/controller data and source hashes. Keep
+  passage/filter/reduction results separate; never invent held durations, hands or
+  spelling as recovered facts. Files stay local and are not persisted or bundled.
+- Audio paths must remain independent of input matching. Sustain follows live sound
+  without completing physically held targets. Sound starts through a user gesture;
+  panic/backgrounding stops instruments and metronome. Keep scheduling on audio time.
 - Keep MIDI permissions explicit; handle missing APIs, denial and unplugging.
 - Maintain a remembered dark mode option. Keyboard colour inversion must remain
   an independent remembered choice so dark mode supports a conventional keyboard.

@@ -34,8 +34,10 @@ export function summary(records) {
   return {count:times.length,mean:times.reduce((a,b)=>a+b,0)/times.length,median:(times[Math.floor(middle)]+times[Math.ceil(middle)])/2,p90:times[Math.ceil(times.length*.9)-1],accuracy:records.filter(r=>r.firstAttemptCorrect).length/times.length};
 }
 export function exerciseIdentity(notes,settings,phrase) {
+  const imported=settings.source==='midi';
   const fields=['hand','key','source','material','span','low','high','size','min-size','harmony-scale','hand-span','endAction'];
-  return JSON.stringify([1,fields.map(field=>[field,settings[field]??null]),notes.map(n=>[n.midi,n.letter,n.accidental,n.octave,n.staff]),settings.endAction==='repeat' ? phrase.map(chord=>chord.map(n=>n.midi)) : null]);
+  if(imported) fields.push('scoreId','passage');
+  return JSON.stringify([1,fields.map(field=>[field,settings[field]??null]),notes.map(n=>{const values=[n.midi,n.letter,n.accidental,n.octave,n.staff]; if(imported) values.push(n.sourceOnset); return values;}),settings.endAction==='repeat' && !imported ? phrase.map(chord=>chord.map(n=>n.midi)) : null]);
 }
 export function grouped(records,dimension) {
   const groups=new Map();

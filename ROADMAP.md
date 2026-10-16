@@ -163,8 +163,9 @@ solo-piano public-domain/CC0 candidate shortlist, with edition/contributor/licen
 links, evidence, retrieval timestamp and metadata hash. No assets are downloaded or
 bundled; per-asset review remains below. Local MIDI inspection now preserves a
 bounded raw event timeline, paired note spans, tempo map and source hash, with
-preview/export and malformed-file diagnostics. Playable outlines and notation-aware
-imports remain below.
+preview/export and malformed-file diagnostics. Selected passages can now be played
+as filtered, repeated untimed pitch outlines; notation-aware/rhythmic import remains
+below.
 
 
 - [ ] Support local score imports with preview and validation. Prefer notation-preserving
@@ -196,6 +197,12 @@ Exit: one real passage works end to end, with trustworthy provenance and authore
 notation where supplied. This is the first proof toward a full Chopin piece.
 
 ## Stage 4 — Progressive outlines of real pieces
+
+Shipped first step: local MIDI attack outlines, explicit 1–512-onset passage selection,
+range/key/material/staff/max-chord filters, highest/bass/inner reduction and source
+identity per retained note. Preview counts omissions; the original performance model
+stays unchanged. This untimed view skips empty attacks and requires release between
+targets; preserving scored silence/holds and voice-aware reduction remains future work.
 
 - [ ] Derive practice versions from the source, without overwriting it. Map every retained
   note and event back to its original score position and identity.

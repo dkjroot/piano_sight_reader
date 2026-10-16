@@ -33,7 +33,7 @@
 
   <section class="settings-grid">
     <div class="card settings"><h2>Practice setup</h2>
-      <label>Exercise <select id="source"><option value="random">Random pitches</option><option value="triads">Diatonic chords</option><option value="cadence">Cadence</option></select></label>
+      <label>Exercise <select id="source"><option value="random">Random pitches</option><option value="triads">Diatonic chords</option><option value="cadence">Cadence</option><option id="source-midi" value="midi" disabled>Local MIDI outline</option></select></label>
       <label>Tonality <select id="harmony-scale"><option value="major">Major</option><option value="minor">Natural minor</option></select></label>
       <label>Maximum hand span <select id="hand-span"><option value="12">Octave</option><option value="16">Tenth</option><option value="24">Two octaves</option></select></label>
       <label>Key <select id="key"><option value="C">C major / A minor</option></select></label>
@@ -58,7 +58,10 @@
   <section class="card settings" aria-label="Local MIDI file"><h2>Local MIDI file</h2>
     <label>Inspect file <input id="score-file" type="file" accept=".mid,.midi,audio/midi"></label>
     <p id="score-status" class="small" role="status"></p><p id="score-details" class="small"></p><p id="score-warnings" class="small" role="status"></p>
-    <button id="export-score" class="quiet" disabled>Export inspection</button>
+    <div class="range-buttons"><button id="export-score" class="quiet" disabled>Export inspection</button><button id="practice-score" disabled>Practise pitch outline</button></div>
+    <label>First attack <input id="passage-start" type="number" min="1" max="1" value="1" disabled></label>
+    <label>Last attack <input id="passage-end" type="number" min="1" max="1" value="1" disabled></label>
+    <p id="outline-status" class="small" role="status"></p><p id="score-playing" class="small" role="status"></p>
   </section>
   <section class="settings-grid" aria-label="Sound settings">
     <div class="card settings"><h2>Sound</h2>
