@@ -16,6 +16,11 @@ Web MIDI without a front-end build step.
 - Keep requirements.txt and setup/run instructions current with every change.
   A visitor should always find a runnable application, even during early work.
 - Preserve the existing GPL license and unrelated changes. Use LF source files.
+- Bundle music only after reviewing explicit redistribution permission for the
+  particular edition and MIDI asset. Preserve individual music licences, credits
+  and source links separately from the code GPL. Keep README and Help instructions
+  for running discovery and loading privately downloaded files current; discovery
+  must not silently download, ingest or publish music.
 
 ## Core requirements
 

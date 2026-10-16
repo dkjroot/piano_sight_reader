@@ -231,13 +231,16 @@ the top-right corner to close the guide and return to your existing practice tab
 
 ## Music library
 
-The **Music library** includes Bach’s Prelude in C major BWV 846 and Chopin’s Prelude
-Op. 28 No. 7, ready to load offline. Filter by composer, era, style or difficulty,
-then select a piece and choose **Load piece**, or choose **Random piece** to load
-a selection within those filters. Adjust the
-preview if needed, then **Start practising this passage**. Your range, hand and pitch
-filters still apply. Edition credits are linked beside the selection and recorded
-in `static/library/NOTICES.md`; these Mutopia editions carry a public-domain dedication.
+The **Music library** has eight editions ready to load offline: Bach, Chopin,
+Beethoven, Haydn, Handel, Schumann, Clementi and Rachmaninoff. Filter by composer,
+era, style or difficulty, then select a piece and choose **Load piece**, or choose
+**Random piece** for a selection within those filters. Adjust the preview if needed,
+then **Start practising this passage**. Your range, hand and pitch filters still apply.
+Edition credits are linked beside the selection and recorded in
+[the music notices](static/library/NOTICES.md). Seven editions have explicit Mutopia
+public-domain dedications; Rachmaninoff's Prelude retains its **CC BY-SA 4.0** licence,
+attribution and share-alike terms. These music licences are separate from the
+application's GPL licence. Only editions with reviewed redistribution terms are bundled.
 Difficulty is currently **Unrated** until an editorial review establishes useful
 levels; no exam grades are inferred from MIDI. Browsing filters never replace
 the current practice passage.
@@ -322,26 +325,42 @@ MIDI time-signature denominator as the pulse (six eighth-note pulses in 6/8), wi
 an accent at the MIDI bar boundary. Missing meter defaults to 4/4. Printed pickups
 and compound-beat grouping are not recovered from MIDI.
 
-## Finding music for future practice
+## Finding your own music
 
-The score-discovery helper produces a list to choose from, without downloading or
-adding music to the app. From the project folder, run:
+From the project folder, with your Python environment activated as described above,
+run the discovery helper:
 
 ```powershell
 python tools/discover_scores.py --composer ChopinFF --limit 8
 ```
 
-Open `score-shortlists/mutopia.md` for the shortlist and links. The matching JSON
-retains edition, contributor, licence evidence and retrieval details. Omit
-`--composer` to browse piano works, or use Mutopia codes such as `BachJS` or
-`MozartWA`. `--max-review` limits metadata requests (default 30); `--output` changes
-the report location. The script needs internet access but no additional packages.
+Open `score-shortlists/mutopia.md` for a shortlist of titles, editions, licence links
+and MIDI downloads. Visit a source page, choose a MIDI file to download, then use
+**Choose MIDI file** in the app. If the download is a MIDI ZIP, extract it first and
+choose the movement you want. Check the preview, then choose **Start practising this
+passage**. Your downloaded file is not added to the public library or stored by the app.
 
-This first source is [Mutopia](https://www.mutopiaproject.org/), using its explicit
-public-domain/CC0 metadata. Candidates still need an edition/asset/jurisdiction
-review before redistribution; other licences are omitted for separate review.
-See [Mutopia's licence details](https://www.mutopiaproject.org/legal.html).
-MIDI pitch outlines can already be practised; full notation and rhythmic performance remain planned.
+Omit `--composer` to browse keyboard works, or use Mutopia codes such as `BachJS`,
+`BeethovenLv`, `HaydnFJ`, `HandelGF`, `SchumannR` or `ClementiM`. By default the helper
+shortlists explicit public-domain/CC0 editions. To include editions explicitly marked
+CC BY-SA 4.0, opt in, for example:
+
+```powershell
+python tools/discover_scores.py --composer RachmaninoffS --include-by-sa-4
+```
+
+Discovery reads online metadata and writes local reports; it never downloads music
+or imports it automatically. It needs internet access but no additional packages.
+`--max-review` limits edition-page requests (default 30); `--output` changes the
+report location. The matching JSON keeps dated metadata hashes and permission evidence.
+
+[Mutopia](https://www.mutopiaproject.org/) explicitly shares its editions under the
+terms shown on each source page. Keep those credits and terms if you redistribute
+files. A shortlist is a starting point for reviewing the particular edition and asset;
+being free to download or being an old composition does not itself grant redistribution
+rights. See [Mutopia's licence details](https://www.mutopiaproject.org/legal.html).
+MIDI pitch outlines can already be practised; full notation and rhythmic performance
+remain planned.
 
 ## Troubleshooting
 

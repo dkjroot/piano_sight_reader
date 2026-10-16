@@ -1,4 +1,4 @@
-"""Build a reviewable public-domain/CC0 piano-score shortlist; never import assets."""
+"""Build a reviewable keyboard-score shortlist; never import assets."""
 import argparse
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -80,7 +80,7 @@ def piece_links(page, url):
     return result
 
 
-def candidate(text, url, retrieved):
+def candidate(text, url, retrieved, include_by_sa_4=False):
     page = Page(text)
     fields = {}
     for _, cell in page.parts['td']:
@@ -98,20 +98,23 @@ def candidate(text, url, retrieved):
             license_url = BASE+'legal.html#publicdomain'
         if label in ('CC0', 'CC0 1.0', 'Creative Commons Zero') and parsed.hostname == 'creativecommons.org' and parsed.path.rstrip('/') == '/publicdomain/zero/1.0' and parsed.scheme in ('http', 'https'):
             license_url = 'https://creativecommons.org/publicdomain/zero/1.0/'
+        if include_by_sa_4 and label == 'Creative Commons Attribution-ShareAlike 4.0' and parsed.hostname == 'creativecommons.org' and parsed.path.rstrip('/') == '/licenses/by-sa/4.0' and parsed.scheme in ('http', 'https'):
+            license_url = 'https://creativecommons.org/licenses/by-sa/4.0/'
     if not license_url:
         return None, 'Licence requires separate review: '+(label or 'missing')
-    if fields.get('Instrument(s)', '').casefold() != 'piano':
-        return None, 'Not explicitly solo piano'
+    instruments = [part.strip().casefold() for part in fields.get('Instrument(s)', '').split(',')]
+    if not instruments or len(instruments) != len(set(instruments)) or not set(instruments) <= {'piano', 'pianoforte', 'harpsichord', 'clavichord'}:
+        return None, 'Not explicitly solo keyboard'
     assets = []
     for href, description in page.links:
         safe = source_url(href, url)
         if not safe or not urlsplit(safe).path.startswith('/ftp/'):
             continue
         path = urlsplit(safe).path.lower()
-        kind = 'midi' if path.endswith(('.mid', '.midi')) else 'source' if path.endswith(('.ly', '-lys.zip')) else 'pdf' if path.endswith('.pdf') else None
+        kind = 'midi' if path.endswith(('.mid', '.midi')) else 'midi-archive' if path.endswith('-mids.zip') else 'source' if path.endswith(('.ly', '-lys.zip')) else 'pdf' if path.endswith('.pdf') else None
         if kind:
             assets.append({'kind': kind, 'url': safe, 'description': description})
-    if not title or not composer or not fields.get('Source') or not any(asset['kind'] == 'midi' for asset in assets):
+    if not title or not composer or not fields.get('Source') or not any(asset['kind'] in ('midi', 'midi-archive') for asset in assets):
         return None, 'Incomplete title/composer/edition/MIDI metadata'
     return {'id': 'mutopia:'+parse_qs(urlsplit(url).query)['id'][0], 'title': title,
             'composer': composer, 'instrument': fields['Instrument(s)'], 'style': fields.get('Style', ''),
@@ -121,12 +124,14 @@ def candidate(text, url, retrieved):
             'assets': assets, 'review_required': True}, None
 
 
-def discover(composer='', limit=8, max_review=30, load=fetch, delay=time.sleep):
+def discover(composer='', limit=8, max_review=30, load=fetch, delay=time.sleep, include_by_sa_4=False):
     listing = BASE+'cgibin/make-table.cgi?'+urlencode({'Instrument': 'Piano', 'Composer': composer})
     url, seen_pages, seen_pieces = listing, set(), set()
     result = {'version': 1, 'source': 'Mutopia Project', 'catalogue_url': listing,
               'policy': 'Only explicit public-domain/CC0 candidates; review edition, asset and jurisdiction before bundling. Other licences are omitted, not declared incompatible.',
               'retrieved_utc': datetime.now(timezone.utc).isoformat(), 'candidates': [], 'skipped': [], 'errors': []}
+    if include_by_sa_4:
+        result['policy'] += ' Explicit opt-in also includes CC BY-SA 4.0 candidates; retain attribution, share-alike terms and full licence in the separate asset review.'
     while url and url not in seen_pages and len(seen_pages) < 20 and len(seen_pieces) < max_review:
         seen_pages.add(url)
         page = Page(load(url))
@@ -138,7 +143,7 @@ def discover(composer='', limit=8, max_review=30, load=fetch, delay=time.sleep):
             seen_pieces.add(piece)
             delay(.15)
             try:
-                item, reason = candidate(load(piece), piece, result['retrieved_utc'])
+                item, reason = candidate(load(piece), piece, result['retrieved_utc'], include_by_sa_4)
                 if item:
                     result['candidates'].append(item)
                 else:
@@ -175,6 +180,7 @@ def markdown(report):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--composer', default='', help='Mutopia composer code, e.g. ChopinFF, BachJS, MozartWA')
+    parser.add_argument('--include-by-sa-4', action='store_true', help='Also shortlist explicit CC BY-SA 4.0 assets for separate licence/attribution review')
     parser.add_argument('--limit', type=int, default=8)
     parser.add_argument('--max-review', type=int, default=30)
     parser.add_argument('--output', type=Path, default=Path('score-shortlists/mutopia.json'))
@@ -182,7 +188,7 @@ def main(argv=None):
     if not re.fullmatch(r'[A-Za-z0-9_-]{0,80}', args.composer) or not 1 <= args.limit <= args.max_review <= 100:
         parser.error('Use a composer code and 1 <= limit <= max-review <= 100')
     try:
-        report = discover(args.composer, args.limit, args.max_review)
+        report = discover(args.composer, args.limit, args.max_review, include_by_sa_4=args.include_by_sa_4)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False)+'\n', encoding='utf-8', newline='\n')
         args.output.with_suffix('.md').write_text(markdown(report), encoding='utf-8', newline='\n')

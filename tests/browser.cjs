@@ -984,6 +984,15 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     for(const field of ['composer','era','style','difficulty']) await page.selectOption('#library-'+field,'');
     const requests=[]; page.on('request',request=>requests.push(request.url()));
     const beforeLibrary=await page.locator('.key.target').evaluateAll(keys=>keys.map(key=>key.dataset.pitch));
+    for(const piece of bundledPieces.filter(piece=>!['chopin-op28-7','bach-bwv846'].includes(piece.id))) {
+      const inspection=JSON.parse(require('node:fs').readFileSync('static/library/'+piece.inspection,'utf8'));
+      await page.selectOption('#library-piece',piece.id); await page.locator('#load-piece').click();
+      await page.waitForFunction(count=>document.getElementById('score-status').textContent.includes(count+' attacks'),inspection.notes.length);
+      assert.ok((await page.locator('#library-credit').innerText()).includes(piece.contributor));
+      assert.ok((await page.locator('#library-credit').innerText()).includes(piece.licence));
+      assert.equal(await page.locator('#library-source').getAttribute('href'),piece.source_page);
+      assert.deepEqual(await page.locator('.key.target').evaluateAll(keys=>keys.map(key=>key.dataset.pitch)),beforeLibrary);
+    }
     await page.selectOption('#library-piece','chopin-op28-7'); await page.locator('#load-piece').click();
     await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('168 attacks'));
     assert.deepEqual(await page.locator('.key.target').evaluateAll(keys=>keys.map(key=>key.dataset.pitch)),beforeLibrary,'loading library preview must not replace active practice');
@@ -1065,6 +1074,9 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     await help.waitForURL('**/help'); await help.waitForSelector('#help-theme');
     assert.equal(await help.title(),'Help · Piano Sight Reader');
     assert.equal(await help.getByRole('heading',{name:'Choose a piece or passage'}).count(),1);
+    assert.equal(await help.getByRole('heading',{name:'Find your own music'}).count(),1);
+    assert.match(await help.locator('#find-music').innerText(),/python tools\/discover_scores.py --composer ChopinFF --limit 8/);
+    assert.match(await help.locator('#find-music').innerText(),/never downloads or imports/);
     assert.equal(await help.getByRole('complementary',{name:'Support this free tool'}).getByRole('link').getAttribute('href'),'https://buymeacoffee.com/dkjroot');
     assert.equal(await help.locator('script[src$="app.js"]').count(),0,'Help must not start the live MIDI controller');
     const helpTheme=await help.locator('html').getAttribute('data-theme');

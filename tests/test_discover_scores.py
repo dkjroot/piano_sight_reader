@@ -38,6 +38,22 @@ class DiscoveryTests(unittest.TestCase):
         for fragment in ['<h2>Prelude &amp; study</h2>', '<h4>by Composer (1810–1849)</h4>', '<td>Source: Original edition</td>', "<a href='/ftp/Test/test.mid'>MIDI file</a>"]:
             self.assertIsNone(scores.candidate(piece().replace(fragment, ''), URL, 'now')[0])
 
+    def test_keyboard_alternatives_midi_archives_and_explicit_sharealike_opt_in(self):
+        for instrument in ['Harpsichord, Piano', 'Pianoforte', 'Clavichord', 'Piano, Harpsichord, Clavichord']:
+            self.assertIsNotNone(scores.candidate(piece(instrument=instrument), URL, 'now')[0])
+        for instrument in ['Voice, Piano', 'Piano four hands', 'Piano, Piano', 'Organ', '']:
+            self.assertIsNone(scores.candidate(piece(instrument=instrument), URL, 'now')[0])
+        archive = piece().replace('/ftp/Test/test.mid', '/ftp/Test/test-mids.zip')
+        self.assertEqual(scores.candidate(archive, URL, 'now')[0]['assets'][0]['kind'], 'midi-archive')
+        sa = piece('Creative Commons Attribution-ShareAlike 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/')
+        self.assertIsNone(scores.candidate(sa, URL, 'now')[0])
+        self.assertIsNotNone(scores.candidate(sa, URL, 'now', include_by_sa_4=True)[0])
+        for bad in [sa.replace('by-sa/4.0', 'by-nc-sa/4.0'), sa.replace('creativecommons.org', 'outside.invalid'), sa.replace('ShareAlike 4.0', 'ShareAlike 2.5')]:
+            self.assertIsNone(scores.candidate(bad, URL, 'now', include_by_sa_4=True)[0])
+        report = scores.discover(load=lambda url: "<a href='piece-info.cgi?id=470'>piece</a>" if 'make-table' in url else sa, delay=lambda _: None, include_by_sa_4=True)
+        self.assertEqual(len(report['candidates']), 1)
+        self.assertIn('Explicit opt-in', report['policy'])
+
     def test_urls_and_duplicate_piece_links(self):
         self.assertEqual(scores.source_url('http://mutopiaproject.org/ftp/a.mid'), scores.BASE+'ftp/a.mid')
         for url in ['https://outside.invalid/a.mid', 'javascript:alert(1)', 'https://user@mutopiaproject.org/a', 'https://mutopiaproject.org:8080/a']:

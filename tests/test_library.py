@@ -12,7 +12,8 @@ class LibraryTests(unittest.TestCase):
     def test_every_bundled_piece_is_reproducible_and_served_locally(self):
         from app import app
         entries = json.loads((ROOT / 'catalogue.json').read_text(encoding='utf-8'))['pieces']
-        self.assertGreaterEqual(len(entries), 2)
+        self.assertGreaterEqual(len(entries), 8)
+        self.assertEqual(len({entry['id'] for entry in entries}), len(entries))
         with app.test_client() as client:
             for entry in entries:
                 for field in ('composer', 'era', 'style', 'difficulty'):
@@ -21,7 +22,7 @@ class LibraryTests(unittest.TestCase):
                 score = compile_piece(ROOT, entry)
                 self.assertEqual(score, json.loads((ROOT / entry['inspection']).read_text(encoding='utf-8')))
                 self.assertEqual(score['warning_count'], 0)
-                for name in [entry['midi'], entry['inspection']]:
+                for name in [entry['midi'], entry['inspection']] + ([entry['licence_file']] if entry.get('licence_file') else []):
                     with client.get('/static/library/'+name) as response:
                         self.assertEqual(response.status_code, 200)
 
@@ -36,6 +37,25 @@ class LibraryTests(unittest.TestCase):
             (directory / entry['midi']).write_bytes(b'changed')
             with self.assertRaises(ValueError):
                 compile_piece(directory, entry)
+
+    def test_licence_evidence_and_sharealike_terms_are_required(self):
+        entries = json.loads((ROOT / 'catalogue.json').read_text(encoding='utf-8'))['pieces']
+        pd = entries[0]
+        for changes in [{'licence_evidence': ''}, {'licence': 'Free download'}, {'licence_url': 'https://outside.invalid/'}]:
+            with self.assertRaises(ValueError):
+                compile_piece(ROOT, {**pd, **changes})
+        sa = next(entry for entry in entries if entry['licence'] == 'CC BY-SA 4.0')
+        self.assertEqual(compile_piece(ROOT, sa)['provenance']['contributor'], 'Petro Kostandy')
+        for name in ['', '../outside.txt']:
+            with self.assertRaises(ValueError):
+                compile_piece(ROOT, {**sa, 'licence_file': name})
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            (directory / sa['licence_file']).write_text('Truncated licence', encoding='utf-8')
+            with self.assertRaises(ValueError):
+                compile_piece(directory, sa)
+        clementi = next(entry for entry in entries if entry['id'] == 'clementi-op36-1-1')
+        self.assertEqual(compile_piece(ROOT, clementi)['provenance']['source_archive_member'], 'sonatina-1.mid')
 
 
 class AcousticAssetTests(unittest.TestCase):

@@ -10,7 +10,7 @@
 <body>
 <main class="help-page">
   <header><h1>Piano Sight Reader · Help</h1><div class="help-actions"><button id="help-theme" class="quiet">Light mode</button><button id="help-close" class="quiet" aria-label="Close help" title="Close help">×</button></div></header>
-  <nav aria-label="Help topics"><a href="#start">Start</a> · <a href="#pieces">Pieces</a> · <a href="#playing">Playing</a> · <a href="#sound">Sound</a> · <a href="#progress">Progress</a> · <a href="#midi">MIDI problems</a></nav>
+  <nav aria-label="Help topics"><a href="#start">Start</a> · <a href="#pieces">Pieces</a> · <a href="#find-music">Find music</a> · <a href="#playing">Playing</a> · <a href="#sound">Sound</a> · <a href="#progress">Progress</a> · <a href="#midi">MIDI problems</a></nav>
   <section id="start"><h2>Start practising</h2>
     <ol><li>Connect your keyboard, choose <strong>Connect MIDI</strong>, allow access, and select its input.</li>
     <li>Set your instrument’s lowest and highest notes in <strong>Physical keyboard range</strong>. You can learn each endpoint by playing it.</li>
@@ -25,6 +25,12 @@
     <p><strong>Download MIDI data (JSON)</strong> saves the file’s note and event data for inspection or development. It does not start practice or download sheet music.</p>
     <p><strong>Save passage</strong> remembers its endpoints and track/staff choices in this browser. To restore it later, load the same library piece or local file, then select the saved passage.</p>
     <p>The current pieces are <strong>Unrated</strong> pending a difficulty review. Edition and licence credits are linked beside the library selection.</p>
+  </section>
+  <section id="find-music"><h2>Find your own music</h2>
+    <p>With the project's Python environment activated, run <code>python tools/discover_scores.py --composer ChopinFF --limit 8</code> from the project folder. Open <code>score-shortlists/mutopia.md</code> for source pages, licence details and MIDI links.</p>
+    <p>Download a chosen MIDI file from its source, extract it first if it is a ZIP, then use <strong>Choose MIDI file</strong> and <strong>Start practising this passage</strong>. Discovery makes a shortlist; it never downloads or imports music automatically.</p>
+    <p>By default discovery includes explicit public-domain/CC0 editions. <code>--include-by-sa-4</code> also lists CC BY-SA 4.0 editions, with attribution and share-alike terms. See the README for composer codes and options. Your local files are not added to the public library.</p>
+    <p>The bundled editions have reviewed redistribution terms and individual credits. Their music licences remain separate from the application's GPL licence. <a href="https://www.mutopiaproject.org/legal.html" target="_blank" rel="noopener noreferrer">Mutopia licence details</a>.</p>
   </section>
   <section id="playing"><h2>Playing and repeated notes</h2>
     <p>The heading above the stave names your current exercise and its filters. For a piece, it shows the active passage, even if you load a different preview below.</p>

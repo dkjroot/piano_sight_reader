@@ -608,3 +608,22 @@ selection when there is an alternative. A pure helper accepts an injected RNG fo
 reproducible checks. It loads only a preview through the existing revision guard;
 active practice still changes only with Start practising this passage. Empty
 filters/results and single-piece pools are covered; there is no online request.
+
+
+## Reviewed repertoire and discovery policy
+
+The offline catalogue now contains eight editions: the original Bach and Chopin,
+plus Beethoven, Haydn, Handel, Schumann, Clementi and Rachmaninoff. Seven are explicitly
+public-domain-dedicated by Mutopia contributors. Rachmaninoff Op. 3 No. 2 retains
+CC BY-SA 4.0 for its MIDI and inspection, full legal text and contributor attribution.
+No asset is relicensed by the application GPL. Music notices describe unchanged MIDI
+and the technical JSON conversion. Clementi's first movement is an unchanged member
+of its source MIDI archive, whose hash and member name are recorded.
+
+Discovery accepts explicitly solo keyboard alternatives, MIDI files or MIDI archives.
+Its default policy remains public-domain/CC0; --include-by-sa-4 explicitly broadens
+only the shortlist to CC BY-SA 4.0. It does not download assets. Bundle acceptance
+remains a separate source/edition/asset review. The offline builder now requires
+permission evidence, a reviewed licence label/URL pair, full local share-alike text
+when applicable, and the reviewed MIDI hash. Tests rebuild every inspection and
+serve each MIDI/JSON locally. Unknown licences require an explicit future review.

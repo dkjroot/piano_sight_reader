@@ -188,7 +188,7 @@ everything to a sequence of chords that require all fingers to lift together.
   independently of derived spelling and staff assignment.
 - [x] Discover bounded Mutopia solo-piano public-domain/CC0 candidates with an opt-in
   script and a local author-selection shortlist, dated metadata hashes and licence links.
-- [x] Bundle two explicitly reviewed editions with original MIDI, prebuilt inspections,
+- [x] Bundle explicitly reviewed editions with original MIDI, prebuilt inspections,
   source/edition/contributor attribution, dated permission evidence and verified hashes.
   Check composition and edition/transcription rights separately; unclear assets stay out.
 - [x] Rebuild accepted MIDI inspections offline and reject changed hashes or incomplete
@@ -236,8 +236,9 @@ voice structure preserved. The untimed filtering foundation is complete.
 - [x] Save up to 50 named local passage bookmarks with source hashes, endpoints and
   track/staff choices; restore them after reloading the same source.
 - [x] Isolate and repeat a selected passage; include/exclude tracks and assign staves.
-- [ ] Expand reviewed repertoire across Bach, Chopin, Beethoven, Haydn, Handel and
-  Schumann, from beginner pieces and studies through demanding Rachmaninoff chords.
+- [x] Expand reviewed repertoire across Bach, Chopin, Beethoven, Haydn, Handel and
+  Schumann, including a Clementi sonatina and demanding Rachmaninoff chords. Eight
+  editions are bundled; difficulty remains Unrated pending a musical review.
   Find candidates with the discovery script, retain edition/MIDI permission evidence,
   present a shortlist, review each selected asset and ingest it offline with tests.
 - [ ] Define and review Easy, Medium, Hard, Expert and Virtuoso tiers using range,
@@ -417,7 +418,8 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Immediate fluid pitch progression with one-target legato overlap and repeated-note articulation.
 - [x] Clear the last hour, local calendar day or all practice history.
 - [ ] Extend passage suggestions with repeated motifs, harmonic cadences and manual boundary editing on a timeline.
-- [ ] Expand the reviewed library and rated difficulty dimensions (composer/repertoire plan in Stage 5).
+- [x] Expand the reviewed library to eight editions across the requested composers.
+- [ ] Review difficulty dimensions and levels (Stage 5).
 
 - [x] Offline sampled acoustic grand piano, independent live/reference selection and attributed media.
 - [ ] Multiple acoustic velocity layers and measured sample-start latency; consider release/pedal/resonance modelling after profiling.
@@ -451,3 +453,6 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Make the original notation study accessible from Help, with local engine/fonts, both palettes, keyboard/pointer note inspection and source/licence notices. This is a preview, not rhythmic practice.
 
 - [x] Render and play the original two-hand notation study with rests, independent voices, dots, triplets, tempo changes, cross-bar ties and distinct repeated attacks. Authored-score live judgement remains ahead.
+
+- [x] Document user-run music discovery in README and Help; support keyboard alternatives,
+  MIDI archives and explicit CC BY-SA 4.0 opt-in without automatic asset imports.
