@@ -157,6 +157,27 @@ arbitrarily blamed on one finger. Counts remain visible; small samples are not d
 Personal bests compare the same target, settings and (in Repeat) phrase, not easier
 material against harder exercises. These are reading measurements, not game points.
 
+## Finding music for future practice
+
+The score-discovery helper produces a list to choose from, without downloading or
+adding music to the app. From the project folder, run:
+
+```powershell
+python tools/discover_scores.py --composer ChopinFF --limit 8
+```
+
+Open `score-shortlists/mutopia.md` for the shortlist and links. The matching JSON
+retains edition, contributor, licence evidence and retrieval details. Omit
+`--composer` to browse piano works, or use Mutopia codes such as `BachJS` or
+`MozartWA`. `--max-review` limits metadata requests (default 30); `--output` changes
+the report location. The script needs internet access but no additional packages.
+
+This first source is [Mutopia](https://www.mutopiaproject.org/), using its explicit
+public-domain/CC0 metadata. Candidates still need an edition/asset/jurisdiction
+review before redistribution; other licences are omitted for separate review.
+See [Mutopia's licence details](https://www.mutopiaproject.org/legal.html).
+Playing imported pieces is still planned; the current app uses generated exercises.
+
 ## Troubleshooting
 
 - **Python is missing:** install Python 3.10+ from [python.org](https://www.python.org/downloads/),

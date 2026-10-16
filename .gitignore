@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 .tmp/
 test-results/
+score-shortlists/
 node_modules/
 __pycache__/
 *.py[codz]

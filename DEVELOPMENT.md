@@ -148,3 +148,19 @@ Tests cover deterministic node ownership/releases, independent buses, timed voic
 cleanup, scheduler accents/stalls, real browser OfflineAudioContext waveform/tail,
 controls/persistence and unsupported-audio recovery. These do not verify perceived
 instrument quality or physical input/output latency.
+
+
+## Score discovery
+
+`tools/discover_scores.py` reads bounded Mutopia catalogue/detail pages and emits
+ignored JSON/Markdown shortlists. It requires explicit solo-piano metadata, edition,
+composer, linked public-domain/CC0 evidence and a same-source MIDI link. Other
+licences are omitted for individual review, not classified as GPL-incompatible.
+The report retains per-edition evidence, contributor and a metadata-page hash.
+It neither downloads assets nor imports/bundles a piece. Final distribution review
+and actual asset checksums remain separate work.
+
+Fetches have size/time/request limits and source-host-only redirects. Normal tests
+use deterministic offline HTML fixtures, including missing/conflicting licences,
+external links, pagination loops, partial network failure and CLI output. Live source
+smoke checks are separate because network availability and catalogue HTML can change.

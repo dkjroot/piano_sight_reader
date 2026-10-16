@@ -158,6 +158,12 @@ everything to a sequence of chords that require all fingers to lift together.
 
 ## Stage 3 — Import one verified real passage end to end
 
+Shipped discovery foundation: `tools/discover_scores.py` creates a bounded Mutopia
+solo-piano public-domain/CC0 candidate shortlist, with edition/contributor/licence
+links, evidence, retrieval timestamp and metadata hash. No assets are downloaded or
+bundled; per-asset review and playable import remain below.
+
+
 - [ ] Support local score imports with preview and validation. Prefer notation-preserving
   formats such as MusicXML where available; support MIDI as performance data too.
 - [ ] MIDI import must retain tempo/meter, channels, tracks, controllers and note timing.
