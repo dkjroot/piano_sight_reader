@@ -12,6 +12,7 @@ export class FlowGate {
     for(const [pitch,serial] of this.retiring) if(!held.has(pitch) || (attacks.get(pitch)?.serial||0)>serial) this.retiring.delete(pitch);
     const effective=new Set([...held].filter(pitch=>!this.retiring.has(pitch))), result=match(this.target,effective);
     const fresh=this.target.map(note=>(attacks.get(note.midi)?.serial||0)>(this.baseline.get(note.midi)||0));
-    return {...result,effective,ready:result.complete && (this.repeated ? fresh.every(Boolean) : fresh.some(Boolean))};
+    const accepted=new Set(this.target.filter((note,index)=>effective.has(note.midi) && (!this.repeated || fresh[index])).map(note=>note.midi));
+    return {...result,effective,accepted,ready:result.complete && (this.repeated ? fresh.every(Boolean) : fresh.some(Boolean))};
   }
 }

@@ -353,3 +353,8 @@ h1 .subtitle { display:block; letter-spacing:0; }
   .header-help .help-label { display:none; }
   .header-help .help-icon { display:inline; font-weight:600; }
 }
+
+.exercise-summary { margin:2px 0 6px; color:var(--ink); font-size:12px; line-height:17px; overflow-wrap:anywhere; }
+.practice-top { gap:12px; }
+.practice-top h2 { min-width:0; }
+.practice-status { flex:none; }

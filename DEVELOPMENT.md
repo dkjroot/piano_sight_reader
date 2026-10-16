@@ -472,3 +472,18 @@ Connect MIDI; narrow screens show an accessible ? and arrange the theme control
 above the Connect/Help pair. The library keeps its contextual Help & guide link.
 Both open /help in another tab. Browser tests cover both actual popup routes and
 header control separation at 320, 390, 530 and 650 px without title overlap.
+
+
+Active exercise description: exercise.js describes the source and effective setup
+rules, including key/relative tonality, hand, reading and keyboard ranges, chord
+limits, pitch material or harmonic vocabulary, and mode. MIDI uses activePiece's
+filename/endpoints/selected tracks, never ScorePanel's preview. It updates only in
+newTarget, outside MIDI feedback, and wraps above the staff within the viewport
+budget. Disabled imported minimum chord size and harmonic pitch material are omitted.
+
+Written-note feedback now uses FlowGate.accepted: a held MIDI pitch without a new
+attack in the current target cannot light or tick the next column. Partial fresh
+chords light only their accepted pitches; repeated loop entries reset credit.
+Generated changing chords retain their legitimate shared-hold behavior. Both initial
+SVG rendering and in-place notehead/accidental/tick updates use the same credit set.
+The physical on-screen keyboard continues to describe actual held keys separately.

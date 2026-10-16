@@ -8,7 +8,7 @@ class ServerTests(unittest.TestCase):
             page = client.get('/')
             self.assertEqual(page.status_code, 200)
             self.assertIn(b'Connect MIDI', page.data)
-            for asset in ('app.js', 'help.js', 'library.js', 'core.js', 'notation.js', 'harmony.js', 'metrics.js', 'progress.js', 'audio.js', 'sound.js', 'score.js', 'outline.js', 'layout.js', 'transport.js', 'playback.js', 'passages.js', 'keyboard.js', 'flow.js', 'sections.js', 'samples.js', 'beats.js', 'style.css', 'lyre.svg', 'assets/score-banner-v1.png'):
+            for asset in ('app.js', 'exercise.js', 'help.js', 'library.js', 'core.js', 'notation.js', 'harmony.js', 'metrics.js', 'progress.js', 'audio.js', 'sound.js', 'score.js', 'outline.js', 'layout.js', 'transport.js', 'playback.js', 'passages.js', 'keyboard.js', 'flow.js', 'sections.js', 'samples.js', 'beats.js', 'style.css', 'lyre.svg', 'assets/score-banner-v1.png'):
                 with client.get('/static/' + asset) as response:
                     self.assertEqual(response.status_code, 200)
             help_page = client.get('/help')

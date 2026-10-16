@@ -1,3 +1,4 @@
+import {describeExercise} from './exercise.js';
 import {FlowGate} from './flow.js';
 import {KEYS, keyAlterations, spell, noteName, staffStep, chordName, match, Performance} from './core.js';
 import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
@@ -57,7 +58,6 @@ function syncMode() {
   const labels=cadenceLabels($('harmony-scale').value==='minor',$('harmony-kind').value==='sevenths');
   [...$('cadence-shape').options].forEach((option,i)=>option.textContent=labels[i]);
   $('material').disabled=harmonic;
-  $('practice-title').textContent = imported ? 'Pitch outline' : continuous ? 'Practice' : 'Phrase';
   $('count-label').textContent = continuous ? 'targets completed' : 'repetitions completed';
 }
 syncMode();
@@ -128,6 +128,7 @@ function drawStaff() {
   const firstX = 190+Math.abs(fifths)*15+(settings().size > 4 ? 40 : 0);
   const capacity = Math.max(1, Math.floor((width-firstX-100)/stride)+1);
   const columns = Math.min(capacity, settings().preview+1);
+  const accepted=$('progression').value==='flow' ? flowGate.evaluate(performance.held,performance.attacks).accepted : performance.held;
   let systems = '';
   const indices = readingWindow({index:phraseIndex,length:phrase.length,capacity,preview:settings().preview,mode:settings()['scroll-mode'],repeat:settings().endAction === 'repeat',offset:streamOffset});
   for (const start of indices.length ? [indices[0]] : []) {
@@ -178,11 +179,11 @@ function drawStaff() {
     }
     notes.forEach(note => {
       const x = positions.get(note), y = yFor(note);
-      const state = note.phraseStep === phraseIndex && performance.held.has(note.midi) ? 'hit' : 'pending';
+      const state = note.phraseStep === phraseIndex && accepted.has(note.midi) ? 'hit' : 'pending';
       for (let ledger = bottom + 10; ledger <= y; ledger += 10) svg += `<line class="ledger" x1="${x-15}" x2="${x+15}" y1="${ledger}" y2="${ledger}"/>`;
       for (let ledger = bottom - 50; ledger >= y; ledger -= 10) svg += `<line class="ledger" x1="${x-15}" x2="${x+15}" y1="${ledger}" y2="${ledger}"/>`;
       const accidental = note.accidental === alterations[note.letter] ? '' : {'-2': '𝄫', '-1': '♭', 0: '♮', 1: '♯', 2: '𝄪'}[note.accidental];
-      if (accidental) svg += `<text data-accidental-midi="${note.midi}" class="accidental ${state}" text-anchor="end" x="${accidentalPositions.get(note)}" y="${y+6}">${accidental}</text>`;
+      if (accidental) svg += `<text data-step="${note.phraseStep}" data-midi="${note.midi}" data-accidental-midi="${note.midi}" class="accidental ${state}" text-anchor="end" x="${accidentalPositions.get(note)}" y="${y+6}">${accidental}</text>`;
       svg += `<ellipse data-step="${note.phraseStep}" data-midi="${note.midi}" class="note ${state}" cx="${x}" cy="${y}" rx="7.5" ry="4.5" transform="rotate(-16 ${x} ${y})"/>`;
       // Hints are updated in place with the notehead, not by rebuilding the SVG.
       // Adjacent pitches use separate horizontal lanes so chord hints remain legible.
@@ -279,6 +280,8 @@ function paintKeys(hints = []) {
   $('pedal').textContent = performance.pedal ? 'Sustain on' : 'Sustain off';
 }
 function newTarget() {
+  const description=describeExercise(settings(),activePiece);
+  $('practice-title').textContent=description.title; $('exercise-summary').textContent=description.description;
   clearTimeout(settleTimer); clearTimeout(nextTimer);
   phrase = settings().source==='midi' ? makeOutline(activePiece?.score,settings(),activePiece?.bounds).targets : makePhrase({...settings(), length:settings().endAction === 'new' ? 32 : settings().length});
   $('score-playing').textContent=settings().source==='midi' && activePiece ? `Practising ${activePiece.filename} · source attacks ${activePiece.bounds.start}–${activePiece.bounds.end}` : '';
@@ -334,11 +337,12 @@ function update() {
   sound.sync();
   const held = performance.held, flow=$('progression').value==='flow';
   const result = flow ? flowGate.evaluate(held,performance.attacks) : match(target, held);
+  const accepted=flow ? result.accepted : held;
   const hints = solved || waitingForRelease ? [] : result.hints;
   const directions = new Map(hints.map(hint => [hint.target, hint.direction]));
   paintKeys(hints);
-  for (const head of $('staff').querySelectorAll('[data-midi]')) head.classList.toggle('hit', +head.dataset.step === phraseIndex && held.has(+head.dataset.midi));
-  for (const check of $('staff').querySelectorAll('.note-check')) check.textContent = +check.dataset.step === phraseIndex && held.has(+check.dataset.target) ? '✓' : '';
+  for (const head of $('staff').querySelectorAll('[data-midi]')) head.classList.toggle('hit', +head.dataset.step === phraseIndex && accepted.has(+head.dataset.midi));
+  for (const check of $('staff').querySelectorAll('.note-check')) check.textContent = +check.dataset.step === phraseIndex && accepted.has(+check.dataset.target) ? '✓' : '';
   for (const hint of $('staff').querySelectorAll('.note-direction')) hint.textContent = +hint.dataset.step === phraseIndex && directions.has(+hint.dataset.target) ? (directions.get(+hint.dataset.target) === 'up' ? '↑' : '↓') : '';
   if(practicePaused) {$('feedback').textContent='Paused'; $('detail').textContent=''; return;}
   if(resumeRelease) {

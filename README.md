@@ -198,6 +198,13 @@ note's median against that exercise's baseline. Key, range, mode, source passage
 spelling remain distinct. These are practice clues with visible evidence counts,
 not diagnoses of finger/hand ability or conclusions from sparse samples.
 
+## Active exercise
+
+The heading above the stave names the active exercise. Its description lists the
+key, hand, reading and keyboard ranges, chord limit and pitch material. For MIDI
+practice it also names the active piece and source attack range. Loading a new
+preview does not change this description until you start practising it.
+
 ## Help
 
 Choose **Help** beside **Connect MIDI** at the top (a **?** on narrow screens), or
@@ -247,7 +254,9 @@ Each target contains simultaneous note attacks, not every note still sounding.
 Play through it using your chosen Fluid or Release-between-targets progression.
 In Fluid mode, every written MIDI-outline note requires a fresh key press, including
 notes shared with the preceding chord. Other notes may overlap briefly for legato.
-A MIDI note-on is a new attack; printed ties require a notation source and are not inferred. Spelling and inferred/selected
+A MIDI note-on is a new attack; printed ties require a notation source and are not inferred.
+Written-note ticks and green noteheads credit only the presses accepted for the
+current target, so held repeated pitches stay unmarked in the following column. Spelling and inferred/selected
 staff assignments are derived choices, not recovered notation or detected hands. Source
 durations, overlaps, pedal, rests and tempo remain in the inspection but are not
 judged or drawn as timed music yet. Reloading clears the local file and returns

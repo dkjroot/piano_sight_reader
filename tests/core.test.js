@@ -1,3 +1,4 @@
+import {describeExercise} from '../static/exercise.js';
 import {libraryValue,libraryFacets,filterLibrary} from '../static/library.js';
 import {sourceBeats,BeatCursor} from '../static/beats.js';
 import {AcousticSamples,nearestSample} from '../static/samples.js';
@@ -727,4 +728,46 @@ test('library facets and intersecting filters preserve catalogue data and keep u
   assert.deepEqual(filterLibrary(pieces,{style:'Etude'}).map(p=>p.id),['c']);
   assert.equal(filterLibrary(pieces).length,3); assert.equal(libraryValue({style:'  '},'style'),'Unrated');
   assert.equal(libraryValue(null,'era'),'Unrated'); assert.equal(JSON.stringify(pieces),before);
+});
+
+test('exercise descriptions show active filters and omit disabled settings or preview metadata',()=>{
+  const base={...defaults,key:'C',source:'random',size:3,'min-size':1,endAction:'repeat'};
+  const random=describeExercise(base,{filename:'Unstarted preview.mid'});
+  assert.equal(random.title,'Random pitches');
+  for(const text of ['C major / A minor','Right hand','Near middle C','Keyboard C3–C6','1–3 notes/chord','Notes in key','Repeat']) assert.ok(random.description.includes(text),text);
+  assert.ok(!random.description.includes('Unstarted preview'));
+  const piece={filename:'Active piece.mid',bounds:{start:9,end:11,tracks:[{enabled:true},{enabled:false}]}};
+  const imported=describeExercise({...base,source:'midi','min-size':9,material:'flats',hand:'left',endAction:'new'},piece);
+  assert.equal(imported.title,'Local MIDI outline');
+  for(const text of ['Active piece.mid','Source attacks 9–11','1 selected track','Left hand','Up to 3 notes/chord','Chromatic, prefer flats','Repeat']) assert.ok(imported.description.includes(text),text);
+  assert.ok(!imported.description.includes('9–3 notes'));
+  const continuous=describeExercise({...base,source:'random',size:1,endAction:'new',span:'full',hand:'both'});
+  assert.match(continuous.description,/Single notes/); assert.match(continuous.description,/Both hands/); assert.match(continuous.description,/Continuous/);
+  const cadence=describeExercise({...base,source:'cadence',key:'G','harmony-scale':'minor','harmony-kind':'sevenths','cadence-shape':'ii-v-i','hand-span':'16'});
+  assert.equal(cadence.title,'Cadence');
+  for(const text of ['E natural minor','Diatonic sevenths','iiø7–v7–i7','Hand span: tenth']) assert.ok(cadence.description.includes(text),text);
+  assert.ok(!cadence.description.includes('Notes in key'));
+  assert.equal(describeExercise({...base,source:'triads','hand-span':'24'}).title,'Diatonic chords');
+  assert.match(describeExercise({...base,source:'triads'}).description,/Triads/);
+  assert.match(describeExercise({...base,size:3,'min-size':3,material:'sharps',span:'wide'}).description,/3 notes\/chord/);
+  assert.match(describeExercise({...base,source:'midi'},null).description,/Up to 3/);
+  assert.match(describeExercise({...base,key:'unknown',size:NaN,'min-size':NaN}).description,/C major/);
+});
+
+test('written-note credit resets for every repeated source column, including loop and partial chords',()=>{
+  const p=new Performance(), gate=new FlowGate();
+  const notes=(...pitches)=>pitches.map(midi=>({midi,sourceIds:[String(midi)]}));
+  const first=notes(60,64), second=notes(64,67);
+  gate.start(first,[],p.held,p.attacks);
+  p.noteOn('m',60); assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[60]);
+  p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  gate.start(second,first,p.held,p.attacks);
+  assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[],'a carried E must not receive the next column tick');
+  p.noteOn('m',67); assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[67]);
+  p.noteOff('m',64); p.noteOn('m',64);
+  assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[64,67]);
+  gate.start(second,second,p.held,p.attacks);
+  assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[],'repeat loops do not carry visual credit');
+  gate.start([{midi:64},{midi:69}],[{midi:64},{midi:67}],p.held,p.attacks);
+  assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[64],'generated changing chords retain legitimate shared holds');
 });

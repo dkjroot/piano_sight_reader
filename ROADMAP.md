@@ -427,3 +427,6 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Share the approved support link above Music library and on Help, with matching double rules.
 
 - [x] Add Help beside Connect MIDI at the top, retaining contextual library help and compact narrow-screen controls.
+
+- [x] Show an active exercise heading and filters above the stave, preserving the active piece identity while browsing previews.
+- [x] Keep written-note ticks, notehead and accidental colours tied to accepted attacks for the current target; repeated held notes do not mark the next column.
