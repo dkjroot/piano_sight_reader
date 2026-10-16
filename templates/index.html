@@ -63,6 +63,10 @@
     <div class="range-buttons"><button id="export-score" class="quiet" disabled>Export inspection</button><button id="practice-score" disabled>Practise pitch outline</button></div>
     <label>First attack <input id="passage-start" type="number" min="1" max="1" value="1" disabled></label>
     <label>Last attack <input id="passage-end" type="number" min="1" max="1" value="1" disabled></label>
+    <label>Passage name <input id="passage-name" type="text" maxlength="80" placeholder="Optional name"></label>
+    <div class="range-buttons"><button id="save-passage" class="quiet" disabled>Save passage</button><button id="delete-passage" class="quiet" disabled>Delete saved passage</button></div>
+    <label>Saved passages <select id="saved-passages" disabled><option value="">Choose a saved passage</option></select></label>
+    <p id="passage-status" class="small" role="status"></p>
     <div class="range-buttons"><button id="play-source" class="quiet" disabled>Play source passage</button><button id="pause-source" class="quiet" disabled>Pause</button><button id="stop-source" class="quiet" disabled>Stop playback</button></div>
     <label>Playback speed <select id="source-speed"><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option></select></label>
     <p id="source-playback-status" class="small" role="status"></p>

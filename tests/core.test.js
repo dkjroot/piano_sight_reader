@@ -1,3 +1,4 @@
+import {cleanPassages,parsePassages,savePassage,passageKey} from '../static/passages.js';
 import {secondsAt,referencePlan,PlaybackCursor} from '../static/transport.js';
 import {layoutPreset,staffViewport} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
@@ -504,4 +505,21 @@ test('older held/sustained sources never reattack when a newer owner releases',(
   p.noteOff('a',60); sync(); assert.equal(path.voices.size,0);
   p.noteOn('a',60,999); assert.equal(p.attacks.get(60).velocity,127); p.noteOn('a',60,'bad'); assert.equal(p.attacks.get(60).velocity,100);
   p.sustain('a',true); p.noteOff('a',60); assert.equal(p.attacks.size,1); p.clear(); assert.equal(p.attacks.size,0);
+});
+
+test('saved passages validate bounded metadata, update matching windows and retain file identity',()=>{
+  const entry={version:1,hash:'a'.repeat(64),label:'Ending',filename:'study.mid',start:2,end:4,tracks:[{track:0,enabled:false,staff:'auto'},{track:1,enabled:true,staff:'treble'}],updatedAt:'2026-10-16T12:00:00Z'};
+  assert.deepEqual(parsePassages(JSON.stringify([entry])),[entry]); assert.deepEqual(cleanPassages(null),[]);
+  const invalid=[null,{...entry,version:2},{...entry,hash:'bad'},{...entry,label:''},{...entry,label:'x'.repeat(81)},{...entry,end:514},{...entry,start:0},{...entry,updatedAt:'bad'},{...entry,tracks:[]},{...entry,tracks:[entry.tracks[0]]},{...entry,tracks:[entry.tracks[1],entry.tracks[1]]},{...entry,tracks:[{track:64,enabled:true,staff:'treble'}]},{...entry,tracks:[{track:1,enabled:true,staff:'alto'}]}];
+  assert.deepEqual(cleanPassages(invalid),[]);
+  assert.throws(()=>parsePassages('x'.repeat(500001))); assert.throws(()=>parsePassages('{}')); assert.throws(()=>parsePassages('bad'));
+  const first=savePassage([],entry), updated=savePassage(first,{...entry,label:'New name'});
+  assert.equal(updated.length,1); assert.equal(updated[0].label,'New name'); assert.equal(first[0].label,'Ending');
+  assert.equal(passageKey(entry),passageKey({...entry,tracks:[...entry.tracks].reverse()}));
+  assert.notEqual(passageKey(entry),passageKey({...entry,hash:'b'.repeat(64)}));
+  assert.equal(savePassage(first,{...entry,hash:'b'.repeat(64)}).length,2);
+  assert.throws(()=>savePassage(first,{...entry,end:9999}));
+  let many=[]; for(let start=1;start<=55;start++) many=savePassage(many,{...entry,start,end:start});
+  assert.equal(many.length,50); assert.equal(many[0].start,6);
+  const clean=cleanPassages([{...entry,extra:'ignore'}]); assert.equal(clean[0].extra,undefined); clean[0].tracks[0].staff='bass'; assert.equal(entry.tracks[0].staff,'auto');
 });

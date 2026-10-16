@@ -5,7 +5,8 @@ const { chromium } = require('playwright');
 (async () => {
   const browser = await chromium.launch({headless: true, ...(process.env.BROWSER_CHANNEL ? {channel: process.env.BROWSER_CHANNEL} : {})});
   try {
-    const page = await browser.newPage({viewport: {width: 1280, height: 1000}});
+    const mainContext=await browser.newContext({viewport:{width:1280,height:1000}});
+    const page = await mainContext.newPage();
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(() => {
@@ -584,6 +585,28 @@ const { chromium } = require('playwright');
     await page.locator('#practice-score').click();
     assert.equal(await page.locator('#phrase-position').innerText(),'1 / 1');
     assert.equal(await page.locator('.key.target').getAttribute('data-pitch'),'67');
+    await page.locator('#passage-name').fill('Closing note');
+    await page.locator('#save-passage').click();
+    const savedPassage=await page.inputValue('#saved-passages'); assert.ok(savedPassage);
+    assert.equal(await page.locator('#saved-passages option').count(),2);
+    await page.locator('#passage-start').fill('1'); await page.locator('#passage-start').dispatchEvent('change');
+    assert.equal(await page.inputValue('#saved-passages'),'');
+    await page.selectOption('#saved-passages',savedPassage);
+    assert.equal(await page.inputValue('#passage-start'),'2');
+    assert.equal(await page.inputValue('#passage-end'),'2');
+    assert.equal(await page.inputValue('#score-staff-1'),'treble');
+    assert.equal(await page.locator('.key.target').getAttribute('data-pitch'),'67','restoring preview must not change active practice');
+    const savedPage=await page.context().newPage(); savedPage.on('pageerror',error=>errors.push(error.message));
+    await savedPage.goto(process.env.APP_URL || 'http://127.0.0.1:8766');
+    assert.equal(await savedPage.locator('#saved-passages').isDisabled(),true);
+    await savedPage.locator('#score-file').setInputFiles('tests/fixtures/polyphony.mid');
+    await savedPage.waitForFunction(()=>document.querySelectorAll('#saved-passages option').length===2);
+    await savedPage.selectOption('#saved-passages',savedPassage);
+    assert.equal(await savedPage.inputValue('#passage-start'),'2');
+    await savedPage.locator('#delete-passage').click();
+    assert.equal(await savedPage.locator('#saved-passages option').count(),1);
+    await page.waitForFunction(()=>document.querySelectorAll('#saved-passages option').length===1);
+    await savedPage.close(); await page.bringToFront();
     const previewBuffer=require('node:fs').readFileSync('tests/fixtures/polyphony.mid');
     const pitchIndex=previewBuffer.indexOf(Buffer.from([0x90,67,80])); assert.ok(pitchIndex>=0); previewBuffer[pitchIndex+1]=69;
     await page.locator('#score-file').setInputFiles({name:'preview.mid',mimeType:'audio/midi',buffer:previewBuffer});
@@ -701,7 +724,7 @@ const { chromium } = require('playwright');
     await page.waitForFunction(()=>!document.getElementById('live-sound').checked);
     assert.match(await page.locator('#sound-status').innerText(),/unavailable/);
     assert.deepEqual(errors, []);
-    await page.close();
+    await mainContext.close();
 
     for (const mode of ['unsupported', 'denied']) {
       const context = await browser.newContext();

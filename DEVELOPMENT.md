@@ -306,3 +306,15 @@ Removing a newer owner never retriggers an older held owner. Duplicate held note
 refresh audio while preserving existing pitch-set/completion behavior; unrelated CCs
 still do no rendering work. On-screen keys use a fixed default velocity. Source-aware
 release/pedal/reset clears attack metadata without changing physical-held matching.
+
+
+## Saved passage bookmarks
+
+`passages.js` validates/normalizes bounded metadata for up to 50 local bookmarks:
+source SHA-256, label, filename, source-onset range (<=512), track/staff rules and
+update time. Equivalent file/range/rules update a bookmark rather than duplicating
+it. Music bytes and pitch/range settings are not stored in bookmarks. Loading the
+same file is required; a selected bookmark restores preview only, never active practice.
+Source playback stops when the preview passage changes. Cross-tab storage events
+refresh the menu without changing targets. Storage failure retains a session-only
+bookmark and reports that limitation. Invalid stored records are ignored safely.

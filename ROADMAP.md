@@ -227,6 +227,10 @@ versions and the full original, with preserved musical positions and useful prog
 
 ## Stage 5 — Piece library and deliberate practice
 
+Shipped deliberate-practice step: up to 50 named local passage bookmarks, bound to
+source hashes and track/staff choices. Reloading the same file restores selectable
+previews; no music files are stored. The full curated library remains future work.
+
 - [ ] Add a piece menu with composer, style/period, title, source and approximate difficulty.
 - [ ] Provide Easy, Medium, Hard, Expert and Virtuoso browsing tiers, backed by measurable
   difficulty dimensions and human review rather than unsupported claims about levels.

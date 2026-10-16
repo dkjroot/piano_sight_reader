@@ -208,6 +208,16 @@ spelling, printed voices, ties or notation; these are not inferred as authored f
 A failed import leaves the previous valid inspection available. Files are not added
 to a shared library, and their redistribution rights are not assumed.
 
+### Saved passages
+
+Give a selected attack range a name and choose **Save passage**. Up to 50 bookmarks
+stay in this browser, including the track and staff choices. Reopen the same MIDI
+file, then choose its saved passage to restore the preview. **Practise pitch outline**
+still starts it explicitly. Current pitch/range filters stay under your control.
+Bookmarks match the file's hash, so another file with the same name cannot receive
+the wrong range. **Delete saved passage** removes a bookmark; no music files are
+stored. Other tabs in the same browser receive bookmark changes.
+
 ### Listening to the source passage
 
 **Play source passage** plays the selected MIDI tracks and attack range through
