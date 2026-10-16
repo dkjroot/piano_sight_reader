@@ -208,3 +208,27 @@ piece per attempt; generated-exercise identities remain compatible.
 This is attack-reading practice, not a duration/tie/polyphonic score matcher or an
 original engraving. Sustained voices and rhythms must use the preserved source model
 when the future timed modes are implemented, not this reduced target list.
+
+
+Reading measurement pauses use independent reasons for window focus, endpoint
+learning and MIDI reconnection. Resolving one reason must not resume another pause.
+On-screen input can resume measurement during a device disconnection; endpoint
+learning remains paused until learned/cancelled. No device is required for initial
+on-screen measurement. These exclusions do not change target matching or MIDI input.
+
+
+## Resolution presets and stable playing layout
+
+`layout.js` maps Automatic/720p/1080p/1440p/2160p to a viewport budget, reserving
+180 px for browser/desktop chrome. Actual viewport height is always an upper bound.
+Previous Compact/Comfortable preferences migrate to 1080p/1440p. Comfortable spacing
+itself is tighter than the original header. The 720p score scales to 75%; other
+presets retain normal notation scale and allow ledger overflow inside the staff.
+
+The staff pane has a stable height, fitted after measuring the remaining page
+chrome; an active-note scroll policy handles pitches outside it. Feedback has fixed
+status/chord/detail rows, and MIDI activity always owns its space. Mode/note-name
+controls live below the keyboard. Tests cover fixed and Automatic presets at usable
+540/880/1160/1920 px heights, both clefs visible, unchanged targets across layout
+changes, and a stationary keyboard for empty, extra, partial, correct and advanced
+feedback. These are browser viewport tests, not physical monitor/DPI measurements.

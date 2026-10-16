@@ -21,8 +21,6 @@
     <div class="practice-top"><h2><span id="practice-title">Phrase</span> <span id="phrase-position"></span></h2><span><strong id="count">0</strong> <span id="count-label">repetitions completed</span></span></div>
     <div id="staff" aria-label="Grand staff"></div>
     <div class="feedback"><h2 id="feedback" role="status" aria-live="polite"></h2><span id="chord-name" role="status"></span><p id="detail"></p></div>
-    <div class="practice-actions"><label class="check"><input id="reveal" type="checkbox"> Show note names</label><span id="note-names" hidden></span></div>
-    <fieldset class="phrase-end"><legend>Mode</legend><label class="check"><input id="end-repeat" type="radio" name="end-action" value="repeat" checked> Repeat phrase</label><label class="check"><input id="end-new" type="radio" name="end-action" value="new"> Continuous</label></fieldset>
   </section>
 
   <section class="card keyboard-card" aria-label="Live keyboard">
@@ -33,13 +31,16 @@
 
   <section class="settings-grid">
     <div class="card settings"><h2>Practice setup</h2>
+    <div class="practice-actions"><label class="check"><input id="reveal" type="checkbox"> Show note names</label><span id="note-names" hidden></span></div>
+    <fieldset class="phrase-end"><legend>Mode</legend><label class="check"><input id="end-repeat" type="radio" name="end-action" value="repeat" checked> Repeat phrase</label><label class="check"><input id="end-new" type="radio" name="end-action" value="new"> Continuous</label></fieldset>
+
       <label>Exercise <select id="source"><option value="random">Random pitches</option><option value="triads">Diatonic chords</option><option value="cadence">Cadence</option><option id="source-midi" value="midi" disabled>Local MIDI outline</option></select></label>
       <label>Tonality <select id="harmony-scale"><option value="major">Major</option><option value="minor">Natural minor</option></select></label>
       <label>Maximum hand span <select id="hand-span"><option value="12">Octave</option><option value="16">Tenth</option><option value="24">Two octaves</option></select></label>
       <label>Key <select id="key"><option value="C">C major / A minor</option></select></label>
       <label>Staff / hand <select id="hand"><option value="right">Treble · right hand</option><option value="left">Bass · left hand</option><option value="both">Both hands</option></select></label>
       <label>Phrase length <select id="length"><option value="1">1</option><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option><option value="24">24</option><option value="32">32</option></select></label>
-      <label>Layout <select id="density"><option value="auto">Automatic</option><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select></label>
+      <label>Layout <select id="density"><option value="auto">Automatic</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">1440p</option><option value="2160">2160p</option></select></label>
       <label>Scrolling <select id="scroll-mode"><option value="note">Note by note</option><option value="page">Page by page</option></select></label>
       <label>Look-ahead <select id="preview"><option value="0">None</option><option value="1">1 upcoming</option><option value="2">2 upcoming</option><option value="3" selected>3 upcoming</option><option value="4">4 upcoming</option><option value="7">7 upcoming</option></select></label>
       <label>Minimum notes per chord <select id="min-size"></select></label>

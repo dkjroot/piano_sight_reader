@@ -389,17 +389,44 @@ const { chromium } = require('playwright');
       assert.equal(await page.locator('.key.target').getAttribute('data-pitch'),densityTarget);
       await page.screenshot({path:`test-results/compact-${width}x${height}.png`,fullPage:true});
     }
-    await page.selectOption('#density','comfortable');
+    await page.selectOption('#density','1440');
     assert.equal(await page.locator('html').getAttribute('data-density'),'comfortable');
-    await page.selectOption('#density','compact');
+    await page.selectOption('#density','1080');
     await page.setViewportSize({width:1920,height:1200});
     assert.equal(await page.locator('html').getAttribute('data-density'),'compact');
     await page.reload(); await page.waitForSelector('.note');
-    assert.equal(await page.inputValue('#density'),'compact');
+    assert.equal(await page.inputValue('#density'),'1080');
+    await page.locator('#connect').click();
+    await page.evaluate(()=>{
+      for(const [id,value] of Object.entries({source:'random',low:60,high:67,size:3,'min-size':3,length:1,preview:0,hand:'right',material:'white',span:'near',key:'C'})) document.getElementById(id).value=value;
+      document.getElementById('source').dispatchEvent(new Event('change'));
+    });
+    for(const [preset,width,height] of [['720',1280,540],['1080',1920,880],['1440',2560,1160],['2160',3840,1920]]) {
+      await page.setViewportSize({width,height});
+      for(const selection of [preset,'auto']) {
+        await page.selectOption('#density',selection); await page.evaluate(()=>window.scrollTo(0,0));
+        await page.waitForFunction(preset=>document.documentElement.dataset.layout===preset,preset);
+        const anchor=await page.locator('#keyboard').boundingBox();
+        assert.ok(anchor.y+anchor.height<=height-8,JSON.stringify({preset,selection,height,anchor}));
+        const clefs=await page.locator('.clef').evaluateAll(elements=>elements.map(element=>element.getBoundingClientRect().toJSON()));
+        const staffBox=await page.locator('#staff').boundingBox();
+        assert.ok(clefs.every(clef=>clef.top>=staffBox.y-1 && clef.bottom<=staffBox.y+staffBox.height+1),'both clefs must remain visible');
+        const checkAnchor=async()=>assert.ok(Math.abs((await page.locator('#keyboard').boundingBox()).y-anchor.y)<1,'playing feedback must not move the keyboard');
+        await send([0x90,59,90]); await checkAnchor(); await send([0x80,59,0]);
+        const notes=await page.locator('.key.target').evaluateAll(keys=>keys.map(key=>+key.dataset.pitch));
+        await send([0x90,notes[0],90]); await checkAnchor();
+        for(const note of notes.slice(1)) await send([0x90,note,90]);
+        await page.waitForTimeout(160); await checkAnchor();
+        for(const note of notes) await send([0x80,note,0]);
+        await page.waitForTimeout(300); await checkAnchor();
+        await page.screenshot({path:`test-results/layout-${selection}-${height}.png`,fullPage:false});
+      }
+    }
+    await page.selectOption('#density','1080');
     await page.setViewportSize({width:1280,height:1000});
     await page.locator('#connect').click();
     await page.evaluate(()=>{
-      for (const [id,value] of Object.entries({source:'cadence','harmony-scale':'major','hand-span':12,low:60,high:84,size:3,'min-size':3,length:4,preview:3,'scroll-mode':'note',hand:'right',material:'white',span:'wide',key:'C'})) document.getElementById(id).value=value;
+      for (const [id,value] of Object.entries({source:'cadence' ,'harmony-scale':'major','hand-span':12,low:60,high:84,size:3,'min-size':3,length:4,preview:3,'scroll-mode':'note',hand:'right',material:'white',span:'wide',key:'C'})) document.getElementById(id).value=value;
       document.getElementById('source').dispatchEvent(new Event('change'));
     });
     assert.equal(await page.locator('#material').isDisabled(),true);
@@ -442,6 +469,30 @@ const { chromium } = require('playwright');
     await page.locator('#clear-history').click();
     assert.equal(await page.locator('#stats-count').innerText(),'0');
     assert.equal(await page.evaluate(()=>localStorage.getItem('piano-sight-reader-history-v1')),null);
+    // Range-learning and device recovery are pauses, not slow reading attempts.
+    await page.locator('#connect').click();
+    await page.locator('#learn-low').click();
+    await page.waitForTimeout(350);
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    await page.waitForTimeout(350);
+    await page.locator('#learn-low').click();
+    await send([0x90,60,90]); await page.waitForTimeout(160); await send([0x80,60,0]); await page.waitForTimeout(300);
+    let pauseRecord=await page.evaluate(()=>JSON.parse(localStorage.getItem('piano-sight-reader-history-v1')).at(-1));
+    assert.ok(pauseRecord.responseMs<650,'range learning time must be excluded');
+    await page.evaluate(()=>window.testMidi.disconnect());
+    await page.waitForTimeout(750);
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    await page.evaluate(()=>window.testMidi.reconnect());
+    await page.waitForFunction(()=>document.getElementById('midi-status').textContent.startsWith('Connected'));
+    await send([0x90,60,90]); await page.waitForTimeout(160); await send([0x80,60,0]); await page.waitForTimeout(300);
+    pauseRecord=await page.evaluate(()=>JSON.parse(localStorage.getItem('piano-sight-reader-history-v1')).at(-1));
+    assert.ok(pauseRecord.responseMs<650,'device disconnection must be excluded');
+    await page.evaluate(()=>window.testMidi.disconnect());
+    const fallbackKey=page.locator('.key[data-pitch="60"]'); await fallbackKey.hover(); await page.mouse.down(); await page.waitForTimeout(160); await page.mouse.up(); await page.waitForTimeout(300);
+    assert.equal(await page.locator('#stats-count').innerText(),'3');
+    await page.evaluate(()=>window.testMidi.reconnect());
+    await page.waitForFunction(()=>document.getElementById('midi-status').textContent.startsWith('Connected'));
+    await page.locator('#clear-history').click();
     await page.locator('#score-file').setInputFiles('tests/fixtures/polyphony.mid');
     await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('3 attacks'));
     assert.match(await page.locator('#score-details').innerText(),/Two voices study/);

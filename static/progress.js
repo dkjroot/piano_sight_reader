@@ -4,7 +4,7 @@ const STORE='piano-sight-reader-history-v1', PREF='piano-sight-reader-save-histo
 const seconds=value=>value===null ? '—' : (value/1000).toFixed(2)+' s';
 export class ProgressPanel {
   constructor() {
-    this.tracker=new AttemptTracker(); this.records=[]; this.identity=''; this.saveTimer=null;
+    this.tracker=new AttemptTracker(); this.records=[]; this.identity=''; this.saveTimer=null; this.pauses=new Set();
     try {this.records=cleanHistory(JSON.parse(localStorage.getItem(STORE)||'[]')); $('save-history').checked=localStorage.getItem(PREF)==='true';} catch { $('history-status').textContent='Saved history is unavailable; session measurements still work.'; }
     $('save-history').addEventListener('change',()=>{try {localStorage.setItem(PREF,String($('save-history').checked));} catch {} this.scheduleSave();});
     $('analysis-dimension').addEventListener('change',()=>this.render());
@@ -18,7 +18,7 @@ export class ProgressPanel {
   start(notes,settings,phrase) {
     this.identity=exerciseIdentity(notes,settings,phrase);
     const context={identity:this.identity,key:settings.key,hand:settings.hand,source:settings.source||'random',mode:settings.endAction};
-    this.tracker.start(notes,context); if (document.hidden || !document.hasFocus()) this.tracker.pause(); this.renderBest();
+    this.tracker.start(notes,context); if (this.pauses.size || document.hidden || !document.hasFocus()) this.tracker.pause(); this.renderBest();
   }
   observe(held) {this.tracker.observe(held);}
   complete() {
@@ -26,8 +26,8 @@ export class ProgressPanel {
     this.records.push(record); this.records=this.records.slice(-1000);
     this.scheduleSave(); setTimeout(()=>this.render(),0);
   }
-  pause() {this.tracker.pause();}
-  resume() {this.tracker.resume();}
+  pause(reason='window') {this.pauses.add(reason); this.tracker.pause();}
+  resume(reason='window') {this.pauses.delete(reason); if(!this.pauses.size && !document.hidden && document.hasFocus()) this.tracker.resume();}
   scheduleSave() {
     clearTimeout(this.saveTimer);
     if (!$('save-history').checked) return;

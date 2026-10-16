@@ -1,3 +1,4 @@
+import {layoutPreset,staffViewport} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
 import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily} from '../static/metrics.js';
@@ -350,4 +351,17 @@ test('imported progress identities compare exact source passage and attack with 
   const generated={...defaults,endAction:'repeat'}, fields=['hand','key','source','material','span','low','high','size','min-size','harmony-scale','hand-span','endAction'];
   const legacy=JSON.stringify([1,fields.map(field=>[field,generated[field]??null]),[[60,'C',0,4,'treble']],[[60]]]);
   assert.equal(exerciseIdentity([note],generated,[[note]]),legacy);
+});
+
+test('resolution presets budget browser chrome, adapt to the viewport and migrate saved choices',()=>{
+  for(const [height,preset] of [[500,'720'],[720,'1080'],[900,'1080'],[1000,'1440'],[1240,'1440'],[1800,'2160']]) assert.equal(layoutPreset('auto',height).preset,preset);
+  assert.equal(layoutPreset('comfortable',1000).preset,'1440'); assert.equal(layoutPreset('compact',1000).preset,'1080');
+  for(const preset of ['720','1080','1440','2160']) {
+    const profile=layoutPreset(preset,3000);
+    assert.equal(profile.budget,+preset-180); assert.equal(staffViewport(profile,0),profile.preferred);
+    assert.equal(staffViewport(profile,5000),profile.minimum);
+  }
+  assert.equal(layoutPreset('1440',800).budget,800);
+  assert.equal(layoutPreset('720',500,390).minimum,170);
+  assert.equal(layoutPreset('2160',1800).density,'comfortable');
 });

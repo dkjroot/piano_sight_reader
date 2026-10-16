@@ -402,3 +402,12 @@ identity. Basic untimed speed/accuracy tracking and local history can start earl
 once their measurement contract and exercise identity are dependable.
 Full-piece performance is the integration goal, not a reason to make basic practice
 depend on catalogue downloads, audio setup or an account.
+
+
+### Layout follow-up delivered
+
+- [x] Resolution-labelled 720p/1080p/1440p/2160p presets plus Automatic, with generous
+  browser-chrome allowance and tighter header spacing.
+- [x] Reserve feedback/MIDI activity and staff-pane height so notes do not move the keyboard.
+- [x] Verify both clefs and keyboard fit in normal-range exercises, including a 540 px
+  browser viewport for a 720p screen; preserve vertical ledger scrolling for wider ranges.

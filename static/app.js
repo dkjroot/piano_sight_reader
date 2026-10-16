@@ -5,6 +5,7 @@ import {ProgressPanel} from './progress.js';
 import {SoundPanel} from './sound.js';
 import {ScorePanel} from './score.js';
 import {makeOutline} from './outline.js';
+import {layoutPreset,staffViewport} from './layout.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
@@ -55,13 +56,21 @@ function rangeLabels() {
   for (const id of ['low', 'high']) $(`${id}-label`).textContent = `${noteName(spell(+$(id).value))} · MIDI ${$(id).value}`;
 }
 
+let layout;
 function applyDensity() {
-  const compact = $('density').value === 'compact' || ($('density').value === 'auto' && matchMedia('(min-width:900px) and (max-height:950px)').matches);
-  document.documentElement.dataset.density = compact ? 'compact' : 'comfortable';
+  layout=layoutPreset($('density').value,innerHeight,innerWidth);
+  document.documentElement.dataset.density=layout.density;
+  document.documentElement.dataset.layout=layout.preset;
+}
+function fitPlayingArea() {
+  const staff=$('staff').getBoundingClientRect(), keyboard=document.querySelector('.keyboard-card').getBoundingClientRect();
+  const chrome=keyboard.bottom+window.scrollY-staff.height+16;
+  document.documentElement.style.setProperty('--staff-viewport',staffViewport(layout,chrome)+'px');
 }
 try {
   const density = localStorage.getItem('piano-sight-reader-density');
-  if (['auto','compact','comfortable'].includes(density)) $('density').value=density;
+  const migrated=density==='compact' ? '1080' : density==='comfortable' ? '1440' : density;
+  if (['auto','720','1080','1440','2160'].includes(migrated)) $('density').value=migrated;
 } catch { /* Storage is optional. */ }
 applyDensity();
 $('density').addEventListener('change', () => {
@@ -121,7 +130,7 @@ function drawStaff() {
   const {trebleBottom, bassBottom, height, yFor} = staffLayout(allNotes, {compact:document.documentElement.dataset.density === 'compact'});
   const trebleY = yFor, bassY = yFor;
   const alterations = keyAlterations(settings().key);
-  let svg = `<svg class="phrase-system" data-start="${start}" data-end="${start+chunk.length-1}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Phrase steps ${start+1} to ${start+chunk.length}"><title>Phrase on grand staff</title>`;
+  let svg = `<svg class="phrase-system" data-start="${start}" data-end="${start+chunk.length-1}" viewBox="0 0 ${width} ${height}" style="${layout.preset==='720' ? `height:${height*.75}px` : ''}" role="img" aria-label="Phrase steps ${start+1} to ${start+chunk.length}"><title>Phrase on grand staff</title>`;
   for (let local = 0; local < chunk.length; local++) {
     const step = start+local, x = centre(local);
     svg += `<text class="step-number" x="${x}" y="24" text-anchor="middle">${settings().endAction === 'new' ? streamOffset+step+1 : step%phrase.length+1}${step < phraseIndex ? ' ✓' : ''}</text>`;
@@ -179,13 +188,18 @@ function drawStaff() {
   $('staff').innerHTML = systems;
   $('phrase-position').textContent = !phrase.length ? '—' : settings().endAction === 'new' ? String(streamOffset+phraseIndex+1) : `${phraseIndex+1} / ${phrase.length}`;
   $('note-names').textContent = target.map(noteName).join(' · ');
+  fitPlayingArea();
 }
 
 function scrollToCurrent() {
   const system = [...$('staff').querySelectorAll('.phrase-system')].find(el => +el.dataset.start <= phraseIndex && +el.dataset.end >= phraseIndex);
   if (!system) return;
-  const outer = $('staff').getBoundingClientRect(), inner = system.getBoundingClientRect();
-  if (inner.top < outer.top || inner.bottom > outer.bottom) $('staff').scrollTop += inner.top-outer.top;
+  const outer = $('staff').getBoundingClientRect();
+  const notes=[...system.querySelectorAll(`[data-step="${phraseIndex}"][data-midi]`)].map(note=>note.getBoundingClientRect());
+  if(!notes.length) return;
+  const top=Math.min(...notes.map(note=>note.top))-30, bottom=Math.max(...notes.map(note=>note.bottom))+30;
+  if(top<outer.top) $('staff').scrollTop+=top-outer.top;
+  else if(bottom>outer.bottom) $('staff').scrollTop+=Math.min(bottom-outer.bottom,top-outer.top);
 }
 
 function drawKeyboard() {
@@ -217,14 +231,14 @@ function drawKeyboard() {
     key.append(stateMark);
     key.addEventListener('pointerdown', event => {
       event.preventDefault(); key.setPointerCapture(event.pointerId);
-      performance.noteOn(`pointer:${event.pointerId}`, pitch); update();
+      progress.resume('midi'); performance.noteOn(`pointer:${event.pointerId}`, pitch); update();
     });
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) key.addEventListener(type, event => {
       performance.clear(`pointer:${event.pointerId}`); update();
     });
     // Keyboard navigation can audition one key at a time.
     key.addEventListener('keydown', event => {
-      if ([' ', 'Enter'].includes(event.key)) { event.preventDefault(); performance.noteOn('computer', pitch); update(); }
+      if ([' ', 'Enter'].includes(event.key)) { event.preventDefault(); progress.resume('midi'); performance.noteOn('computer', pitch); update(); }
     });
     key.addEventListener('keyup', event => {
       if ([' ', 'Enter'].includes(event.key)) { event.preventDefault(); performance.clear('computer'); update(); }
@@ -347,6 +361,7 @@ $('reveal').addEventListener('change', () => { $('note-names').hidden = !$('reve
 $('reset').addEventListener('click', () => { performance.clear(); update(); });
 for (const endpoint of ['low', 'high']) $(`learn-${endpoint}`).addEventListener('click', () => {
   learning = learning === endpoint ? null : endpoint;
+  if(learning) progress.pause('learning'); else progress.resume('learning');
   $('range-status').textContent = learning ? `Play your ${endpoint === 'low' ? 'lowest' : 'highest'} physical key now. Click again to cancel.` : 'Learning cancelled.';
 });
 function onMidi(event, inputId) {
@@ -356,13 +371,14 @@ function onMidi(event, inputId) {
     $(learning).value = note;
     if (+$('low').value > +$('high').value) $(learning === 'low' ? 'high' : 'low').value = note;
     $('range-status').textContent = `Learned ${learning === 'low' ? 'lowest' : 'highest'}: ${noteName(spell(note))} (MIDI ${note}).`;
-    learning = null; persist(); rangeLabels(); drawKeyboard(); newTarget();
+    learning = null; progress.resume('learning'); persist(); rangeLabels(); drawKeyboard(); newTarget();
     return;
   }
   if (performance.midi(inputId, event.data)) update();
 }
 async function selectInput(id, reopen = false) {
   const revision = ++inputRevision;
+  progress.pause('midi');
   const previous = selectedInput;
   const input = access ? [...access.inputs.values()].find(port => port.id === id && port.state === 'connected') : null;
   if (previous) previous.onmidimessage = null;
@@ -381,6 +397,7 @@ async function selectInput(id, reopen = false) {
       if (revision === inputRevision && selectedInput === input) onMidi(event, input.id);
     };
     $('midi-status').textContent = `Connected · ${input.name || 'MIDI keyboard'}`;
+    progress.resume('midi'); fitPlayingArea();
   } catch (error) {
     if (revision !== inputRevision) return;
     if (input) input.onmidimessage = null;

@@ -70,9 +70,13 @@ You can practise without MIDI by using the on-screen keys.
   per chord** (1–10). For a mix of single notes and small chords, use minimum 1
   and maximum 3. Equal bounds give a fixed chord size, where the range allows it.
   Phrase length is disabled in Continuous; your repeat length is retained.
-- **Layout** defaults to Automatic, using compact spacing on shorter desktop
-  windows. Choose Comfortable or Compact explicitly; the choice is remembered.
-  Compact removes whitespace while retaining note sizes and ledger-line room.
+- **Layout** offers Automatic or **720p / 1080p / 1440p / 2160p** display presets.
+  Presets allow 180 pixels for browser/desktop chrome and also respect the actual
+  viewport. Automatic chooses from available browser height. The choice is remembered;
+  existing Compact/Comfortable choices migrate to 1080p/1440p. The 720p preset reduces
+  notation to 75%; larger presets retain normal note sizes. Distant ledger notes can
+  scroll within the reserved staff pane. Feedback and MIDI activity reserve space
+  so playing does not move the keyboard. Mode and note-name options are in Practice setup.
 - **Scrolling** offers **Note by note** (active target stays beside the clefs) or
   **Page by page** (pointer moves through a stationary group, then the next page appears).
   Changing scrolling preserves the phrase and progress.
@@ -146,7 +150,7 @@ The Progress section measures targets correctly played, average/median response 
 first-attempt accuracy and a clean best time for the current comparable target.
 Response time starts when the target activates and ends at the first stable correct
 pitch set; the deliberate 120 ms confirmation and release delay are excluded. Window
-pauses are excluded. Staggering chord fingers is allowed; wrong pitches affect accuracy.
+pauses, keyboard-endpoint learning and MIDI reconnection waits are excluded. Staggering chord fingers is allowed; wrong pitches affect accuracy.
 
 History is session-only unless **Save history locally** is checked. The browser keeps
 up to 1,000 attempts, including exercise settings and written pitches. **Export history**
