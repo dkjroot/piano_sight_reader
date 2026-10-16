@@ -246,7 +246,8 @@ Use it to show reading progress, not just a game score or eventual completion ra
 
 Shipped foundation: per-target written/context records, mean/median response time,
 first-attempt accuracy, clean-response personal bests for matching exercises, optional
-local history (1,000 attempts), JSON export/deletion, daily median graph and hand/key/
+local history (1,000 attempts), validated JSON import/export/deletion, daily median graph
+and exact UTC daily table, 90th-percentile response time and hand/key/
 single-note pitch/accidental/ledger-position breakdowns. Background and unfocused time,
 release waits and the confirmation delay are excluded. The tasks below include the
 remaining session, rhythm, import, coverage and recommendation work.

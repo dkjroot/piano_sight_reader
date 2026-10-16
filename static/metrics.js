@@ -62,3 +62,23 @@ export function daily(records) {
   for (const record of records) {const day=new Date(record.at).toISOString().slice(0,10); if (!groups.has(day)) groups.set(day,[]); groups.get(day).push(record);}
   return [...groups].sort(([a],[b])=>a.localeCompare(b)).slice(-30).map(([day,rows])=>({day,...summary(rows)}));
 }
+
+
+export function parseHistory(text) {
+  if(typeof text!=='string' || text.length>2_000_000) throw new Error('History files must be no larger than 2 MB.');
+  let value;
+  try {value=JSON.parse(text);} catch {throw new Error('Invalid history JSON.');}
+  if(!value || value.version!==1 || !Array.isArray(value.records)) throw new Error('Unsupported history format or version.');
+  if(value.records.length>1000) throw new Error('A history file may contain at most 1,000 attempts.');
+  const records=cleanHistory(value.records);
+  if(records.length!==value.records.length || records.some(record=>record.firstAttemptCorrect!==(record.wrongPresses===0) || (record.context.identity!==undefined && (typeof record.context.identity!=='string' || record.context.identity.length>8000)) || record.notes.some(note=>12*(note.octave+1)+({C:0,D:2,E:4,F:5,G:7,A:9,B:11})[note.letter]+note.accidental!==note.midi))) throw new Error('History contains an invalid attempt; nothing was imported.');
+  return records;
+}
+export function mergeHistory(existing,incoming) {
+  const merged=new Map();
+  for(const record of [...existing,...incoming]) {
+    const key=JSON.stringify([record.at,record.responseMs,record.wrongPresses,record.firstAttemptCorrect,record.notes.map(note=>[note.midi,note.letter,note.accidental,note.octave,note.staff,note.sourceOnset??null]),record.context.identity??null,record.wrongPitches??[]]);
+    if(!merged.has(key)) merged.set(key,record);
+  }
+  return [...merged.values()].sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)).slice(-1000);
+}

@@ -240,3 +240,10 @@ compiled HTML or installed dependencies). Per-module percentages go into the com
 JSON/Markdown report; missing-line annotations stay in ignored
 `test-results/python-coverage/`. Python branch coverage and full browser-controller
 coverage are not measured. Normal successful tool output remains four summary lines.
+
+
+History restoration validates complete version-1 JSON files before mutation (2 MB /
+1,000 attempts), checks pitch-spelling and accuracy consistency, merges duplicates
+by canonical attempt content and retains the latest 1,000. Failed imports preserve
+existing records; saving remains opt-in. An exact UTC daily table complements the
+SVG graph, and the summary exposes the 90th-percentile response time.

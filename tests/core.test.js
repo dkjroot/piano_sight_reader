@@ -1,7 +1,7 @@
 import {layoutPreset,staffViewport} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
-import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily} from '../static/metrics.js';
+import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory} from '../static/metrics.js';
 import {makePracticePhrase, harmonicPitchClasses} from '../static/harmony.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -364,4 +364,17 @@ test('resolution presets budget browser chrome, adapt to the viewport and migrat
   assert.equal(layoutPreset('1440',800).budget,800);
   assert.equal(layoutPreset('720',500,390).minimum,170);
   assert.equal(layoutPreset('2160',1800).density,'comfortable');
+});
+
+test('history restoration validates complete files and merges without duplicating attempts',()=>{
+  const record={version:1,at:'2026-10-16T12:00:00Z',responseMs:150,wrongPresses:0,firstAttemptCorrect:true,wrongPitches:[],notes:[{...spell(60),staff:'treble'}],context:{identity:'one',hand:'right'}};
+  const json=records=>JSON.stringify({version:1,records});
+  assert.deepEqual(parseHistory(json([record])),[record]); assert.deepEqual(parseHistory(json([])),[]);
+  for(const text of [null,'x'.repeat(2_000_001),'oops','null','{}',JSON.stringify({version:2,records:[]}),json(Array(1001).fill(record)),json([record,{...record,responseMs:-1}]),json([{...record,firstAttemptCorrect:false}]),json([{...record,context:{identity:123}}]),json([{...record,context:{identity:'x'.repeat(8001)}}]),json([{...record,notes:[{...record.notes[0],octave:5}]}])]) assert.throws(()=>parseHistory(text));
+  const second={...record,at:'2026-10-17T12:00:00Z',responseMs:200};
+  assert.deepEqual(mergeHistory([second,record],[record,second]),[record,second]);
+  const equivalent={...record,context:{hand:'right',identity:'one'},notes:[{staff:'treble',octave:4,letter:'C',accidental:0,midi:60}]};
+  assert.equal(mergeHistory([record],[equivalent]).length,1);
+  assert.equal(mergeHistory([],Array.from({length:1100},(_,i)=>({...record,responseMs:i}))).length,1000);
+  assert.equal(mergeHistory([{...record,context:{},wrongPitches:undefined}],[]).length,1);
 });

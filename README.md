@@ -154,9 +154,12 @@ pauses, keyboard-endpoint learning and MIDI reconnection waits are excluded. Sta
 
 History is session-only unless **Save history locally** is checked. The browser keeps
 up to 1,000 attempts, including exercise settings and written pitches. **Export history**
-saves JSON; **Clear history** deletes the current history. Nothing is uploaded. Daily
+saves JSON; **Import history** merges a previous export without duplicates;
+**Clear history** deletes the current history. Invalid/oversized imports leave it intact. Nothing is uploaded. Daily
 median response times and hand/key/note/staff-position/accidental breakdowns help spot
-patterns. Note-level breakdowns use single-note targets so chord mistakes are not
+patterns. Expand **Daily measurements (UTC)** for exact daily values. **90% within**
+shows the slower-tail response time: nine out of ten recorded attempts were at least
+that fast. Note-level breakdowns use single-note targets so chord mistakes are not
 arbitrarily blamed on one finger. Counts remain visible; small samples are not diagnoses.
 Personal bests compare the same target, settings and (in Repeat) phrase, not easier
 material against harder exercises. These are reading measurements, not game points.
