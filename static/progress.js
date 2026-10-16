@@ -1,5 +1,5 @@
 import {cadenceLabels} from './harmony.js';
-import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from './metrics.js';
+import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,dailyPlot,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from './metrics.js';
 const $=id=>document.getElementById(id);
 const STORE='piano-sight-reader-history-v1', PREF='piano-sight-reader-save-history';
 const seconds=value=>value===null ? '—' : (value/1000).toFixed(2)+' s';
@@ -106,8 +106,8 @@ export class ProgressPanel {
     const days=daily(this.records);
     const dailyBody=$('daily-rows'); dailyBody.replaceChildren();
     for(const day of days) {const row=document.createElement('tr'); for(const value of [day.day,day.count,seconds(day.median),Math.round(day.accuracy*100)+'%']) {const cell=document.createElement('td'); cell.textContent=value; row.append(cell);} dailyBody.append(row);}
-    const peak=Math.max(1,...days.map(day=>day.median));
-    const points=days.map((day,i)=>`${30+i*(580/Math.max(1,days.length-1))},${110-day.median/peak*90}`).join(' ');
-    $('progress-chart').innerHTML=days.length ? `<svg viewBox="0 0 640 140" role="img" aria-label="Daily median response time across ${days.length} days"><path d="M30 10V110H620" class="chart-axis"/><polyline points="${points}" class="chart-line"/>${days.map((day,i)=>`<circle cx="${30+i*(580/Math.max(1,days.length-1))}" cy="${110-day.median/peak*90}" r="4" class="chart-point"><title>${day.day}: ${seconds(day.median)}, ${day.count} attempts</title></circle>`).join('')}<text x="30" y="135">${days[0].day}</text><text x="610" y="135" text-anchor="end">${days.at(-1).day}</text></svg>` : '';
+    const plot=dailyPlot(days), points=plot.map(day=>`${day.x},${day.y}`).join(' ');
+    const labels=days.length===1 ? `<text x="320" y="135" text-anchor="middle">${days[0].day}</text>` : days.length ? `<text x="30" y="135">${days[0].day}</text><text x="610" y="135" text-anchor="end">${days.at(-1).day}</text>` : '';
+    $('progress-chart').innerHTML=days.length ? `<svg viewBox="0 0 640 140" role="img" aria-label="Daily median response time across ${days.length} recorded UTC days"><path d="M30 10V110H620" class="chart-axis"/><polyline points="${points}" class="chart-line"/>${plot.map(day=>`<circle cx="${day.x}" cy="${day.y}" r="4" class="chart-point"><title>${day.day}: ${seconds(day.median)}, ${day.count} attempts</title></circle>`).join('')}${labels}</svg>` : '';
   }
 }

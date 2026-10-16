@@ -438,3 +438,5 @@ or opted-out state is written, and both pending timers are cancelled by clearing
 or opting out. The immediate-refresh reproduction lost the last result before this
 fix; browser regressions now reload in the same task as a correct MIDI attack,
 exercise 45 uninterrupted attacks and verify opt-out/clear never resurrect data.
+
+Daily progress graph positions use actual elapsed UTC dates, rather than evenly spaced practice visits. Missing days preserve their calendar distance; a single recorded day is centred and labelled once. Pure coordinate tests cover an irregular ten-day span, zero response time, one day and no data, while the exact daily table remains available.

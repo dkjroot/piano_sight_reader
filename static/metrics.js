@@ -67,6 +67,13 @@ export function daily(records) {
 }
 
 
+export function dailyPlot(days) {
+  if(!days.length) return [];
+  const first=Date.parse(days[0].day), span=Math.max(1,Date.parse(days.at(-1).day)-first), peak=Math.max(1,...days.map(day=>day.median));
+  return days.map(day=>({...day,x:days.length===1 ? 320 : 30+580*(Date.parse(day.day)-first)/span,y:110-90*day.median/peak}));
+}
+
+
 export function parseHistory(text) {
   if(typeof text!=='string' || text.length>16_000_000) throw new Error('History files must be no larger than 16 MB.');
   let value;

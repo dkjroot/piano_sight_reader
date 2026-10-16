@@ -8,7 +8,7 @@ import {secondsAt,referencePlan,PlaybackCursor} from '../static/transport.js';
 import {layoutPreset,staffViewport} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
-import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from '../static/metrics.js';
+import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,dailyPlot,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from '../static/metrics.js';
 import {makePracticePhrase, harmonicPitchClasses,cadenceLabels} from '../static/harmony.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -684,4 +684,13 @@ test('cadence labels distinguish minor diminished triads from half-diminished se
   assert.equal(cadenceLabels(true)[1],'ii°–v–i');
   assert.equal(cadenceLabels(true,true)[1],'iiø7–v7–i7');
   assert.equal(cadenceLabels(false,true)[1],'ii7–V7–Imaj7');
+});
+
+test('daily graph spacing uses elapsed UTC dates and centres a single measurement',()=>{
+  const days=[{day:'2026-09-30',median:200},{day:'2026-10-01',median:100},{day:'2026-10-10',median:0}], before=JSON.stringify(days);
+  assert.deepEqual(dailyPlot(days).map(day=>[day.x,day.y]),[[30,20],[88,65],[610,110]]);
+  assert.equal(JSON.stringify(days),before);
+  assert.equal(dailyPlot([days[0]])[0].x,320);
+  assert.deepEqual(dailyPlot([]),[]);
+  assert.equal(dailyPlot([{day:'2026-10-01',median:0}])[0].y,110);
 });

@@ -497,6 +497,7 @@ const { chromium } = require('playwright');
     await page.selectOption('#analysis-dimension','position');
     assert.match(await page.locator('#analysis-rows').innerText(),/ledger 1 below/);
     assert.equal(await page.locator('#progress-chart svg').count(),1);
+    assert.equal(await page.locator('#progress-chart .chart-point').getAttribute('cx'),'320','a single UTC practice day is centred');
     const [historyDownload]=await Promise.all([page.waitForEvent('download'),page.locator('#export-history').click()]);
     const exported=JSON.parse(require('node:fs').readFileSync(await historyDownload.path(),'utf8'));
     assert.equal(exported.records.length,2);
