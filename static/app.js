@@ -3,10 +3,12 @@ import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
 import {makePracticePhrase as makePhrase} from './harmony.js';
 import {ProgressPanel} from './progress.js';
 import {SoundPanel} from './sound.js';
+import {ScorePanel} from './score.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
 const progress = new ProgressPanel();
+const scorePanel = new ScorePanel();
 const controls = ['hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
 for (const id of ['size','min-size']) $(id).replaceChildren(...Array.from({length:10}, (_, i) => new Option(String(i+1), String(i+1))));
 $('key').replaceChildren(...KEYS.map(key => new Option(key.label, key.id)));

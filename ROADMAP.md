@@ -161,7 +161,10 @@ everything to a sequence of chords that require all fingers to lift together.
 Shipped discovery foundation: `tools/discover_scores.py` creates a bounded Mutopia
 solo-piano public-domain/CC0 candidate shortlist, with edition/contributor/licence
 links, evidence, retrieval timestamp and metadata hash. No assets are downloaded or
-bundled; per-asset review and playable import remain below.
+bundled; per-asset review remains below. Local MIDI inspection now preserves a
+bounded raw event timeline, paired note spans, tempo map and source hash, with
+preview/export and malformed-file diagnostics. Playable outlines and notation-aware
+imports remain below.
 
 
 - [ ] Support local score imports with preview and validation. Prefer notation-preserving

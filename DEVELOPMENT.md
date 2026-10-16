@@ -19,8 +19,8 @@ requires a stable correct set and physical release, then automatically loops or
 advances according to the remembered mode. Repeat previews wrapped opening events
 with virtual step IDs beyond the end and a double barline at the loop boundary;
 future occurrences of the same pitch must not inherit current-key feedback.
-Continuous ignores repeat length and replenishes a bounded queue in 16-target
-chunks, keeping an absolute stream position. Mode changes start fresh practice
+Continuous ignores repeat length and replenishes a bounded queue while retaining
+seven previous targets for page alignment, keeping an absolute stream position. Mode changes start fresh practice
 and reset the mode-specific counter. Resetting while held requires release.
 Each target has a barline so accidentals reset rather than leaking into the next
 target. Repeat counts complete repetitions; Continuous counts individual targets.
@@ -164,3 +164,25 @@ Fetches have size/time/request limits and source-host-only redirects. Normal tes
 use deterministic offline HTML fixtures, including missing/conflicting licences,
 external links, pagination loops, partial network failure and CLI output. Live source
 smoke checks are separate because network availability and catalogue HTML can change.
+
+
+## Local MIDI inspection
+
+`score_import.py` uses MIT-licensed Mido 1.3.3 (pinned in requirements) to decode
+Standard MIDI formats 0/1. A bounded preflight validates chunks, four-byte variable
+length values and event counts before constructing objects. Input is capped at
+256 KB / 64 tracks / 25,000 events; SMPTE and asynchronous format 2 are rejected.
+`POST /api/inspect-midi` returns normalized in-memory JSON; nothing is persisted.
+
+Keep the complete event stream (track, event index, absolute/delta ticks and all
+message fields) separate from paired physical note spans. Pair repeated same-pitch
+notes FIFO within track/channel, warn about ambiguity and leave unmatched durations
+unknown. Pedal messages never rewrite physical note-off time. A tempo map computes
+elapsed seconds; source ticks remain authoritative. Original bytes are identified
+by SHA-256 and never rewritten. Spelling, printed voices, ties, fingerings and hand
+assignments are absent from MIDI and must remain explicitly derived in future work.
+
+`static/score.js` provides local preview/export; a failed import preserves the last
+valid inspection. Tests use the project's original `tests/fixtures/polyphony.mid`,
+with independent overlapping notes, sustain and a tempo change (960 ticks / 1.1 s).
+Do not substitute an unverified third-party score into regression fixtures.

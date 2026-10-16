@@ -442,6 +442,16 @@ const { chromium } = require('playwright');
     await page.locator('#clear-history').click();
     assert.equal(await page.locator('#stats-count').innerText(),'0');
     assert.equal(await page.evaluate(()=>localStorage.getItem('piano-sight-reader-history-v1')),null);
+    await page.locator('#score-file').setInputFiles('tests/fixtures/polyphony.mid');
+    await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('3 attacks'));
+    assert.match(await page.locator('#score-details').innerText(),/Two voices study/);
+    const inspectionDownload=page.waitForEvent('download');
+    await page.locator('#export-score').click();
+    const inspected=JSON.parse(require('node:fs').readFileSync(await (await inspectionDownload).path(),'utf8'));
+    assert.equal(inspected.notes.length,3); assert.equal(inspected.duration_seconds,1.1);
+    await page.locator('#score-file').setInputFiles({name:'broken.mid',mimeType:'audio/midi',buffer:Buffer.from('bad')});
+    await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('Import failed'));
+    assert.equal(await page.locator('#export-score').isDisabled(),false);
     // Actual Web Audio nodes in the browser: the two paths never feed the matcher.
     await page.locator('#connect').click();
     assert.equal(await page.locator('#live-sound').isChecked(),false);

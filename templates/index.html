@@ -55,6 +55,11 @@
       <p id="range-status" class="small" role="status"></p>
     </div>
   </section>
+  <section class="card settings" aria-label="Local MIDI file"><h2>Local MIDI file</h2>
+    <label>Inspect file <input id="score-file" type="file" accept=".mid,.midi,audio/midi"></label>
+    <p id="score-status" class="small" role="status"></p><p id="score-details" class="small"></p><p id="score-warnings" class="small" role="status"></p>
+    <button id="export-score" class="quiet" disabled>Export inspection</button>
+  </section>
   <section class="settings-grid" aria-label="Sound settings">
     <div class="card settings"><h2>Sound</h2>
       <label class="check"><input id="live-sound" type="checkbox"> Sound my playing</label>

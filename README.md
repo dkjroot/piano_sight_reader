@@ -34,7 +34,7 @@ the app, repeat the dependency installation command before starting it.
 
 There is no front-end build step or Node.js requirement to use the app.
 Nothing you play is uploaded; MIDI and practice run locally in your browser.
-Sound comes from your instrument; the on-screen keyboard is currently silent.
+Use your instrument’s sound or enable the optional local piano/organ synthesis.
 
 ## Connect your piano
 
@@ -156,6 +156,21 @@ patterns. Note-level breakdowns use single-note targets so chord mistakes are no
 arbitrarily blamed on one finger. Counts remain visible; small samples are not diagnoses.
 Personal bests compare the same target, settings and (in Repeat) phrase, not easier
 material against harder exercises. These are reading measurements, not game points.
+
+## Inspecting a local MIDI file
+
+Choose a `.mid` or `.midi` file under **Local MIDI file**. The app previews its note
+attacks, tracks and duration; **Export inspection** saves the normalized performance
+as JSON, including original tick positions, channels, velocities, tempo/meter/key
+messages, controllers and a source-file hash. Missing note-offs and ambiguous repeated
+pitches are reported. Your original file stays unchanged and is not saved by the app.
+The file is sent only to the Python server on this computer, with no external upload.
+
+This inspection step accepts synchronous MIDI formats 0/1 with ticks-per-quarter
+timing, up to 256 KB, 64 tracks and 25,000 events. MIDI does not preserve original
+spelling, printed voices, ties or notation; these are not inferred as authored facts.
+A failed import leaves the previous valid inspection available. Files are not added
+to a shared library, and their redistribution rights are not assumed.
 
 ## Finding music for future practice
 
