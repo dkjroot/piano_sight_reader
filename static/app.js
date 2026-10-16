@@ -26,6 +26,7 @@ let target = [], completed = 0, solved = false, settleTimer, nextTimer, access, 
 let phrase = [], phraseIndex = 0, waitingForRelease = false;
 let streamOffset = 0;
 let inputRevision = 0;
+let practicePaused=false, resumeRelease=false;
 const sound=new SoundPanel(()=>target,()=>new Set([...performance.held,...performance.sustained]),()=>performance.attacks);
 const sourcePlayer=new SourcePlayer(sound,scorePanel);
 const SETTLE_MS = 120;
@@ -283,7 +284,7 @@ function newTarget() {
 }
 function restartPhrase() {
   clearTimeout(settleTimer); clearTimeout(nextTimer);
-  phraseIndex = 0; solved = false;
+  phraseIndex = 0; solved = false; resumeRelease=false; progress.resume('resume');
   waitingForRelease = performance.held.size > 0;
   target = phrase[0] || []; flowGate.start(target,[],performance.held,performance.attacks); $('chord-name').textContent = '';
   $('staff').scrollTop = 0; drawStaff(); scrollToCurrent();
@@ -309,6 +310,20 @@ function advancePhrase() {
   progress.start(target,settings(),phrase);
   update();
 }
+$('pause-practice').addEventListener('click',()=>{
+  practicePaused=!practicePaused;
+  $('pause-practice').textContent=practicePaused ? 'Resume' : 'Pause';
+  $('pause-practice').setAttribute('aria-pressed',String(practicePaused));
+  if(practicePaused) progress.pause('practice');
+  else {
+    flowGate.start(target,target,performance.held,performance.attacks);
+    resumeRelease=$('progression').value==='release' && !solved && performance.held.size>0;
+    progress.resume('resume');
+    if(resumeRelease) progress.pause('resume');
+    progress.resume('practice');
+  }
+  update();
+});
 function update() {
   clearTimeout(settleTimer); clearTimeout(nextTimer);
   sound.sync();
@@ -320,6 +335,11 @@ function update() {
   for (const head of $('staff').querySelectorAll('[data-midi]')) head.classList.toggle('hit', +head.dataset.step === phraseIndex && held.has(+head.dataset.midi));
   for (const check of $('staff').querySelectorAll('.note-check')) check.textContent = +check.dataset.step === phraseIndex && held.has(+check.dataset.target) ? '✓' : '';
   for (const hint of $('staff').querySelectorAll('.note-direction')) hint.textContent = +hint.dataset.step === phraseIndex && directions.has(+hint.dataset.target) ? (directions.get(+hint.dataset.target) === 'up' ? '↑' : '↓') : '';
+  if(practicePaused) {$('feedback').textContent='Paused'; $('detail').textContent=''; return;}
+  if(resumeRelease) {
+    if(held.size) {$('feedback').textContent='Release keys'; $('detail').textContent=''; return;}
+    resumeRelease=false; progress.resume('resume');
+  }
   if (waitingForRelease) {
     if (held.size) { $('feedback').textContent = 'Release keys'; $('detail').textContent = ''; return; }
     waitingForRelease = false;

@@ -310,3 +310,15 @@ h1 .subtitle { display:block; letter-spacing:0; }
 .sound-credits a { color:var(--accent); }
 
 .score-panel > label.check { display:flex; justify-content:flex-start; }
+
+.practice-top { align-items:center; min-height:28px; }
+.practice-status { display:flex; gap:12px; align-items:center; }
+#pause-practice { padding:4px 8px; font-size:11px; line-height:15px; min-width:60px; }
+#pause-practice[aria-pressed=true] { border-color:var(--accent); color:var(--accent); }
+@media(max-width:650px) { .practice-status { gap:6px; font-size:10px; } .practice-top h2 { font-size:18px; } #pause-practice { min-width:50px; padding:4px 6px; } }
+
+.support-panel { margin:24px 0; padding:18px 0; border-top:3px double var(--accent); border-bottom:1px solid var(--line); }
+.support-panel p { margin:0; font:18px/1.65 'Palatino Linotype','Book Antiqua',Georgia,serif; }
+.support-panel strong { font-weight:600; }
+.support-panel a { color:var(--ink); font:600 15px 'Segoe UI',sans-serif; text-underline-offset:4px; text-decoration-thickness:1.5px; overflow-wrap:anywhere; }
+.support-panel a:hover { color:var(--accent); }

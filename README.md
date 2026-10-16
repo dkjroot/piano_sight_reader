@@ -165,6 +165,11 @@ click: targets still wait for you, and these generated exercises have no timed r
 sound. Instrument/volume/tempo choices are remembered; live sound and the metronome
 start off each visit. Audio requires a click/tap in the browser.
 
+**Pause**, beside the phrase counter, stops practice progression and response-time
+measurement. You can still see and hear the keys you play. **Resume** requires a
+fresh attack; held keys cannot complete a target merely by resuming. Reference
+playback and the metronome have their own controls. Pause is not saved across visits.
+
 ## Progress
 
 The Progress section measures targets correctly played, average/median response time,

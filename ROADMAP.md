@@ -447,3 +447,5 @@ depend on catalogue downloads, audio setup or an account.
 - [ ] Compound beat grouping, subdivisions and notation-aware pickup handling in the source clock.
 
 - [x] Reproducible optional browser-test dependency and regression CI configuration with compact reports. Hosted execution is pending a push.
+
+- [x] Session-only practice pause preserves measurements and demands fresh articulation on resume, with live key feedback.

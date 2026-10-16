@@ -420,3 +420,13 @@ sequence phase preserved during continuous refill. Existing per-hand span/five-n
 limits and spelling rules apply. All 15 keys in major/natural-minor are tested at
 every scale degree; new harmonic dimensions enter comparable progress identities
 only for relevant exercise sources. No harmonic-minor leading tone is implied.
+
+Practice pause is session-only and uses the measurement pause-reason set, preserving
+elapsed active time and wrong presses. Input/audio feedback remains live while
+completion/timers are suppressed. Fluid resume establishes fresh serial baselines;
+release mode waits for existing holds to end without counting that wait or resetting
+the attempt. New exercise settings clear a pending resume-release reason. The top
+row reserves its button height, and layout regressions verify pause never moves the
+keyboard in any preset. Reference playback/metronome are separate untimed controls.
+
+The user-supplied Buy Me a Coffee URL and exact support wording appear below all settings/music-library controls and above Progress. It uses theme colours and fine rules, wraps on narrow screens, and opens in a new tab without changing practice. Browser tests check the approved URL, wording, placement and narrow-screen fit.
