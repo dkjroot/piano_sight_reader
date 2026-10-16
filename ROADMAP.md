@@ -430,3 +430,12 @@ depend on catalogue downloads, audio setup or an account.
 
 - [x] Fit full piano keyboards to desktop width with remembered automatic/fixed key
   sizes, preserving pointer ownership and symbols when resized.
+
+## Delivered follow-ups
+
+- [x] Pre-ingested offline library with two source-credited public-domain editions.
+- [x] Adjustable MIDI passage suggestions using markers, rest gaps and meter boundaries.
+- [x] Immediate fluid pitch progression with one-target legato overlap and repeated-note articulation.
+- [x] Clear the last hour, local calendar day or all practice history.
+- [ ] Extend passage suggestions with repeated motifs, harmonic cadences and manual boundary editing on a timeline.
+- [ ] Expand the reviewed library across composers/styles and add evidence-based difficulty dimensions.

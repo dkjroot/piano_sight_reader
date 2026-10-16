@@ -350,3 +350,21 @@ The 1440p preset allows a 380 px stave (subject to available viewport space), so
 History can be cleared for the elapsed last hour, local calendar day or all time. Selective clearing updates stored history immediately, cancels pending saves and invalidates pending imports; active practice stays intact. The live-audio button and checkbox share one state and reset together on panic, failure and reload.
 
 Fluid progression uses a pure FlowGate with attack serial baselines. Completion has no fixed timer. Retiring pitches from only the immediately preceding target are ignored until released or reattacked; arbitrary extras still block completion. Identical consecutive chords require every pitch to be rearticulated, subsets require at least one fresh target attack, and pedal sound never counts as a physical hold. Progression policy is part of new measurement identities. Native-MIDI browser regression sends eight complete targets without timer waits and tests legato transitions through an imported two-target passage. Hardware event-to-paint latency remains unmeasured.
+
+Bundled library: static/library/catalogue.json records source URLs, edition,
+contributor, licence evidence, review date and original MIDI checksum. Inspections
+are prebuilt locally with `python tools/build_library.py`; tests reconstruct every
+entry from its original MIDI and check exact data/provenance equality. No external
+fetch or MIDI parsing is needed when a user loads a bundled piece. Selection and
+local import share a revision guard; preview never replaces active practice until
+explicit activation. Source files and notices remain alongside the GPL code.
+
+Passage suggestions use MIDI markers, at least a half-quarter rest gap, then meter
+boundaries (default 4/4 when absent) within a default 32-onset bound. Large files
+increase the bound up to 512 to keep the menu at most 128 entries. Unknown releases
+suppress gap inference. These are adjustable performance chunks, not recovered
+phrasing, voices, rhythmic notation or a structural harmonic analysis.
+
+Sound/metronome now share the right settings column beneath keyboard range. The
+full-width library has a dividing rule and bounded aligned fields. File selector
+colours follow both themes; daily measurements and breakdown have explicit spacing.

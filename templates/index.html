@@ -50,6 +50,7 @@
       <label>Pitch material <select id="material"><option value="white">Notes in key</option><option value="sharps">Chromatic · prefer sharps</option><option value="flats">Chromatic · prefer flats</option></select></label>
       <label>Reading range <select id="span"><option value="near">Near middle C</option><option value="wide">Wider staff range</option><option value="full">All available notes</option></select></label>
     </div>
+    <div class="settings-stack">
     <div class="card settings"><h2>Physical keyboard range</h2>
       <p class="small">Set the notes your instrument can play. MIDI middle C is C4 (60).</p>
       <label>Lowest <output id="low-label"></output><input id="low" type="range" min="21" max="108" value="48"></label>
@@ -57,24 +58,6 @@
       <div class="range-buttons"><button id="learn-low" class="quiet">Learn lowest key</button><button id="learn-high" class="quiet">Learn highest key</button></div>
       <p id="range-status" class="small" role="status"></p>
     </div>
-  </section>
-  <section class="card settings" aria-label="Local MIDI file"><h2>Local MIDI file</h2>
-    <label>Inspect file <input id="score-file" type="file" accept=".mid,.midi,audio/midi"></label>
-    <p id="score-status" class="small" role="status"></p><p id="score-details" class="small"></p><p id="score-warnings" class="small" role="status"></p>
-    <div id="score-tracks" role="group" aria-label="MIDI tracks"></div>
-    <div class="range-buttons"><button id="export-score" class="quiet" disabled>Export inspection</button><button id="practice-score" disabled>Practise pitch outline</button></div>
-    <label>First attack <input id="passage-start" type="number" min="1" max="1" value="1" disabled></label>
-    <label>Last attack <input id="passage-end" type="number" min="1" max="1" value="1" disabled></label>
-    <label>Passage name <input id="passage-name" type="text" maxlength="80" placeholder="Optional name"></label>
-    <div class="range-buttons"><button id="save-passage" class="quiet" disabled>Save passage</button><button id="delete-passage" class="quiet" disabled>Delete saved passage</button></div>
-    <label>Saved passages <select id="saved-passages" disabled><option value="">Choose a saved passage</option></select></label>
-    <p id="passage-status" class="small" role="status"></p>
-    <div class="range-buttons"><button id="play-source" class="quiet" disabled>Play source passage</button><button id="pause-source" class="quiet" disabled>Pause</button><button id="stop-source" class="quiet" disabled>Stop playback</button></div>
-    <label>Playback speed <select id="source-speed"><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option></select></label>
-    <p id="source-playback-status" class="small" role="status"></p>
-    <p id="outline-status" class="small" role="status"></p><p id="score-playing" class="small" role="status"></p>
-  </section>
-  <section class="settings-grid" aria-label="Sound settings">
     <div class="card settings"><h2>Sound</h2>
       <label class="check"><input id="live-sound" type="checkbox"> Sound my playing</label>
       <label>Live instrument <select id="live-instrument"><option value="piano">Piano synth</option><option value="organ">Organ synth</option></select></label>
@@ -91,6 +74,27 @@
       <label>Beats per bar <select id="beats"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="6">6</option></select></label>
       <label>Click volume <input id="click-volume" type="range" min="0" max="100" value="20"></label>
     </div>
+    </div>
+  </section>
+  <section class="card settings score-panel" aria-label="Music library and MIDI files"><h2>Music library</h2>
+    <div class="library-choice"><label>Piece <select id="library-piece" disabled><option value="">Loading library…</option></select></label><button id="load-piece" disabled>Load piece</button></div>
+    <p id="library-status" class="small" role="status"></p><p id="library-credit" class="small"></p><a id="library-source" class="small" hidden target="_blank" rel="noopener">Edition and licence</a>
+    <h3>Local MIDI file</h3>
+    <label>Inspect file <input id="score-file" type="file" accept=".mid,.midi,audio/midi"></label>
+    <p id="score-status" class="small" role="status"></p><p id="score-details" class="small"></p><p id="score-warnings" class="small" role="status"></p>
+    <div id="score-tracks" role="group" aria-label="MIDI tracks"></div>
+    <div class="range-buttons"><button id="export-score" class="quiet" disabled>Export inspection</button><button id="practice-score" disabled>Practise pitch outline</button></div>
+    <label>Suggested section <select id="suggested-passages" disabled><option value="">Choose a suggested section</option></select></label>
+    <label>First attack <input id="passage-start" type="number" min="1" max="1" value="1" disabled></label>
+    <label>Last attack <input id="passage-end" type="number" min="1" max="1" value="1" disabled></label>
+    <label>Passage name <input id="passage-name" type="text" maxlength="80" placeholder="Optional name"></label>
+    <div class="range-buttons"><button id="save-passage" class="quiet" disabled>Save passage</button><button id="delete-passage" class="quiet" disabled>Delete saved passage</button></div>
+    <label>Saved passages <select id="saved-passages" disabled><option value="">Choose a saved passage</option></select></label>
+    <p id="passage-status" class="small" role="status"></p>
+    <div class="range-buttons"><button id="play-source" class="quiet" disabled>Play source passage</button><button id="pause-source" class="quiet" disabled>Pause</button><button id="stop-source" class="quiet" disabled>Stop playback</button></div>
+    <label>Playback speed <select id="source-speed"><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option></select></label>
+    <p id="source-playback-status" class="small" role="status"></p>
+    <p id="outline-status" class="small" role="status"></p><p id="score-playing" class="small" role="status"></p>
   </section>
   <section class="progress-panel" aria-label="Practice progress">
     <div class="keyboard-heading"><h2>Progress</h2><div class="keyboard-options"><label class="check keyboard-option"><input id="save-history" type="checkbox"> Save history locally</label><button id="export-history" class="quiet">Export history</button><button id="import-history" class="quiet">Import history</button><input id="history-file" type="file" accept=".json,application/json" hidden><button id="clear-hour" class="quiet">Clear last hour</button><button id="clear-today" class="quiet">Clear today</button><button id="clear-history" class="quiet">Clear all</button></div></div>

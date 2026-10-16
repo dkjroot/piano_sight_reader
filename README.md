@@ -284,3 +284,14 @@ This is an early working version. For development and planned features, see
 **Hear live instrument** toggles the same live audio as **Sound my playing**. Your selected live instrument and volume apply; the button shows whether it is on.
 
 **Fluid** progression advances immediately when the target matches. Shared notes can continue into a changing chord, and the preceding target may overlap the next. Repeated notes or identical chords need fresh attacks. **Release between targets** keeps the slower, deliberate step-by-step behaviour. This is untimed pitch practice; it does not yet assess a score’s written durations.
+
+The **Music library** includes Bach’s Prelude in C major BWV 846 and Chopin’s Prelude
+Op. 28 No. 7, ready to load offline. Select a piece, choose **Load piece**, adjust the
+preview if needed, then **Practise pitch outline**. Your range, hand and pitch
+filters still apply. Edition credits are linked beside the selection and recorded
+in `static/library/NOTICES.md`; these Mutopia editions carry a public-domain dedication.
+
+**Suggested section** splits a MIDI into manageable attack ranges, using marker
+messages, rest gaps and meter boundaries where available. These are practice
+suggestions, not recovered musical phrase markings. Adjust First/Last attack and
+save a named passage as usual. A local file uses the same section suggestions.

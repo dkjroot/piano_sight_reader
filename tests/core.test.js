@@ -1,3 +1,4 @@
+import {suggestPassages} from '../static/sections.js';
 import {FlowGate} from '../static/flow.js';
 import {keyboardGeometry,keyboardKeyWidth} from '../static/keyboard.js';
 import {cleanPassages,parsePassages,savePassage,passageKey} from '../static/passages.js';
@@ -570,4 +571,22 @@ test('fluid progression allows legato overlap but demands fresh attacks and reje
   p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
   p.sustain('m',true); p.noteOff('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'pedal is not a held target');
   gate.start([],[],p.held,p.attacks); assert.equal(gate.evaluate(p.held,p.attacks).ready,false);
+});
+
+test('passage suggestions cover the source in bounded adjustable sections using MIDI evidence',()=>{
+  const score={ticks_per_quarter:480,events:[{tick:0,message:{type:'time_signature',numerator:4,denominator:4}},{tick:4800,message:{type:'marker',text:'B'}}],notes:Array.from({length:24},(_,i)=>({midi:60,channel:0,start_tick:i*480,end_tick:i*480+480}))};
+  const before=JSON.stringify(score), sections=suggestPassages(score,{maximum:16});
+  assert.deepEqual(sections.map(section=>[section.start,section.end]),[[1,10],[11,24]]);
+  assert.match(sections[0].reason,/MIDI marker/); assert.equal(JSON.stringify(score),before);
+  const rest={...score,events:[],notes:score.notes.map((note,i)=>({...note,end_tick:i===7 ? note.start_tick+100 : note.end_tick}))};
+  assert.equal(suggestPassages(rest,{maximum:16})[0].reason,'Rest gap');
+  assert.equal(suggestPassages({...rest,notes:rest.notes.map((note,i)=>i===0 ? {...note,end_tick:null} : note)},{maximum:16})[0].reason,'Meter boundary');
+  const changed={...score,events:[{tick:0,message:{type:'cue_point',text:'Intro'}},{tick:1920,message:{type:'time_signature',numerator:3,denominator:4}}]};
+  assert.equal(suggestPassages(changed,{maximum:8})[0].end,7);
+  assert.deepEqual(suggestPassages({notes:[]}),[]);
+  assert.equal(suggestPassages({notes:[{start_tick:0,midi:60}]},{maximum:NaN,minimum:NaN})[0].end,1);
+  const long={notes:Array.from({length:25000},(_,i)=>({start_tick:i,midi:60,end_tick:i+1}))};
+  const bounded=suggestPassages(long); assert.ok(bounded.length<=128); assert.equal(bounded.at(-1).end,25000);
+  assert.ok(bounded.every(section=>section.end-section.start<512));
+  assert.equal(suggestPassages(score,{maximum:1,minimum:100}).length,24);
 });

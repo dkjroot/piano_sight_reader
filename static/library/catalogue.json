@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "pieces": [
+    {
+      "id": "chopin-op28-7",
+      "title": "Prelude in A major, Op. 28 No. 7",
+      "composer": "Frédéric Chopin",
+      "style": "Romantic",
+      "edition": "Edition Peters",
+      "contributor": "Magnus Lewis-Smith",
+      "source_page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=470",
+      "source_url": "https://www.mutopiaproject.org/ftp/ChopinFF/O28/Chop-28-7/Chop-28-7.mid",
+      "licence": "Public Domain dedication",
+      "licence_url": "https://www.mutopiaproject.org/legal.html#publicdomain",
+      "licence_evidence": "Copyright: Public Domain on the linked edition page; contributor dedication described on Mutopia legal page.",
+      "reviewed": "2026-10-16",
+      "sha256": "6eed7f2185afd852f01d695e50db84cdb4c8742de1a26294dc3202569346ef36",
+      "midi": "chopin-op28-7.mid",
+      "inspection": "chopin-op28-7.json"
+    },
+    {
+      "id": "bach-bwv846",
+      "title": "Prelude in C major, BWV 846",
+      "composer": "Johann Sebastian Bach",
+      "style": "Baroque",
+      "edition": "Unknown, as recorded by Mutopia",
+      "contributor": "Tobias Erbsland",
+      "source_page": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=5",
+      "source_url": "https://www.mutopiaproject.org/ftp/BachJS/BWV846/wtk1-prelude1/wtk1-prelude1.mid",
+      "licence": "Public Domain dedication",
+      "licence_url": "https://www.mutopiaproject.org/legal.html#publicdomain",
+      "licence_evidence": "Copyright: Public Domain on the linked edition page; contributor dedication described on Mutopia legal page.",
+      "reviewed": "2026-10-16",
+      "sha256": "874e07d0479542971bfceaf420d6117da8d602d89d26eea4610e7dd1ef58bf26",
+      "midi": "bach-bwv846.mid",
+      "inspection": "bach-bwv846.json"
+    }
+  ]
+}

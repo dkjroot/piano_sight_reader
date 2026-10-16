@@ -1,3 +1,4 @@
+import {suggestPassages} from './sections.js';
 import {parsePassages,savePassage,passageKey} from './passages.js';
 import {attackGroups,makeOutline} from './outline.js';
 // Local file inspection is separate from the live MIDI event path.
@@ -8,26 +9,17 @@ export class ScorePanel {
     this.getSettings=getSettings;
     this.score=null; this.revision=0; this.trackControls=[]; this.onPassageChange=()=>{}; this.savedPassages=[];
     try {this.savedPassages=parsePassages(localStorage.getItem(PASSAGES)||'[]');} catch {$('passage-status').textContent='Saved passages are unavailable; this visit still works.';}
-    $('score-file').addEventListener('change',async()=>{
-      const revision=++this.revision, file=$('score-file').files[0];
-      if(!file) return;
-      $('score-status').textContent='Reading MIDI…';
-      try {
-        if(file.size>256000) throw new Error('Choose a MIDI file no larger than 256 KB.');
-        const response=await fetch('/api/inspect-midi',{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:file});
-        const result=await response.json();
-        if(revision!==this.revision) return;
-        if(!response.ok) throw new Error(result.error||'MIDI could not be read.');
-        this.score=result; this.filename=file.name;
-        $('score-status').textContent=`${file.name} · ${result.notes.length} attacks · ${result.tracks.length} tracks · ${result.duration_seconds.toFixed(1)} s${result.warning_count ? ' · '+result.warning_count+' warnings' : ''}`;
-        $('score-details').textContent=result.tracks.map(track=>track.name).join(' · ');
-        $('score-warnings').textContent=result.warnings.join(' ');
-        $('export-score').disabled=false; this.drawTracks();
-        const count=attackGroups(result).length;
-        for(const id of ['passage-start','passage-end']) {$(id).disabled=!count; $(id).max=Math.max(1,count);}
-        $('passage-start').value=1; $('passage-end').value=Math.min(512,count)||1; $('passage-name').value=''; this.refresh(); this.renderPassages(); this.onPassageChange();
-      } catch(error) {if(revision===this.revision) $('score-status').textContent='Import failed: '+error.message;}
+    $('score-file').addEventListener('change',()=>{const file=$('score-file').files[0]; if(file) void this.readFile(file);});
+    this.library=[]; this.sections=[];
+    $('library-piece').addEventListener('change',()=>{$('load-piece').disabled=!$('library-piece').value;});
+    $('load-piece').addEventListener('click',()=>void this.loadPiece());
+    $('suggested-passages').addEventListener('change',()=>{
+      const section=this.sections[+$('suggested-passages').value]; if(!section || $('suggested-passages').value==='') return;
+      $('passage-start').value=section.start; $('passage-end').value=section.end; $('passage-name').value=section.label;
+      $('saved-passages').value=''; $('delete-passage').disabled=true;
+      this.refresh(); this.onPassageChange(); $('passage-status').textContent=section.reason+' · suggested section; adjust the endpoints as needed.';
     });
+    void this.loadCatalogue();
     for(const id of ['passage-start','passage-end']) $(id).addEventListener('change',()=>this.editPassage());
     $('practice-score').addEventListener('click',()=>{const outline=this.refresh(); if(outline?.targets.length) onPractice(this.score,{start:outline.start,end:outline.end,tracks:this.rules()},this.filename);});
     $('save-passage').addEventListener('click',()=>{
@@ -55,6 +47,51 @@ export class ScorePanel {
       link.href=url; link.download='midi-inspection.json'; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
     });
   }
+  async loadCatalogue() {
+    try {
+      const response=await fetch('/static/library/catalogue.json'); if(!response.ok) throw new Error('Library catalogue unavailable.');
+      const catalogue=await response.json(); if(catalogue.version!==1 || !Array.isArray(catalogue.pieces)) throw new Error('Unsupported library catalogue.');
+      this.library=catalogue.pieces.slice(0,50).filter(piece=>/^[a-z0-9-]+\.json$/.test(piece.inspection));
+      $('library-piece').replaceChildren(new Option('Choose a piece',''),...this.library.map(piece=>new Option(`${piece.composer} · ${piece.title}`,piece.id)));
+      $('library-piece').disabled=!this.library.length;
+    } catch(error) {$('library-status').textContent=error.message;}
+  }
+  async loadPiece() {
+    const piece=this.library.find(entry=>entry.id===$('library-piece').value); if(!piece) return;
+    const revision=++this.revision; $('score-status').textContent='Loading piece…'; this.onPassageChange();
+    try {
+      const response=await fetch('/static/library/'+piece.inspection); if(!response.ok) throw new Error('The bundled piece could not be loaded.');
+      const score=await response.json(); if(revision!==this.revision) return;
+      if(score.version!==1 || score.sha256!==piece.sha256 || !Array.isArray(score.notes)) throw new Error('Library inspection does not match its catalogue.');
+      $('score-file').value=''; this.useScore(score,piece.title);
+      $('library-credit').textContent=`${piece.composer} · ${piece.style} · ${piece.contributor} · ${piece.licence}`;
+      $('library-source').href=piece.source_page; $('library-source').hidden=false;
+    } catch(error) {if(revision===this.revision) $('score-status').textContent='Load failed: '+error.message;}
+  }
+  async readFile(file) {
+    const revision=++this.revision; $('score-status').textContent='Reading MIDI…'; this.onPassageChange();
+    try {
+      if(file.size>256000) throw new Error('Choose a MIDI file no larger than 256 KB.');
+      const response=await fetch('/api/inspect-midi',{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:file});
+      const result=await response.json(); if(revision!==this.revision) return;
+      if(!response.ok) throw new Error(result.error||'MIDI could not be read.');
+      $('library-piece').value=''; $('load-piece').disabled=true; $('library-credit').textContent=''; $('library-source').hidden=true;
+      this.useScore(result,file.name);
+    } catch(error) {if(revision===this.revision) $('score-status').textContent='Import failed: '+error.message;}
+  }
+  useScore(score,filename) {
+    this.score=score; this.filename=filename;
+    $('score-status').textContent=`${filename} · ${score.notes.length} attacks · ${score.tracks.length} tracks · ${score.duration_seconds.toFixed(1)} s${score.warning_count ? ' · '+score.warning_count+' warnings' : ''}`;
+    $('score-details').textContent=score.tracks.map(track=>track.name).join(' · '); $('score-warnings').textContent=score.warnings.join(' ');
+    $('export-score').disabled=false; this.drawTracks();
+    const count=attackGroups(score).length;
+    for(const id of ['passage-start','passage-end']) {$(id).disabled=!count; $(id).max=Math.max(1,count);}
+    $('passage-start').value=1; $('passage-end').value=Math.min(512,count)||1; $('passage-name').value='';
+    this.sections=suggestPassages(score);
+    $('suggested-passages').replaceChildren(new Option('Choose a suggested section',''),...this.sections.map((section,i)=>new Option(`${section.label} · attacks ${section.start}–${section.end} · ${section.reason}`,String(i))));
+    $('suggested-passages').disabled=!this.sections.length;
+    this.refresh(); this.renderPassages(); this.onPassageChange(); $('passage-status').textContent='';
+  }
   persistPassages() {try {localStorage.setItem(PASSAGES,JSON.stringify(this.savedPassages)); return true;} catch {return false;}}
   renderPassages() {
     const select=$('saved-passages'), selected=select.value;
@@ -63,13 +100,13 @@ export class ScorePanel {
     if([...select.options].some(option=>option.value===selected)) select.value=selected;
     select.disabled=!entries.length; $('delete-passage').disabled=!select.value;
   }
-  editPassage() {$('saved-passages').value=''; $('delete-passage').disabled=true; this.refresh(); this.onPassageChange();}
+  editPassage() {$('suggested-passages').value=''; $('saved-passages').value=''; $('delete-passage').disabled=true; this.refresh(); this.onPassageChange();}
   usePassage() {
     const entry=this.savedPassages.find(item=>passageKey(item)===$('saved-passages').value);
     $('delete-passage').disabled=!entry;
     if(!entry || entry.hash!==this.score?.sha256) return;
     if(entry.end>attackGroups(this.score).length || entry.tracks.some(rule=>!this.score.tracks.some(track=>track.index===rule.track))) {$('passage-status').textContent='Saved range or tracks do not match this file.'; return;}
-    $('passage-start').value=entry.start; $('passage-end').value=entry.end; $('passage-name').value=entry.label;
+    $('suggested-passages').value=''; $('passage-start').value=entry.start; $('passage-end').value=entry.end; $('passage-name').value=entry.label;
     for(const control of this.trackControls) {const rule=entry.tracks.find(rule=>rule.track===control.track); control.include.checked=!!rule?.enabled && !control.include.disabled; control.staff.value=rule?.staff||'auto';}
     this.refresh(); this.onPassageChange(); $('passage-status').textContent='Passage restored to preview.';
   }
