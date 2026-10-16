@@ -1,3 +1,4 @@
+import {LIBRARY_FIELDS,libraryFacets,filterLibrary} from './library.js';
 import {suggestPassages} from './sections.js';
 import {parsePassages,savePassage,passageKey} from './passages.js';
 import {attackGroups,makeOutline} from './outline.js';
@@ -11,6 +12,7 @@ export class ScorePanel {
     try {this.savedPassages=parsePassages(localStorage.getItem(PASSAGES)||'[]');} catch {$('passage-status').textContent='Saved passages are unavailable; this visit still works.';}
     $('score-file').addEventListener('change',()=>{const file=$('score-file').files[0]; if(file) void this.readFile(file);});
     this.library=[]; this.sections=[];
+    for(const field of LIBRARY_FIELDS) $('library-'+field).addEventListener('change',()=>this.renderLibrary());
     $('library-piece').addEventListener('change',()=>{$('load-piece').disabled=!$('library-piece').value;});
     $('load-piece').addEventListener('click',()=>void this.loadPiece());
     $('suggested-passages').addEventListener('change',()=>{
@@ -51,10 +53,22 @@ export class ScorePanel {
     try {
       const response=await fetch('/static/library/catalogue.json'); if(!response.ok) throw new Error('Library catalogue unavailable.');
       const catalogue=await response.json(); if(catalogue.version!==1 || !Array.isArray(catalogue.pieces)) throw new Error('Unsupported library catalogue.');
-      this.library=catalogue.pieces.slice(0,50).filter(piece=>/^[a-z0-9-]+\.json$/.test(piece.inspection));
-      $('library-piece').replaceChildren(new Option('Choose a piece',''),...this.library.map(piece=>new Option(`${piece.composer} · ${piece.title}`,piece.id)));
-      $('library-piece').disabled=!this.library.length;
+      this.library=catalogue.pieces.slice(0,500).filter(piece=>/^[a-z0-9-]+\.json$/.test(piece.inspection));
+      for(const field of LIBRARY_FIELDS) {
+        const select=$('library-'+field);
+        select.replaceChildren(new Option('All',''),...libraryFacets(this.library,field).map(value=>new Option(value,value)));
+        select.disabled=!this.library.length;
+      }
+      this.renderLibrary();
     } catch(error) {$('library-status').textContent=error.message;}
+  }
+  renderLibrary() {
+    const select=$('library-piece'), selected=select.value;
+    const pieces=filterLibrary(this.library,Object.fromEntries(LIBRARY_FIELDS.map(field=>[field,$('library-'+field).value])));
+    select.replaceChildren(new Option(pieces.length ? 'Choose a piece' : 'No matching pieces',''),...pieces.map(piece=>new Option(`${piece.composer} · ${piece.title}`,piece.id)));
+    if(pieces.some(piece=>piece.id===selected)) select.value=selected;
+    select.disabled=!pieces.length; $('load-piece').disabled=!select.value;
+    $('library-status').textContent=`${pieces.length} of ${this.library.length} pieces`;
   }
   async loadPiece() {
     const piece=this.library.find(entry=>entry.id===$('library-piece').value); if(!piece) return;
@@ -64,7 +78,7 @@ export class ScorePanel {
       const score=await response.json(); if(revision!==this.revision) return;
       if(score.version!==1 || score.sha256!==piece.sha256 || !Array.isArray(score.notes)) throw new Error('Library inspection does not match its catalogue.');
       $('score-file').value=''; this.useScore(score,piece.title);
-      $('library-credit').textContent=`${piece.composer} · ${piece.style} · ${piece.contributor} · ${piece.licence}`;
+      $('library-credit').textContent=`${piece.composer} · ${piece.era} · ${piece.style} · ${piece.contributor} · ${piece.licence}`;
       $('library-source').href=piece.source_page; $('library-source').hidden=false;
     } catch(error) {if(revision===this.revision) $('score-status').textContent='Load failed: '+error.message;}
   }

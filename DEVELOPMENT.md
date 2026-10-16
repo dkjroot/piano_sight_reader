@@ -429,7 +429,7 @@ the attempt. New exercise settings clear a pending resume-release reason. The to
 row reserves its button height, and layout regressions verify pause never moves the
 keyboard in any preset. Reference playback/metronome are separate untimed controls.
 
-The user-supplied Buy Me a Coffee URL and exact support wording appear below all settings/music-library controls and above Progress. It uses theme colours and fine rules, wraps on narrow screens, and opens in a new tab without changing practice. Browser tests check the approved URL, wording, placement and narrow-screen fit.
+The user-supplied Buy Me a Coffee URL and exact support wording appear after general settings and above Music library, and on the Help page. It uses theme colours and fine rules, wraps on narrow screens, and opens in a new tab without changing practice. Browser tests check the approved URL, wording, placement and narrow-screen fit.
 
 History-save lifecycle: normal saves remain debounced outside MIDI handlers, but a
 2-second maximum wait prevents uninterrupted playing from postponing persistence
@@ -442,3 +442,26 @@ exercise 45 uninterrupted attacks and verify opt-out/clear never resurrect data.
 Daily progress graph positions use actual elapsed UTC dates, rather than evenly spaced practice visits. Missing days preserve their calendar distance; a single recorded day is centred and labelled once. Pure coordinate tests cover an irregular ten-day span, zero response time, one day and no data, while the exact daily table remains available.
 
 Computer-key input ignores event.repeat and duplicate activation while the same virtual key is physically held. Before the fix, a held Enter key advanced a repeated Fluid target twice without release. Browser regression checks Space autorepeat, Enter while Space remains held, and a genuine new Enter attack after release. MIDI rearticulation semantics remain based on actual note-on packets.
+
+
+MIDI attack matching: FlowGate requires fresh attack serials for every imported
+pitch (identified by sourceIds), even when a chord changes around a repeated
+pitch. Generated changing chords retain their shared-hold policy. This consumes
+explicit MIDI note-ons without guessing printed ties; it adds no settling delay.
+Original regression fixture repeated-attacks.mid changes C/E to E/G to E/A, and
+browser tests require a new E for each target while permitting retiring-note legato.
+
+Library browsing is a local intersection of composer, era, style and difficulty,
+implemented in library.js independently of active practice. A bounded 500-entry
+catalogue supplies facets; changing filters preserves a still-visible selection
+and clears a hidden one without loading or replacing a passage. Missing difficulty
+is Unrated; existing editions have no asserted grade. Future ratings need a
+reviewed, multidimensional basis. Era and musical form/style are separate metadata.
+
+The local /help page uses the same theme and support partial as practice, but loads
+only help.js, with no MIDI/audio/controller initialization. The app opens it in a
+separate tab so the current exercise is preserved. Button names and README steps
+match: Load piece previews; Start practising this passage activates; Download MIDI
+data (JSON) exports diagnostic performance data. No runtime dependency was added.
+The support partial uses equal 3px double theme-line borders; the adjacent library
+suppresses its own top rule to avoid a duplicate divider.

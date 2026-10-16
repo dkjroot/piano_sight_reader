@@ -198,13 +198,23 @@ note's median against that exercise's baseline. Key, range, mode, source passage
 spelling remain distinct. These are practice clues with visible evidence counts,
 not diagnoses of finger/hand ability or conclusions from sparse samples.
 
+## Help
+
+Choose **Help & guide** beside Music library for the local help page. It opens in
+a separate tab, with a quick start, piece/passage instructions, repeated-note
+behavior, sound controls, progress and MIDI troubleshooting.
+
 ## Music library
 
 The **Music library** includes Bach’s Prelude in C major BWV 846 and Chopin’s Prelude
-Op. 28 No. 7, ready to load offline. Select a piece, choose **Load piece**, adjust the
-preview if needed, then **Practise pitch outline**. Your range, hand and pitch
+Op. 28 No. 7, ready to load offline. Filter by composer, era, style or difficulty,
+then select a piece, choose **Load piece**, adjust the
+preview if needed, then **Start practising this passage**. Your range, hand and pitch
 filters still apply. Edition credits are linked beside the selection and recorded
 in `static/library/NOTICES.md`; these Mutopia editions carry a public-domain dedication.
+Difficulty is currently **Unrated** until an editorial review establishes useful
+levels; no exam grades are inferred from MIDI. Browsing filters never replace
+the current practice passage.
 
 **Suggested section** splits a MIDI into manageable attack ranges, using marker
 messages, rest gaps and meter boundaries where available. These are practice
@@ -214,14 +224,14 @@ save a named passage as usual. A local file uses the same section suggestions.
 ## Inspecting a local MIDI file
 
 Choose a `.mid` or `.midi` file under **Local MIDI file**. The app previews its note
-attacks, tracks and duration; **Export inspection** saves the normalized performance
+attacks, tracks and duration; **Download MIDI data (JSON)** saves the normalized performance
 as JSON, including original tick positions, channels, velocities, tempo/meter/key
 messages, controllers and a source-file hash. Missing note-offs and ambiguous repeated
 pitches are reported. Your original file stays unchanged and is not saved by the app. MIDI percussion
 (channel 10) is excluded from piano outlines.
 The file is sent only to the Python server on this computer, with no external upload.
 
-Choose **First attack** and **Last attack**, then **Practise pitch outline** to loop
+Choose **First attack** and **Last attack**, then **Start practising this passage** to loop
 that passage (up to 512 source onsets). The current range, hand, key, pitch material
 and maximum chord size filter the source. Reduction keeps the highest note, then
 the bass, then inner notes; it never adds notes. Empty attacks are omitted from this
@@ -229,11 +239,14 @@ untimed reading exercise. Minimum chord size and generated phrase length do not
 apply. The preview reports retained/omitted notes before starting. Include or exclude MIDI
 tracks and assign each to treble/bass explicitly, or keep the middle-C inference.
 An explicit assignment allows crossing middle C; the hand selector then follows
-your assigned staff. Track changes remain a preview until **Practise pitch outline**
+your assigned staff. Track changes remain a preview until **Start practising this passage**
 is clicked.
 
 Each target contains simultaneous note attacks, not every note still sounding.
-Play through it using your chosen Fluid or Release-between-targets progression. Spelling and inferred/selected
+Play through it using your chosen Fluid or Release-between-targets progression.
+In Fluid mode, every written MIDI-outline note requires a fresh key press, including
+notes shared with the preceding chord. Other notes may overlap briefly for legato.
+A MIDI note-on is a new attack; printed ties require a notation source and are not inferred. Spelling and inferred/selected
 staff assignments are derived choices, not recovered notation or detected hands. Source
 durations, overlaps, pedal, rests and tempo remain in the inspection but are not
 judged or drawn as timed music yet. Reloading clears the local file and returns
@@ -250,7 +263,7 @@ to a shared library, and their redistribution rights are not assumed.
 Give a selected attack range a name and choose **Save passage**. Up to 50 bookmarks
 stay in this browser, including the track and staff choices. Load the library
 piece again or reopen the same local MIDI file, then choose its saved passage
-to restore the preview. **Practise pitch outline**
+to restore the preview. **Start practising this passage**
 still starts it explicitly. Current pitch/range filters stay under your control.
 Bookmarks match the file's hash, so another file with the same name cannot receive
 the wrong range. **Delete saved passage** removes a bookmark. Uploaded music files

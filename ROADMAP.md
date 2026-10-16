@@ -4,7 +4,22 @@ The destination is a piano practice workspace where a learner can start with a
 small, playable outline of a real piece and gradually restore its notes, voices,
 range and rhythm until they can perform the full score. Support patient correction,
 timed practice with recovery, and continuous performance with scoring. Keep random
-exercises independently useful throughout. These are plans, not implemented claims.
+exercises independently useful throughout. Unchecked items are plans, not implemented claims.
+
+## Current status — 16 October 2026
+
+Checked items are implemented and covered by local automated checks; they do not
+claim measured MIDI hardware latency or verified hosted CI. Mixed tasks are split
+below so that completed foundations and remaining work are visible separately.
+
+| Area | Delivered | Still ahead |
+| --- | --- | --- |
+| Generated practice | Random pitches, triads/sevenths, cadences, fluid/release progression | Richer textures and advanced harmony |
+| Real music | Local MIDI import, two offline pieces, filtering, passage loops and bookmarks | Notation-preserving import, voices, rests, ties and duration judgement |
+| Finding pieces | Composer/era/style/difficulty filters; reviewed source credits | More repertoire and reviewed difficulty levels |
+| Progress | Response times, accuracy, bests, optional history, graphs and reading patterns | Session runs, rhythm scores, targeted drills and profiles |
+| Sound | Independent synth/sample paths, MIDI source playback, metronome and count-in | Score-synchronised practice, latency calibration and timed modes |
+| Interface | Themes, contrast, height/key sizing, page scrolling, Help and support links | Full-score engraving and further usability/hardware validation |
 
 ## Working foundation
 
@@ -12,7 +27,8 @@ exercises independently useful throughout. These are plans, not implemented clai
 - [x] Learnable physical range; independent key spelling and MIDI pitch.
 - [x] Standard key signatures, chromatic practice and basic chord names.
 - [x] Configurable chord sizes, phrases, look-ahead and exact pitch matching.
-- [x] Repeat loops and continuous random practice, gated by correct playing and release.
+- [x] Repeat loops and continuous random practice, gated by correct pitches and fresh
+  attacks, with optional release-between-targets progression.
 - [x] Strong contrast, redundant feedback symbols, dark/light themes and optional targets.
 - [ ] Measure physical keyboard-to-display latency on the Yamaha and a full-size piano.
 - [ ] Preserve the current scrolling policy for now. Revisit with real musical phrases;
@@ -40,8 +56,8 @@ without requiring imported music. Random pitch practice remains available.
   positions, durations, voices, staves, measures, rests, key/time signatures and tempo maps.
 - [ ] Represent attacks, releases and continuing held notes separately. Support ties,
   repeated notes, overlaps between hands, sustain pedal and notes crossing barlines.
-- [ ] Replace the current all-keys-release gate with event-aware expectations: notes may
-  continue while another voice moves; ties do not demand a new attack, repeated notes do.
+- [ ] Extend the delivered fluid attack gate to authored voice/duration expectations:
+  ties do not demand a new attack, while explicit repeated source note-ons do.
 - [ ] Engrave multiple attacks per bar, note values, beams, rests, dots, tuplets, ties,
   changing signatures, courtesy/cancellation accidentals, cross-staff/voice collisions,
   pickups and phrase boundaries. Preserve authored enharmonic spelling.
@@ -158,176 +174,129 @@ everything to a sequence of chords that require all fingers to lift together.
 
 ## Stage 3 — Import one verified real passage end to end
 
-Shipped discovery foundation: `tools/discover_scores.py` creates a bounded Mutopia
-solo-piano public-domain/CC0 candidate shortlist, with edition/contributor/licence
-links, evidence, retrieval timestamp and metadata hash. No assets are downloaded or
-bundled; per-asset review remains below. Local MIDI inspection now preserves a
-bounded raw event timeline, paired note spans, tempo map and source hash, with
-preview/export and malformed-file diagnostics. Selected passages can now be played
-as filtered, repeated untimed pitch outlines; notation-aware/rhythmic import remains
-below.
-
-
-- [ ] Support local score imports with preview and validation. Prefer notation-preserving
-  formats such as MusicXML where available; support MIDI as performance data too.
-- [ ] MIDI import must retain tempo/meter, channels, tracks, controllers and note timing.
-  Treat inferred spelling, hand/voice assignment and rhythmic quantisation as derived,
-  reviewable choices, not as recovered original notation.
-- [ ] Keep originals intact, with provenance, source URL, author/composer, edition,
-  arrangement/transcription credits and verified licence/public-domain basis.
-- [ ] Check composition, edition and MIDI/transcription permissions separately. Freely
-  downloadable does not automatically mean redistributable. Do not assume a MIDI exists
-  or is freely licensed for every piece. Do not bundle unverified scores or recordings.
-- [ ] Build an opt-in discovery script that searches suitable music sources automatically
-  and presents a local shortlist for the author to choose from. Include composer/title,
-  format, difficulty clues, source URL, licence text/URL, attribution and review status.
-- [ ] Assess suitability for distribution alongside this GPL application per asset;
-  retain original licences/attributions. The code's GPL licence does not establish the
-  licence of an edition, transcription, MIDI performance or associated sample asset.
-- [ ] Separate verified redistributable candidates from unknown/unclear permissions;
-  exclude unclear material from bundled catalogues. Preserve dated evidence and hashes
-  of selected downloads, and require explicit selection before adding to the library.
-- [ ] Cache discovery metadata, respect source access/rate limits, and support reviewed
-  local/offline imports. Rechecking a source must not silently replace an accepted score.
-- [ ] Add resource/size limits and clear malformed/unsupported-import diagnostics.
-- [ ] Select a short, verified passage, assign its hands/voices, and practise it in wait
-  mode at original pitches before adding automatic simplification or a large catalogue.
+- [x] Import local MIDI with preview/export, bounded raw events, paired note spans,
+  tempo/meter, channels, tracks, controllers, source hashes and clear diagnostics.
+- [x] Practise selected attacks as untimed outlines; preserve source events and timings
+  independently of derived spelling and staff assignment.
+- [x] Discover bounded Mutopia solo-piano public-domain/CC0 candidates with an opt-in
+  script and a local author-selection shortlist, dated metadata hashes and licence links.
+- [x] Bundle two explicitly reviewed editions with original MIDI, prebuilt inspections,
+  source/edition/contributor attribution, dated permission evidence and verified hashes.
+  Check composition and edition/transcription rights separately; unclear assets stay out.
+- [x] Rebuild accepted MIDI inspections offline and reject changed hashes or incomplete
+  credits. Local files do not enter the shared library automatically.
+- [ ] Import notation-preserving formats such as MusicXML with original spelling,
+  voices, durations and ties. MIDI alone is performance data, not printed notation.
+- [ ] Extend discovery beyond its current source with cached metadata, richer difficulty
+  clues and respectful rate limits; rechecking must not silently replace accepted assets.
+- [ ] Prove a verified passage with authored notation/voices end to end before declaring
+  the full score-import milestone complete.
 
 Exit: one real passage works end to end, with trustworthy provenance and authored
-notation where supplied. This is the first proof toward a full Chopin piece.
+notation where supplied. Untimed MIDI practice is delivered; this full exit is not.
 
 ## Stage 4 — Progressive outlines of real pieces
 
-Shipped first step: local MIDI attack outlines, explicit 1–512-onset passage selection,
-range/key/material/staff/max-chord filters, track inclusion and explicit treble/bass
-assignment, highest/bass/inner reduction and source
-identity per retained note. Preview counts omissions; the original performance model
-stays unchanged. This untimed view skips empty attacks and requires release between
-targets; preserving scored silence/holds and voice-aware reduction remains future work.
+- [x] Derive outlines separately, mapping retained notes to original IDs, ticks and onsets.
+- [x] Select 1–512 source onsets, tracks and inferred/explicit staves; filter by physical
+  and reading range, hand, key/material and maximum chord size without changing pitch.
+- [x] Reduce chords by highest note, bass, then inner notes; preview retained/omitted
+  counts and explain empty passages. Empty attacks are omitted in this untimed view.
+- [x] Loop an imported outline with fluid or release-between-targets progression.
+  Require every retained source note-on to be freshly played, including a repeated note
+  inside a changing chord. This is attack matching, not inferred tie support.
+- [ ] Preserve musical time/bar alignment and silence when omitting notes in rhythmic
+  versions. The current attack-only view deliberately does not judge rhythm or rests.
+- [ ] Add adjustable voice-aware musical reduction alongside a literal eligibility
+  filter; protect useful melody/bass/harmonic anchors and avoid impossible hand spans.
+- [ ] Preserve/rebuild durations and ties after filtering, including orphaned tie ends
+  and holds across omitted attacks. Add explicit ledger-distance eligibility.
+- [ ] Support comparable staged restoration of independent voices and rhythmic detail,
+  eventually restoring a complete source. Range/accidentals/density are adjustable now.
+- [ ] Offer transposition/octave relocation only as separate, explicit derived choices
+  with clear provenance; ordinary filtering must never change pitch.
 
-- [ ] Derive practice versions from the source, without overwriting it. Map every retained
-  note and event back to its original score position and identity.
-- [ ] Filter by physical/reading range, key/chromatic allowance, permitted accidentals,
-  hand, chord size, ledger distance and selected passage.
-- [ ] Preserve onset order, bar alignment, meter and phrase shape. Replace omitted events
-  with appropriate silence; do not silently compress time or pull later notes forward.
-- [ ] When reducing chords, prefer musically useful voices: melody, bass, harmonic
-  anchors, then inner parts. Make this policy explicit and adjustable.
-- [ ] Offer a literal eligibility filter as well as a more musical outline. Preview which
-  notes were retained/omitted. Explain when criteria leave a passage empty.
-- [ ] Preserve/rebuild ties and durations after filtering; resolve orphaned tie ends and
-  sustained notes across omitted attacks. Avoid creating impossible hand spans.
-- [ ] Increase range, accidentals, chord density and independent voices progressively,
-  eventually restoring the complete source. Keep versions comparable across sessions.
-- [ ] Avoid changing pitch as part of filtering. Offer transposition/octave relocation
-  only as separate, explicit options with clear provenance.
-
-Exit: the same passage can be played as a sparse beginner outline, several intermediate
-versions and the full original, with preserved musical positions and useful progression.
+Exit: a passage grows from sparse outline to full original with musical timing and
+voice structure preserved. The untimed filtering foundation is complete.
 
 ## Stage 5 — Piece library and deliberate practice
 
-Shipped deliberate-practice step: up to 50 named local passage bookmarks, bound to
-source hashes and track/staff choices. Reloading the same file restores selectable
-previews; no music files are stored. The full curated library remains future work.
+- [x] Ship a pre-ingested offline Bach/Chopin library with source and licence credits.
+- [x] Browse by composer, era, style and difficulty without replacing active practice.
+  Existing pieces remain Unrated until reviewed; no unsupported exam grades are shown.
+- [x] Suggest adjustable sections from MIDI markers, rest gaps and meter boundaries.
+- [x] Save up to 50 named local passage bookmarks with source hashes, endpoints and
+  track/staff choices; restore them after reloading the same source.
+- [x] Isolate and repeat a selected passage; include/exclude tracks and assign staves.
+- [ ] Expand reviewed repertoire across Bach, Chopin, Beethoven, Haydn, Handel and
+  Schumann, from beginner pieces and studies through demanding Rachmaninoff chords.
+  Find candidates with the discovery script, retain edition/MIDI permission evidence,
+  present a shortlist, review each selected asset and ingest it offline with tests.
+- [ ] Define and review Easy, Medium, Hard, Expert and Virtuoso tiers using range,
+  accidentals, density, leaps, hand independence and rhythm; retain uncertainty and
+  edition-specific evidence. A single grade must not replace those dimensions.
+- [ ] Add random selection within the composer/era/style/difficulty filters, reproducible
+  for tests; add recent pieces and richer catalogue search as the collection grows.
+- [ ] Add notation-aware phrase/bar loops, continuous traversal of a real score, tempo
+  goals and ramped loops. Current endpoints are attack ranges, not recovered bar numbers.
+- [ ] Extend suggestions with repeated motifs, harmonic cadences and editable timeline
+  boundaries; record troublesome measures/intervals and offer optional targeted practice.
 
-- [ ] Add a piece menu with composer, style/period, title, source and approximate difficulty.
-- [ ] Provide Easy, Medium, Hard, Expert and Virtuoso browsing tiers, backed by measurable
-  difficulty dimensions and human review rather than unsupported claims about levels.
-- [ ] Choose a piece directly or choose randomly within composer/style/difficulty filters.
-- [ ] Define phrase/section/bar ranges and saved loop points. Repeat mode should let the
-  player isolate a difficult real passage; continuous mode can proceed through a piece.
-- [ ] Add hands-separate practice, tempo goals, bookmarks, recent pieces and local progress.
-- [ ] Record troublesome measures/intervals and offer targeted practice without locking
-  users out of harder music. Make random selection reproducible for testing.
-
-Exit: a small curated library supports finding, simplifying, looping and resuming music.
-Expand the catalogue only after the score/import/practice contracts are dependable.
+Exit: a curated library supports finding, simplifying, looping and resuming full music.
+The small offline catalogue and attack-range deliberate practice are delivered.
 
 ## Stage 5A — Progress, personal bests and blind-spot analysis
 
-Basic typing-tutor-style feedback can begin before rhythmic playback/scoring exists.
-Use it to show reading progress, not just a game score or eventual completion rate.
+- [x] Record per-target attempts with timestamps, written pitches/staves, exercise and
+  source/passage identities, response time, wrong pitches and first-attempt accuracy.
+- [x] Show mean/median/slower-tail response time, accuracy and clean-response personal
+  bests for comparable exercise identities; preserve imported source/passage context.
+- [x] Exclude practice pauses, background/unfocused time, range learning, release waits
+  and confirmation delays from response-time measurements, with deterministic tests.
+- [x] Keep optional local history (1,000 attempts), validated JSON import/export and
+  clearing for the last hour, local today or all time. Flush pending saves before leaving.
+- [x] Plot daily medians using actual calendar spacing, with an accessible daily table.
+- [x] Break down hand/context, key, single-note pitch/spelling, accidental and exact staff/
+  ledger position. Do not infer physical hands or fingers from MIDI alone.
+- [x] Flag repeated corrections and slower comparable single-note responses with minimum
+  exposures and visible evidence counts; preserve uncertainty with sparse data.
+- [x] Test aggregation, pause handling, identity boundaries, graph summaries and persistence.
+- [ ] Group attempts into explicit named sessions/runs; preserve generated seeds and
+  complete scoring versions, distinguish novel reading from rehearsed loops.
+- [ ] Add chord assembly/onset measures, missed/completion rates, recurring pitch-confusion
+  pairs and rhythm-aware high scores without rewarding fast guessing.
+- [ ] Add separate local player profiles, accuracy/range/coverage graphs over weeks,
+  and evidence of reliable reading rather than merely a wider selected range.
+- [ ] Offer optional targeted drills linked to their evidence, preserving player choice.
 
-Shipped foundation: per-target written/context records, mean/median response time,
-first-attempt accuracy, clean-response personal bests for matching exercises, optional
-local history (1,000 attempts), validated JSON import/export/deletion, daily median graph
-and exact UTC daily table, 90th-percentile response time and hand/key/
-single-note pitch/accidental/ledger-position breakdowns. Background and unfocused time,
-release waits and the confirmation delay are excluded. The tasks below include the
-remaining session, rhythm, coverage and recommendation work. Reading patterns now
-flag repeated corrections or slower single-note responses with minimum exposure
-counts and comparable exercise cohorts; direct targeted-drill actions remain future work.
-
-- [ ] Record local practice sessions and per-target attempts, with timestamps, written
-  pitches, staff/hand assignment, key signature, generated seed or source passage IDs,
-  exercise settings and scoring version. Preserve the context needed for fair comparison.
-- [ ] Show average time to a correct response, median and slower-tail response times,
-  first-attempt accuracy, wrong/missed/extra notes, correction count and completion rate.
-  For chords, distinguish the initial attack from time spent assembling/correcting it.
-- [ ] Exclude pauses, background tabs, disconnected devices, range learning and deliberate
-  completion/release delays from reading-speed measures. Document the timing contract.
-- [ ] Add exercise/passage personal bests and meaningful high scores. Compare like-for-like
-  settings, tempo/mode, retained score version and chord size; show accuracy alongside speed
-  so fast guessing does not look like improvement. Separate novel reading from rehearsed loops.
-- [ ] Store progress across sessions locally, with optional separate player profiles and
-  explicit export/import, reset and deletion. No account or upload should be required.
-- [ ] Add an analysis view with accessible graphs of speed, accuracy and reading range over
-  days/weeks, plus exposure/coverage. Distinguish notes merely encountered from notes read
-  accurately and reliably; a wider selected range alone is not demonstrated improvement.
-- [ ] Break results down by authored hand/staff, left versus right, two-hand coordination,
-  pitch and octave, key signature, accidental type and written staff position. Include
-  ledger distance above/below each clef, including specific positions such as the second
-  ledger line. Preserve spelling so F♯ in one key is not conflated with G♭ in another.
-- [ ] Identify consistently slow or mistaken notes, recurring pitch confusions, difficult
-  sharps/flats, weak keys and uneven hand performance. Keep exposure counts and uncertainty
-  visible; sparse evidence should not be labelled a weakness. Do not infer actual fingers
-  or hands from MIDI alone when the source provides no reliable assignment.
-- [ ] Offer optional targeted exercises for observed blind spots, with an explicit link
-  from the recommendation to its evidence. Preserve player control over practice settings.
-- [ ] Test aggregation, pause handling, score-version boundaries, difficulty comparisons,
-  storage/export/deletion and graph summaries with deterministic session fixtures.
-
-Exit: a player can see whether they are improving, under comparable conditions, and
-identify specific reading weaknesses to practise. Rhythm-game scoring remains separate.
+Exit: current untimed speed/accuracy history and reading-pattern evidence are usable.
+Session analysis, recommendations and rhythm-game points remain separate future work.
 
 ## Stage 6 — Beat clock, metronome and playback
 
-Shipped foundation: independent live-input and target-audition instruments/volumes,
-original local piano-like/organ synthesis, held/sustain release and panic, plus an
-optional accented audio-clock metronome. This does not yet play scored pieces or
-synchronise targets to rhythm. Local MIDI source passages now play with tempo changes,
-velocity, sustain, selected tracks, speed scaling, pause/resume, held-tone chase and
-independent reference sound. Source playback does not advance untimed exercises.
-Sound starts only through a user gesture.
+- [x] Schedule source MIDI ahead on an audio clock with tempo changes, velocity, sustain,
+  selected tracks, speed scaling, pause/resume and held-tone chase. Playback is not input.
+- [x] Provide an accented standalone metronome and optional source-aligned clicks with
+  meter/tempo changes, playback-speed scaling and one/two-bar count-in.
+- [x] Provide independent live/reference instrument, volume and enable controls, an
+  independent click gain, target audition and live-sound button. Either path may be silent.
+- [x] Supply original piano/organ synthesis plus offline acoustic-grand samples with
+  pinned provenance, licences, attribution and integrity checks; keep banks replaceable.
+- [x] Handle note release, live sustain, configuration changes, backgrounding and panic
+  independently of physical-key matching; no generated playback enters live judgement.
+- [x] Test scheduling, pause/cleanup, source pedal/tempo behavior and real offline audio
+  rendering. This does not claim hardware latency measurements or human listening review.
+- [ ] Connect the clock to an authored score and practice cursor, with musical seeking,
+  fractional beats, wait/re-anchor policy and correct loop/entry pedal and held-note state.
+- [ ] Add compound beat grouping, subdivisions, notation-aware pickups and calibration
+  of MIDI/input, output and display latency without altering source notation.
+- [ ] Add accompaniment-only/mute/solo by authored hand/voice, broader instrument banks
+  and explicit MIDI-output selection with echo-loop prevention and output panic.
+- [ ] Add acoustic velocity layers; profile sample-start latency before considering
+  release/pedal/resonance modelling. Validate real-device doubled local sound separately.
 
-- [ ] Add a monotonic musical transport with tempo changes, meter, count-in, seeking,
-  pause/resume and fractional beat positions. Keep score time separate from wall time.
-- [ ] Implement a metronome with beat/bar accents, adjustable tempo and subdivision.
-- [ ] Schedule sound ahead on an audio clock rather than relying on DOM animation or
-  timer intervals for beat accuracy. Measure MIDI/input, output and display latency.
-- [ ] Add local reference/MIDI playback, mute/solo hands or voices, accompaniment-only
-  and play-along. Support browser synthesis and explicit MIDI-output device selection.
-- [ ] Evaluate local MIDI-driven synthesiser/sampler libraries and suitable instrument
-  banks (including SoundFont/sample options); MIDI events themselves are not audio.
-  Check library, sound-bank, sample and individual asset licences for redistribution
-  with the GPL project. Record the chosen sources, versions and attribution requirements.
-- [ ] Support two independent sound paths: reference/accompaniment playback and the
-  player's live MIDI input. Each needs its own instrument/program, volume and enable/mute
-  control. For example, quiet organ accompaniment with a louder piano for live playing.
-- [ ] Offer convincing piano/organ and other supported MIDI instruments, with a clear
-  local loading path and optional original synthesised sounds. Keep sound engines/banks
-  replaceable, and allow either path or both to be silent. Give the metronome its own gain.
-- [ ] Handle live note-off, sustain, instrument changes, latency and panic independently
-  per path. Test for doubled instrument sound where the hardware also has local sound,
-  and avoid sending playback into the live-input matcher or creating MIDI echo loops.
-- [ ] Keep exercise input distinct from playback/output to avoid MIDI feedback loops or
-  counting generated notes as the player's performance. Provide output panic/all-notes-off.
-- [ ] Define playback/pedal/held-note behaviour when waiting, looping, seeking or unplugging.
-- [ ] Allow tempo scaling and latency calibration without altering source notation.
-
-Exit: stable click and accompaniment align with notation and measured input timing at
-slow and normal tempos. Untimed practice still works without enabling sound.
+Exit: stable click/accompaniment aligns with notation and measured input timing.
+Source audio playback works now; score-synchronised rhythmic practice is still ahead.
 
 ## Stage 7 — Timing and scoring modes
 
@@ -350,7 +319,8 @@ slow and normal tempos. Untimed practice still works without enabling sound.
   for the continuous game-style experience; final branding remains a separate decision.
 - [ ] Add streaks, runs, milestones and optional celebratory graphics, with reduced-motion
   and quiet visual settings. Feedback must remain readable without red/green distinctions.
-- [ ] Keep future visibility configurable; revisit end-of-section scrolling with real scores.
+- [x] Keep future visibility configurable independently of progression.
+- [ ] Revisit end-of-section scrolling with full rhythmic scores.
 
 Exit: a passage can be learnt patiently, corrected with timing penalties, or performed
 against an uninterrupted clock. Each mode has explicit, testable recovery rules.
@@ -388,7 +358,7 @@ against an uninterrupted clock. Each mode has explicit, testable recovery rules.
 - [x] Offer a remembered compact/density setting or collapsible masthead/status
   area, so users can scale the playing surface to their window and preference.
   Keep essential MIDI status and controls accessible, with an obvious restore action.
-- [ ] Preserve notehead readability, generous ledger-line space and colour-blind
+- [x] Preserve notehead readability, generous ledger-line space and colour-blind
   feedback. Do not solve vertical fit simply by shrinking all notation or keys.
 - [x] Add viewport regression cases for 1920x1080 screens with reduced browser
   content heights (for example 1920x900 and 1536x800), laptop-sized windows,
@@ -438,7 +408,7 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Immediate fluid pitch progression with one-target legato overlap and repeated-note articulation.
 - [x] Clear the last hour, local calendar day or all practice history.
 - [ ] Extend passage suggestions with repeated motifs, harmonic cadences and manual boundary editing on a timeline.
-- [ ] Expand the reviewed library across composers/styles and add evidence-based difficulty dimensions.
+- [ ] Expand the reviewed library and rated difficulty dimensions (composer/repertoire plan in Stage 5).
 
 - [x] Offline sampled acoustic grand piano, independent live/reference selection and attributed media.
 - [ ] Multiple acoustic velocity layers and measured sample-start latency; consider release/pedal/resonance modelling after profiling.
@@ -451,3 +421,7 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Session-only practice pause preserves measurements and demands fresh articulation on resume, with live key feedback.
 
 - [x] Flush queued opted-in history before refresh/leaving and bound persistence delay during continuous playing.
+
+- [x] Clarify library preview/start/download actions and document the workflow in README.
+- [x] Add a local Help page for practice, passages, sound, history and MIDI troubleshooting.
+- [x] Share the approved support link above Music library and on Help, with matching double rules.

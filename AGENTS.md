@@ -63,6 +63,11 @@ Web MIDI without a front-end build step.
   collisions. Keep naturals natural; sharp/flat modes are spelling preferences.
   Place accidentals in nearby collision-aware columns, never by note index.
 - Local MIDI outlines are derived untimed attack exercises, not original notation.
+  Every retained target pitch represents an explicit source note-on and requires a
+  fresh physical attack, including shared notes in changing chords. Never apply
+  generated-chord shared holds as if they were inferred MIDI ties.
+- Keep the local Help page and README aligned with visible button names and workflows.
+  Help must not initialize MIDI/audio or reset the existing practice session.
   Preserve imported tick/event/track/channel/controller data and source hashes. Keep
   passage/filter/reduction results separate; never invent held durations, hands or
   spelling as recovered facts. Files stay local and are not persisted or bundled.

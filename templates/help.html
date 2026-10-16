@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Help · Piano Sight Reader</title>
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem('piano-sight-reader-theme') === 'light' ? 'light' : 'dark'; } catch {}</script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main class="help-page">
+  <header><h1>Piano Sight Reader · Help</h1><button id="help-theme" class="quiet">Light mode</button></header>
+  <nav aria-label="Help topics"><a href="#start">Start</a> · <a href="#pieces">Pieces</a> · <a href="#playing">Playing</a> · <a href="#sound">Sound</a> · <a href="#progress">Progress</a> · <a href="#midi">MIDI problems</a></nav>
+  <section id="start"><h2>Start practising</h2>
+    <ol><li>Connect your keyboard, choose <strong>Connect MIDI</strong>, allow access, and select its input.</li>
+    <li>Set your instrument’s lowest and highest notes in <strong>Physical keyboard range</strong>. You can learn each endpoint by playing it.</li>
+    <li>Choose the hand, note range, key and maximum chord size in <strong>Practice setup</strong>. Generated practice starts straight away.</li></ol>
+    <p>You can also click or touch the on-screen keys. Focus a key and use Space or Enter to play it with your computer keyboard.</p>
+  </section>
+  <section id="pieces"><h2>Choose a piece or passage</h2>
+    <ol><li>In <strong>Music library</strong>, filter by composer, era, style or difficulty. Select a piece and choose <strong>Load piece</strong>. Alternatively, choose your own local MIDI file.</li>
+    <li>Loading opens a preview. Select a suggested section, set <strong>First attack</strong> and <strong>Last attack</strong>, or restore a saved passage. Choose the tracks to include and their staves.</li>
+    <li>Choose <strong>Start practising this passage</strong> to put those notes on the stave. Changing the preview later leaves your current practice intact until you press this button again.</li></ol>
+    <p>Your practice range, hand, key, note material and maximum chord size filter the piece. The preview reports retained and omitted notes. If no notes fit, widen the range or adjust those settings.</p>
+    <p><strong>Download MIDI data (JSON)</strong> saves the file’s note and event data for inspection or development. It does not start practice or download sheet music.</p>
+    <p><strong>Save passage</strong> remembers its endpoints and track/staff choices in this browser. To restore it later, load the same library piece or local file, then select the saved passage.</p>
+    <p>The current pieces are <strong>Unrated</strong> pending a difficulty review. Edition and licence credits are linked beside the library selection.</p>
+  </section>
+  <section id="playing"><h2>Playing and repeated notes</h2>
+    <p>Play the current notes beside the clefs. Practice waits for the correct physical pitches; sustain pedal alone does not count as holding a key.</p>
+    <p><strong>Fluid</strong> progression advances immediately. Every note in a MIDI passage target represents a new attack, so release and press repeated notes again, even when only part of the chord repeats. Other notes from the preceding target can overlap briefly for legato. Generated changing chords allow shared notes to stay held; identical chords require fresh presses.</p>
+    <p><strong>Release between targets</strong> waits briefly for a stable match and then for all keys to be released. Choose <strong>Pause</strong> to stop practice progression; keys still light up while paused.</p>
+    <p><strong>Repeat</strong> loops a chosen phrase or imported passage. <strong>Continuous</strong> replenishes generated exercises. Phrase length applies to generated Repeat practice. Look-ahead controls how many future targets are visible; note-by-note and page-by-page scrolling are separate choices.</p>
+    <p>Ticks mark correct held notes, crosses mark extras, and arrows suggest moving a nearby wrong pitch up or down. <strong>Show targets on keyboard</strong> is an optional aid. Dark mode and keyboard colour inversion are independent choices.</p>
+    <p>MIDI practice currently shows an untimed pitch outline. Original printed rhythms, voices and ties are not recovered from MIDI, and durations are not judged yet.</p>
+  </section>
+  <section id="sound"><h2>Sound and playback</h2>
+    <p><strong>Hear target</strong> auditions the current notes. <strong>Hear live instrument</strong> enables sound for your playing. Choose separate live and reference instruments and volumes in Sound; acoustic piano samples load locally when selected.</p>
+    <p><strong>Play source passage</strong> plays the preview’s original MIDI timing, including tempo and pedal. Playback speed, source-aligned clicks and count-in are adjustable. This playback is separate from the untimed practice cursor.</p>
+    <p>The standalone metronome has its own tempo and volume. If your hardware already makes sound, you can leave browser live sound off to avoid hearing both.</p>
+  </section>
+  <section id="progress"><h2>Progress and privacy</h2>
+    <p>Progress shows response times, first-attempt accuracy, personal bests and reading patterns. Pauses and background time are excluded from response times. Practice history is saved only when <strong>Save history locally</strong> is enabled.</p>
+    <p>Export or import history as JSON, or clear the last hour, today or all history. Today uses your local calendar day. Local MIDI files go only to the server on your own computer; they are not uploaded to an external service or stored in the shared library.</p>
+  </section>
+  <section id="midi"><h2>If MIDI is not responding</h2>
+    <ul><li>Use a browser with Web MIDI support, such as Chrome or Edge, and allow MIDI access.</li>
+    <li>Check the selected input and the last-note activity indicator. If it shows a device but no notes arrive, reconnect or restart the keyboard and choose Connect MIDI again.</li>
+    <li>If keys appear stuck, choose <strong>Clear held keys</strong>. Check the pedal and cable too.</li>
+    <li>For sound, enable the desired path and check its volume. Browser sound needs an initial click or tap. Switching away from the page stops sound safely.</li></ul>
+    <p>Settings remain below the playing surface. If the keyboard is off-screen, choose a smaller display-height preset or Automatic and adjust the key width.</p>
+  </section>
+  {% include "_support.html" %}
+  <p><a href="/">Open practice</a> · If you opened this guide from practice, close this tab to return to your existing session.</p>
+</main>
+<script type="module" src="{{ url_for('static', filename='help.js') }}"></script>
+</body>
+</html>

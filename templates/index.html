@@ -79,14 +79,21 @@
     </div>
     </div>
   </section>
-  <section class="card settings score-panel" aria-label="Music library and MIDI files"><h2>Music library</h2>
+  {% include "_support.html" %}
+  <section class="card settings score-panel" aria-label="Music library and MIDI files"><div class="keyboard-heading"><h2>Music library</h2><a class="help-link" href="/help" target="_blank" rel="noopener noreferrer">Help &amp; guide</a></div>
+    <div class="library-filters" role="group" aria-label="Filter music library">
+      <label>Composer <select id="library-composer" disabled><option value="">All</option></select></label>
+      <label>Era <select id="library-era" disabled><option value="">All</option></select></label>
+      <label>Style <select id="library-style" disabled><option value="">All</option></select></label>
+      <label>Difficulty <select id="library-difficulty" disabled><option value="">All</option></select></label>
+    </div>
     <div class="library-choice"><label>Piece <select id="library-piece" disabled><option value="">Loading library…</option></select></label><button id="load-piece" disabled>Load piece</button></div>
     <p id="library-status" class="small" role="status"></p><p id="library-credit" class="small"></p><a id="library-source" class="small" hidden target="_blank" rel="noopener">Edition and licence</a>
     <h3>Local MIDI file</h3>
-    <label>Inspect file <input id="score-file" type="file" accept=".mid,.midi,audio/midi"></label>
+    <label>Choose MIDI file <input id="score-file" type="file" accept=".mid,.midi,audio/midi"></label>
     <p id="score-status" class="small" role="status"></p><p id="score-details" class="small"></p><p id="score-warnings" class="small" role="status"></p>
     <div id="score-tracks" role="group" aria-label="MIDI tracks"></div>
-    <div class="range-buttons"><button id="export-score" class="quiet" disabled>Export inspection</button><button id="practice-score" disabled>Practise pitch outline</button></div>
+    <div class="range-buttons"><button id="export-score" class="quiet" disabled>Download MIDI data (JSON)</button><button id="practice-score" disabled>Start practising this passage</button></div>
     <label>Suggested section <select id="suggested-passages" disabled><option value="">Choose a suggested section</option></select></label>
     <label>First attack <input id="passage-start" type="number" min="1" max="1" value="1" disabled></label>
     <label>Last attack <input id="passage-end" type="number" min="1" max="1" value="1" disabled></label>
@@ -101,7 +108,6 @@
     <p id="source-playback-status" class="small" role="status"></p>
     <p id="outline-status" class="small" role="status"></p><p id="score-playing" class="small" role="status"></p>
   </section>
-  <aside class="support-panel" aria-label="Support this free tool"><p><strong>Do you like this free tool?</strong> Support my opensource work at <a href="https://buymeacoffee.com/dkjroot" target="_blank" rel="noopener noreferrer">https://buymeacoffee.com/dkjroot</a></p></aside>
   <section class="progress-panel" aria-label="Practice progress">
     <div class="keyboard-heading"><h2>Progress</h2><div class="keyboard-options"><label class="check keyboard-option"><input id="save-history" type="checkbox"> Save history locally</label><button id="export-history" class="quiet">Export history</button><button id="import-history" class="quiet">Import history</button><input id="history-file" type="file" accept=".json,application/json" hidden><button id="clear-hour" class="quiet">Clear last hour</button><button id="clear-today" class="quiet">Clear today</button><button id="clear-history" class="quiet">Clear all</button></div></div>
     <dl class="metrics-summary"><div><dt>Targets</dt><dd id="stats-count">0</dd></div><div><dt>Average response</dt><dd id="stats-mean">—</dd></div><div><dt>Median response</dt><dd id="stats-median">—</dd></div><div><dt>90% within</dt><dd id="stats-tail">—</dd></div><div><dt>First-attempt accuracy</dt><dd id="stats-accuracy">—</dd></div><div><dt>Best for this target</dt><dd id="stats-best">—</dd></div></dl>

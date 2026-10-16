@@ -1,3 +1,4 @@
+import {libraryValue,libraryFacets,filterLibrary} from '../static/library.js';
 import {sourceBeats,BeatCursor} from '../static/beats.js';
 import {AcousticSamples,nearestSample} from '../static/samples.js';
 import {suggestPassages} from '../static/sections.js';
@@ -693,4 +694,37 @@ test('daily graph spacing uses elapsed UTC dates and centres a single measuremen
   assert.equal(dailyPlot([days[0]])[0].x,320);
   assert.deepEqual(dailyPlot([]),[]);
   assert.equal(dailyPlot([{day:'2026-10-01',median:0}])[0].y,110);
+});
+
+test('MIDI outlines demand every source attack even when only part of a chord repeats',()=>{
+  const p=new Performance(), gate=new FlowGate();
+  const notes=(tick,...pitches)=>pitches.map(midi=>({midi,sourceTick:tick,sourceIds:[`${tick}:${midi}`]}));
+  const first=notes(0,60,64), second=notes(480,64,67), third=notes(960,64,69);
+  gate.start(first,[],p.held,p.attacks); p.noteOn('m',60); p.noteOn('m',64);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  gate.start(second,first,p.held,p.attacks); p.noteOff('m',60); p.noteOn('m',67);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'a new G must not substitute for the repeated E attack');
+  p.sustain('m',true); p.noteOff('m',64);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'pedal does not substitute for a fresh physical press');
+  p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  gate.start(third,second,p.held,p.attacks); p.noteOff('m',67); p.noteOn('m',69);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'each later occurrence has its own attack baseline');
+  p.noteOff('m',64); p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  gate.start(third,third,p.held,p.attacks);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'loop entry never consumes the previous articulation');
+});
+
+test('library facets and intersecting filters preserve catalogue data and keep unrated pieces visible',()=>{
+  const pieces=[{id:'b',composer:'Bach',era:'Baroque',style:'Prelude',difficulty:'Intermediate',title:'Prelude'},
+    {id:'c',composer:'Chopin',era:'Romantic',style:'Etude',difficulty:'Advanced',title:'Study'},
+    {id:'a',composer:'Bach',era:'Baroque',style:'Minuet',title:'Dance'}];
+  const before=JSON.stringify(pieces);
+  assert.deepEqual(libraryFacets(pieces,'composer'),['Bach','Chopin']);
+  assert.deepEqual(libraryFacets(pieces,'difficulty'),['Advanced','Intermediate','Unrated']);
+  assert.deepEqual(filterLibrary(pieces,{composer:'Bach',era:'Baroque'}).map(p=>p.id),['a','b']);
+  assert.deepEqual(filterLibrary(pieces,{composer:'Bach',difficulty:'Advanced'}),[]);
+  assert.deepEqual(filterLibrary(pieces,{difficulty:'Unrated'}).map(p=>p.id),['a']);
+  assert.deepEqual(filterLibrary(pieces,{style:'Etude'}).map(p=>p.id),['c']);
+  assert.equal(filterLibrary(pieces).length,3); assert.equal(libraryValue({style:'  '},'style'),'Unrated');
+  assert.equal(libraryValue(null,'era'),'Unrated'); assert.equal(JSON.stringify(pieces),before);
 });

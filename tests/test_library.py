@@ -15,6 +15,9 @@ class LibraryTests(unittest.TestCase):
         self.assertGreaterEqual(len(entries), 2)
         with app.test_client() as client:
             for entry in entries:
+                for field in ('composer', 'era', 'style', 'difficulty'):
+                    self.assertTrue(entry[field])
+                self.assertEqual(entry['difficulty'], 'Unrated')
                 score = compile_piece(ROOT, entry)
                 self.assertEqual(score, json.loads((ROOT / entry['inspection']).read_text(encoding='utf-8')))
                 self.assertEqual(score['warning_count'], 0)
