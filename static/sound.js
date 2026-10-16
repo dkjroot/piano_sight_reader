@@ -13,7 +13,8 @@ export class SoundPanel {
       }
     } catch { /* Sound settings are optional. */ }
     for(const id of ids) $(id).addEventListener('change',()=>{if(['reference-instrument','reference-sound'].includes(id)) this.onReferenceStop(); this.configure(); this.persist(); if(this.clock.running && ['tempo','beats'].includes(id)) {this.engine.stopClicks(); this.clock.start(this.engine.context.currentTime,+$('tempo').value,+$('beats').value);}});
-    $('live-sound').addEventListener('change',async()=>{if($('live-sound').checked) await this.activate(); this.sync();});
+    $('live-sound').addEventListener('change',()=>this.setLive($('live-sound').checked));
+    $('hear-live').addEventListener('click',()=>this.setLive(!$('live-sound').checked));
     $('hear-target').addEventListener('click',async()=>{if($('reference-sound').checked && await this.activate()) {this.onReferenceStop(); this.engine.audition(this.getTarget().map(note=>note.midi));}});
     $('metronome').addEventListener('change',async()=>{
       const revision=++this.revision, enabled=$('metronome').checked;
@@ -24,7 +25,12 @@ export class SoundPanel {
       } else if(revision===this.revision) this.stopClock();
     });
     $('sound-panic').addEventListener('click',()=>this.panic());
-    this.configure();
+    this.configure(); this.sync();
+  }
+  async setLive(enabled) {
+    $('live-sound').checked=enabled; this.sync();
+    if(enabled) await this.activate();
+    this.sync();
   }
   persist() {try {localStorage.setItem('piano-sight-reader-sound',JSON.stringify(Object.fromEntries(ids.map(id=>[id,$(id).type==='checkbox' ? $(id).checked : $(id).value]))));} catch { /* Session still works. */ }}
   async activate() {
@@ -33,7 +39,7 @@ export class SoundPanel {
       if(this.engine.context.state!=='running') await this.engine.context.resume();
       if(this.engine.context.state!=='running') throw new Error('Browser audio is suspended');
       $('sound-status').textContent=''; return true;
-    } catch(error) {$('sound-status').textContent='Sound could not start: '+error.message; $('live-sound').checked=false; $('metronome').checked=false; return false;}
+    } catch(error) {$('sound-status').textContent='Sound could not start: '+error.message; $('live-sound').checked=false; $('metronome').checked=false; this.sync(); return false;}
   }
   configure() {
     $('hear-target').disabled=!$('reference-sound').checked;
@@ -44,8 +50,8 @@ export class SoundPanel {
     if(!$('reference-sound').checked) this.engine.reference.stop();
     this.sync(); this.onConfigure();
   }
-  sync() {if(this.engine) this.engine.live.sync($('live-sound').checked ? this.getPitches() : [],this.getAttacks());}
+  sync() {$('hear-live').setAttribute('aria-pressed',String($('live-sound').checked)); if(this.engine) this.engine.live.sync($('live-sound').checked ? this.getPitches() : [],this.getAttacks());}
   pump() {this.clock.pump(this.engine.context.currentTime,event=>this.engine.click(event));}
   stopClock() {this.revision++; this.clock.stop(); this.engine?.stopClicks(); clearInterval(this.timer); this.timer=null; $('metronome').checked=false;}
-  panic() {this.onReferenceStop(); this.stopClock(); if(this.engine) this.engine.panic(); $('live-sound').checked=false;}
+  panic() {this.onReferenceStop(); this.stopClock(); if(this.engine) this.engine.panic(); $('live-sound').checked=false; this.sync();}
 }

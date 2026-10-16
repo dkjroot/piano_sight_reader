@@ -1,4 +1,4 @@
-import {WHITE, KEYS, keyAlterations, spell, noteName, staffStep, chordName, match, Performance} from './core.js';
+import {KEYS, keyAlterations, spell, noteName, staffStep, chordName, match, Performance} from './core.js';
 import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
 import {makePracticePhrase as makePhrase} from './harmony.js';
 import {ProgressPanel} from './progress.js';
@@ -7,6 +7,7 @@ import {ScorePanel} from './score.js';
 import {makeOutline} from './outline.js';
 import {layoutPreset,staffViewport} from './layout.js';
 import {SourcePlayer} from './playback.js';
+import {keyboardGeometry,keyboardKeyWidth} from './keyboard.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
@@ -204,24 +205,23 @@ function scrollToCurrent() {
   else if(bottom>outer.bottom) $('staff').scrollTop+=Math.min(bottom-outer.bottom,top-outer.top);
 }
 
+function fitKeyboard() {
+  const keyboard=$('keyboard'), width=keyboardKeyWidth($('key-size').value,$('keyboard-scroll').clientWidth,+keyboard.dataset.units||1,matchMedia('(pointer:coarse)').matches);
+  keyboard.style.setProperty('--piano-key-width',width+'px'); keyboard.style.width=(+keyboard.dataset.units||1)*width+'px';
+  for(const key of keyboard.children) key.style.left=+key.dataset.unit*width+'px';
+}
+try {const size=localStorage.getItem('piano-sight-reader-key-size'); if(['auto','20','28','36'].includes(size)) $('key-size').value=size;} catch {}
+$('key-size').addEventListener('change',()=>{try {localStorage.setItem('piano-sight-reader-key-size',$('key-size').value);} catch {} fitKeyboard(); fitPlayingArea(); scrollToCurrent();});
 function drawKeyboard() {
-  const {low, high} = settings();
-  const pitches = Array.from({length: high-low+1}, (_, i) => low+i);
-  let whites = 0;
-  const width = 36;
+  const {low, high} = settings(), geometry=keyboardGeometry(low,high);
   $('keyboard').innerHTML = '';
-  for (const pitch of pitches) {
-    const isWhite = WHITE.includes(pitch % 12);
+  for (const {pitch,white:isWhite,left} of geometry.keys) {
     const key = document.createElement('button');
     key.type = 'button';
     key.className = `key ${isWhite ? 'white' : 'black'}`;
     key.dataset.pitch = pitch;
     key.setAttribute('aria-label', `${noteName(spell(pitch))}, MIDI ${pitch}`);
-    // Allow endpoint black keys to occupy their own first/last half slot.
-    if (pitch === low && !isWhite) whites += 0.5;
-    key.style.left = `${isWhite ? whites*width : whites*width-11}px`;
-    if (isWhite) whites++;
-    else if (pitch === high) whites += 0.5;
+    key.dataset.unit=left;
     const label = document.createElement('span');
     label.textContent = pitch % 12 === 0 ? noteName(spell(pitch)) : '';
     key.append(label);
@@ -248,7 +248,7 @@ function drawKeyboard() {
     key.addEventListener('blur', () => { performance.clear('computer'); update(); });
     $('keyboard').append(key);
   }
-  $('keyboard').style.width = `${Math.max(whites*width, 36)}px`;
+  $('keyboard').dataset.units=geometry.units; fitKeyboard();
   paintKeys();
 }
 function paintKeys(hints = []) {
@@ -435,5 +435,5 @@ $('connect').addEventListener('click', async () => {
 window.addEventListener('blur', () => {sound.panic(); progress.pause(); performance.clear(); update();});
 window.addEventListener('focus', () => {progress.resume(); update();});
 document.addEventListener('visibilitychange', () => {if (document.hidden) {sound.panic(); progress.pause(); performance.clear(); update();} else if (document.hasFocus()) {progress.resume(); update();}});
-window.addEventListener('resize', () => {applyDensity(); drawStaff(); scrollToCurrent(); update();});
+window.addEventListener('resize', () => {applyDensity(); fitKeyboard(); drawStaff(); scrollToCurrent(); update();});
 rangeLabels(); drawKeyboard(); newTarget();

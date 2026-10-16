@@ -1,4 +1,4 @@
-import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns} from './metrics.js';
+import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from './metrics.js';
 const $=id=>document.getElementById(id);
 const STORE='piano-sight-reader-history-v1', PREF='piano-sight-reader-save-history';
 const seconds=value=>value===null ? '—' : (value/1000).toFixed(2)+' s';
@@ -20,11 +20,21 @@ export class ProgressPanel {
       finally {if(revision===this.importRevision) $('history-file').value='';}
     });
     $('analysis-dimension').addEventListener('change',()=>this.render());
-    $('clear-history').addEventListener('click',()=>{this.importRevision++; $('history-file').value=''; this.records=[]; $('history-import-status').textContent=''; clearTimeout(this.saveTimer); try {localStorage.removeItem(STORE);} catch {} this.render();});
+    for(const [id,period] of [['clear-history','all'],['clear-today','today'],['clear-hour','hour']]) $(id).addEventListener('click',()=>this.clear(period));
     $('export-history').addEventListener('click',()=>{
       const url=URL.createObjectURL(new Blob([JSON.stringify({version:1,records:this.records},null,2)],{type:'application/json'}));
       const link=document.createElement('a'); link.href=url; link.download='piano-progress-'+new Date().toISOString().slice(0,10)+'.json'; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
     });
+    this.render();
+  }
+  clear(period) {
+    this.importRevision++; $('history-file').value=''; $('history-import-status').textContent=''; clearTimeout(this.saveTimer);
+    const before=this.records.length; this.records=clearHistoryPeriod(this.records,period);
+    try {
+      if(!this.records.length) localStorage.removeItem(STORE);
+      else if($('save-history').checked || localStorage.getItem(STORE)!==null) localStorage.setItem(STORE,JSON.stringify(this.records));
+      $('history-status').textContent=period==='all' ? '' : `${before-this.records.length} attempts cleared.`;
+    } catch {$('history-status').textContent='Cleared for this visit; saved history could not be updated.';}
     this.render();
   }
   start(notes,settings,phrase) {

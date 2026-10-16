@@ -77,6 +77,10 @@ You can practise without MIDI by using the on-screen keys.
   notation to 75%; larger presets retain normal note sizes. Distant ledger notes can
   scroll within the reserved staff pane. Feedback and MIDI activity reserve space
   so playing does not move the keyboard. Mode and note-name options are in Practice setup.
+- **Keyboard key size** is remembered independently. Automatic fits an 88-key piano
+  into the available desktop width. Choose 20/28/36 px for a fixed width and horizontal
+  scrolling. Automatic keeps wider touch targets on coarse-pointer devices; the full
+  MIDI 0–127 range may still scroll. Changing key size preserves the exercise and held keys.
 - **Scrolling** offers **Note by note** (active target stays beside the clefs) or
   **Page by page** (pointer moves through a stationary group, then the next page appears).
   Changing scrolling preserves the phrase and progress.
@@ -158,7 +162,7 @@ pauses, keyboard-endpoint learning and MIDI reconnection waits are excluded. Sta
 History is session-only unless **Save history locally** is checked. The browser keeps
 up to 1,000 attempts, including exercise settings and written pitches. **Export history**
 saves JSON; **Import history** merges a previous export without duplicates;
-**Clear history** deletes the current history. Invalid imports, files over 16 MB, or more than 1,000 attempts leave it intact. Nothing is uploaded. Daily
+**Clear last hour** and **Clear today** remove recent attempts; today starts at midnight in your local timezone. **Clear all** deletes the entire history. Invalid imports, files over 16 MB, or more than 1,000 attempts leave it intact. Nothing is uploaded. Daily
 median response times and hand/key/note/staff-position/accidental breakdowns help spot
 patterns. Expand **Daily measurements (UTC)** for exact daily values. **90% within**
 shows the slower-tail response time: nine out of ten recorded attempts were at least
@@ -276,3 +280,5 @@ MIDI pitch outlines can already be practised; full notation and rhythmic perform
 
 This is an early working version. For development and planned features, see
 [DEVELOPMENT.md](DEVELOPMENT.md).
+
+**Hear live instrument** toggles the same live audio as **Sound my playing**. Your selected live instrument and volume apply; the button shows whether it is on.

@@ -9,7 +9,7 @@
 </head>
 <body>
 <main>
-  <header class="score-banner"><div class="title-block"><div><h1>Piano<span class="subtitle"> Sight reader</span></h1></div></div><div class="header-actions"><button id="theme-toggle" class="quiet" aria-pressed="true">Dark mode</button><button id="connect">Connect MIDI</button></div></header>
+  <header class="score-banner"><div class="title-block"><div><h1>Piano Sight Reader</h1></div></div><div class="header-actions"><button id="theme-toggle" class="quiet" aria-pressed="true">Dark mode</button><button id="connect">Connect MIDI</button></div></header>
   <section class="connection" aria-label="MIDI connection">
     <span id="midi-status" role="status">MIDI disconnected</span>
     <label>Input <select id="inputs" disabled><option>No MIDI input connected</option></select></label>
@@ -41,6 +41,7 @@
       <label>Staff / hand <select id="hand"><option value="right">Treble · right hand</option><option value="left">Bass · left hand</option><option value="both">Both hands</option></select></label>
       <label>Phrase length <select id="length"><option value="1">1</option><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option><option value="24">24</option><option value="32">32</option></select></label>
       <label>Layout <select id="density"><option value="auto">Automatic</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">1440p</option><option value="2160">2160p</option></select></label>
+      <label>Keyboard key size <select id="key-size"><option value="auto">Automatic</option><option value="36">Large · 36 px</option><option value="28">Medium · 28 px</option><option value="20">Small · 20 px</option></select></label>
       <label>Scrolling <select id="scroll-mode"><option value="note">Note by note</option><option value="page">Page by page</option></select></label>
       <label>Look-ahead <select id="preview"><option value="0">None</option><option value="1">1 upcoming</option><option value="2">2 upcoming</option><option value="3" selected>3 upcoming</option><option value="4">4 upcoming</option><option value="7">7 upcoming</option></select></label>
       <label>Minimum notes per chord <select id="min-size"></select></label>
@@ -80,7 +81,7 @@
       <label class="check"><input id="reference-sound" type="checkbox" checked> Reference sound</label>
       <label>Target instrument <select id="reference-instrument"><option value="piano">Piano synth</option><option value="organ">Organ synth</option></select></label>
       <label>Target volume <input id="reference-volume" type="range" min="0" max="100" value="25"></label>
-      <div class="range-buttons"><button id="hear-target" class="quiet">Hear target</button><button id="sound-panic" class="quiet">Stop sound</button></div>
+      <div class="range-buttons"><button id="hear-target" class="quiet">Hear target</button><button id="hear-live" class="quiet" aria-pressed="false">Hear live instrument</button><button id="sound-panic" class="quiet">Stop sound</button></div>
       <p id="sound-status" class="small" role="status"></p>
     </div>
     <div class="card settings"><h2>Metronome</h2>
@@ -91,7 +92,7 @@
     </div>
   </section>
   <section class="progress-panel" aria-label="Practice progress">
-    <div class="keyboard-heading"><h2>Progress</h2><div class="keyboard-options"><label class="check keyboard-option"><input id="save-history" type="checkbox"> Save history locally</label><button id="export-history" class="quiet">Export history</button><button id="import-history" class="quiet">Import history</button><input id="history-file" type="file" accept=".json,application/json" hidden><button id="clear-history" class="quiet">Clear history</button></div></div>
+    <div class="keyboard-heading"><h2>Progress</h2><div class="keyboard-options"><label class="check keyboard-option"><input id="save-history" type="checkbox"> Save history locally</label><button id="export-history" class="quiet">Export history</button><button id="import-history" class="quiet">Import history</button><input id="history-file" type="file" accept=".json,application/json" hidden><button id="clear-hour" class="quiet">Clear last hour</button><button id="clear-today" class="quiet">Clear today</button><button id="clear-history" class="quiet">Clear all</button></div></div>
     <dl class="metrics-summary"><div><dt>Targets</dt><dd id="stats-count">0</dd></div><div><dt>Average response</dt><dd id="stats-mean">—</dd></div><div><dt>Median response</dt><dd id="stats-median">—</dd></div><div><dt>90% within</dt><dd id="stats-tail">—</dd></div><div><dt>First-attempt accuracy</dt><dd id="stats-accuracy">—</dd></div><div><dt>Best for this target</dt><dd id="stats-best">—</dd></div></dl>
     <p id="history-status" class="small" role="status"></p><p id="history-import-status" class="small" role="status"></p>
     <div id="progress-chart" aria-label="Daily median response times"></div>

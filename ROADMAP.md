@@ -426,3 +426,7 @@ depend on catalogue downloads, audio setup or an account.
 
 - [x] Add a local generated rippling grand-staff flag behind the real title, fading
   to the right and coloured from each theme. Preserve the compact header height.
+
+
+- [x] Fit full piano keyboards to desktop width with remembered automatic/fixed key
+  sizes, preserving pointer ownership and symbols when resized.

@@ -1,9 +1,10 @@
+import {keyboardGeometry,keyboardKeyWidth} from '../static/keyboard.js';
 import {cleanPassages,parsePassages,savePassage,passageKey} from '../static/passages.js';
 import {secondsAt,referencePlan,PlaybackCursor} from '../static/transport.js';
 import {layoutPreset,staffViewport} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
-import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns} from '../static/metrics.js';
+import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from '../static/metrics.js';
 import {makePracticePhrase, harmonicPitchClasses} from '../static/harmony.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -364,6 +365,7 @@ test('resolution presets budget browser chrome, adapt to the viewport and migrat
     assert.equal(staffViewport(profile,5000),profile.minimum);
   }
   assert.equal(layoutPreset('1440',800).budget,800);
+  assert.equal(layoutPreset('1440',1160).preferred,380);
   assert.equal(layoutPreset('720',500,390).minimum,170);
   assert.equal(layoutPreset('2160',1800).density,'comfortable');
 });
@@ -522,4 +524,29 @@ test('saved passages validate bounded metadata, update matching windows and reta
   let many=[]; for(let start=1;start<=55;start++) many=savePassage(many,{...entry,start,end:start});
   assert.equal(many.length,50); assert.equal(many[0].start,6);
   const clean=cleanPassages([{...entry,extra:'ignore'}]); assert.equal(clean[0].extra,undefined); clean[0].tracks[0].staff='bass'; assert.equal(entry.tracks[0].staff,'auto');
+});
+
+test('keyboard geometry fits long instruments and preserves partial black endpoints',()=>{
+  for(const [low,high] of [[60,60],[61,61],[61,63],[21,108],[0,127]]) {
+    const geometry=keyboardGeometry(low,high); assert.equal(geometry.keys.length,high-low+1);
+    for(const key of geometry.keys) assert.ok(key.left>=0 && key.left+(key.white ? 1 : 22/36)<=geometry.units+1e-9);
+  }
+  const piano=keyboardGeometry(21,108); assert.equal(piano.units,52);
+  const auto=keyboardKeyWidth('auto',1040,piano.units); assert.equal(auto,19); assert.ok(auto*piano.units<=1040);
+  assert.equal(keyboardKeyWidth('auto',200,52),16); assert.equal(keyboardKeyWidth('auto',200,52,true),28);
+  assert.equal(keyboardKeyWidth('36',200,52),36); assert.equal(keyboardKeyWidth('28',200,52),28); assert.equal(keyboardKeyWidth('20',200,52),20);
+  assert.equal(keyboardKeyWidth('bad',1040,22),36); assert.equal(keyboardKeyWidth('auto',1040,0),36);
+  assert.equal(keyboardGeometry(-100,999).keys.length,128); assert.equal(keyboardGeometry(undefined,undefined).keys.length,1);
+});
+
+test('history clearing respects local midnight, elapsed-hour boundaries and older results',()=>{
+  const now=new Date(2026,9,16,12,30), midnight=new Date(2026,9,16), hour=+now-3600000;
+  const rows=[+midnight-1,+midnight,hour-1,hour,+now,+now+1].map(at=>({at:new Date(at).toISOString()}));
+  assert.deepEqual(clearHistoryPeriod(rows,'hour',now),[rows[0],rows[1],rows[2],rows[5]]);
+  assert.deepEqual(clearHistoryPeriod(rows,'today',now),[rows[0],rows[5]]);
+  assert.deepEqual(clearHistoryPeriod(rows,'all',now),[]);
+  assert.equal(rows.length,6);
+  assert.throws(()=>clearHistoryPeriod(rows,'week',now));
+  assert.throws(()=>clearHistoryPeriod(rows,'today',new Date(NaN)));
+  assert.deepEqual(clearHistoryPeriod([{at:'invalid'}],'hour',now),[{at:'invalid'}]);
 });

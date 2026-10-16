@@ -318,3 +318,33 @@ same file is required; a selected bookmark restores preview only, never active p
 Source playback stops when the preview passage changes. Cross-tab storage events
 refresh the menu without changing targets. Storage failure retains a session-only
 bookmark and reports that limitation. Invalid stored records are ignored safely.
+
+
+## Keyboard fit and private real-piece smoke check
+
+`keyboard.js` separates pitch/key geometry from key width, including black endpoint
+half-slots. Automatic width fits an 88-key instrument at desktop width, with 16 px
+minimum keys (28 px on coarse pointers); explicit 20/28/36 px choices remain available.
+Changing size or resizing updates existing nodes/CSS, preserving pointer capture,
+held state, exercise identity and progress. Symbols adapt with key width, retaining
+independent target colours and non-colour feedback. Full MIDI-range overflow scrolls.
+
+On 2026-10-16 a private live-source smoke check used Mutopia item 470 (Chopin Prelude
+Op.28 No.7), whose source page labels it Public Domain:
+https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=470
+The 1,759-byte MIDI imported 168 note attacks / 3 tracks / 24 seconds with no warnings.
+Its derived outline retained all 168 notes in 49 targets; synthetic MIDI advanced the
+first target. Full native OfflineAudioContext rendering ended with zero lingering
+voices/nodes and source audio did not score as input. Downloaded files/report remain
+ignored under test-results; no third-party score is bundled or cleared for redistribution.
+This checks software compatibility, not recovered engraving, human listening or MIDI
+hardware latency. Normal regressions stay offline with the original project fixture.
+
+
+The masthead uses the single-line accessible title “Piano Sight Reader” and tighter
+button padding, preserving the subtle generated banner palette. At narrow widths
+the title scales and the two compact actions remain alongside it.
+
+The 1440p preset allows a 380 px stave (subject to available viewport space), so ordinary grand-staff exercises fit without a vertical scrollbar. Extreme ledger ranges still retain bounded overflow. Other presets are unchanged.
+
+History can be cleared for the elapsed last hour, local calendar day or all time. Selective clearing updates stored history immediately, cancels pending saves and invalidates pending imports; active practice stays intact. The live-audio button and checkbox share one state and reset together on panic, failure and reload.

@@ -118,3 +118,11 @@ export function readingPatterns(records) {
   }
   return result.sort((a,b)=>b.corrected/b.count-a.corrected/a.count || b.median/b.baseline-a.median/a.baseline || b.count-a.count).slice(0,12);
 }
+
+// Calendar days follow the player's local timezone; the last hour is elapsed time.
+export function clearHistoryPeriod(records,period,now=new Date()) {
+  if(period==='all') return [];
+  if(!['today','hour'].includes(period) || !Number.isFinite(+now)) throw new Error('Unknown history period.');
+  const start=period==='hour' ? +now-3600000 : +new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  return records.filter(record=>{const at=Date.parse(record.at); return at<start || at>+now || !Number.isFinite(at);});
+}
