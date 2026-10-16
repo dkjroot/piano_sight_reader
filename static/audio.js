@@ -1,7 +1,7 @@
 // Original additive instruments. No samples, network requests or MIDI output.
 export class SynthPath {
   constructor(context, destination) {
-    this.context=context; this.voices=new Map(); this.instrument='piano';
+    this.context=context; this.voices=new Map(); this.sounding=new Set(); this.instrument='piano';
     this.gain=context.createGain(); this.gain.gain.value=.25; this.gain.connect(destination);
   }
   configure(instrument,volume) {
@@ -10,12 +10,12 @@ export class SynthPath {
     this.instrument=selected;
     this.gain.gain.setTargetAtTime(Math.max(0,Math.min(1,volume)),this.context.currentTime,.015);
   }
-  noteOn(pitch,time=this.context.currentTime,duration=null) {
+  noteOn(pitch,time=this.context.currentTime,duration=null,key=pitch,velocity=1) {
     if (!Number.isInteger(pitch) || pitch<0 || pitch>127) return;
-    this.noteOff(pitch,time);
+    this.noteOff(key,time);
     const envelope=this.context.createGain(), oscillators=[];
     envelope.connect(this.gain);
-    const organ=this.instrument==='organ', level=organ ? .12 : .22;
+    const organ=this.instrument==='organ', level=(organ ? .12 : .22)*Math.max(.01,Math.min(1,velocity));
     envelope.gain.setValueAtTime(0,time);
     envelope.gain.linearRampToValueAtTime(level,time+.008);
     if (!organ) envelope.gain.exponentialRampToValueAtTime(.002,time+5);
@@ -26,18 +26,20 @@ export class SynthPath {
       oscillator.onended=()=>{oscillator.disconnect(); partial.disconnect();};
       oscillator.start(time); oscillators.push(oscillator);
     }
-    const voice={envelope,oscillators,start:time}; this.voices.set(pitch,voice);
-    if (duration!==null) this.release(pitch,voice,time+duration);
+    const voice={envelope,oscillators,start:time}; this.voices.set(key,voice); this.sounding.add(voice);
+    const last=oscillators.at(-1), cleanup=last.onended;
+    last.onended=()=>{cleanup(); envelope.disconnect(); this.sounding.delete(voice); if(this.voices.get(key)===voice) this.voices.delete(key);};
+    if (duration!==null) this.release(key,voice,time+duration);
   }
   release(pitch,voice,time) {
-    const end=Math.max(time,voice.start+.009), gain=voice.envelope.gain;
+    const gain=voice.envelope.gain;
+    if(time<voice.start) {gain.cancelScheduledValues(time); gain.setValueAtTime(0,time); for(const oscillator of voice.oscillators) oscillator.stop(time); return;}
+    const end=Math.max(time,voice.start+.009);
     // Hold the current envelope before fading; cancelAndHold avoids a release jump.
     if (gain.cancelAndHoldAtTime) gain.cancelAndHoldAtTime(end);
     else {gain.cancelScheduledValues(end); gain.setValueAtTime(gain.value,end);}
     gain.linearRampToValueAtTime(0,end+.06);
     for (const oscillator of voice.oscillators) oscillator.stop(end+.07);
-    const last=voice.oscillators.at(-1), cleanup=last.onended;
-    last.onended=()=>{cleanup(); voice.envelope.disconnect(); if(this.voices.get(pitch)===voice) this.voices.delete(pitch);};
   }
   noteOff(pitch,time=this.context.currentTime) {const voice=this.voices.get(pitch); if(voice) {this.voices.delete(pitch); this.release(pitch,voice,time);}}
   sync(pitches) {
@@ -45,7 +47,7 @@ export class SynthPath {
     for (const pitch of this.voices.keys()) if(!wanted.has(pitch)) this.noteOff(pitch);
     for (const pitch of wanted) if(!this.voices.has(pitch)) this.noteOn(pitch);
   }
-  stop() {for(const pitch of [...this.voices.keys()]) this.noteOff(pitch);}
+  stop() {this.voices.clear(); for(const voice of this.sounding) this.release(null,voice,this.context.currentTime);}
 }
 export class MetronomeClock {
   constructor() {this.running=false;}

@@ -63,6 +63,9 @@
     <div class="range-buttons"><button id="export-score" class="quiet" disabled>Export inspection</button><button id="practice-score" disabled>Practise pitch outline</button></div>
     <label>First attack <input id="passage-start" type="number" min="1" max="1" value="1" disabled></label>
     <label>Last attack <input id="passage-end" type="number" min="1" max="1" value="1" disabled></label>
+    <div class="range-buttons"><button id="play-source" class="quiet" disabled>Play source passage</button><button id="pause-source" class="quiet" disabled>Pause</button><button id="stop-source" class="quiet" disabled>Stop playback</button></div>
+    <label>Playback speed <select id="source-speed"><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option></select></label>
+    <p id="source-playback-status" class="small" role="status"></p>
     <p id="outline-status" class="small" role="status"></p><p id="score-playing" class="small" role="status"></p>
   </section>
   <section class="settings-grid" aria-label="Sound settings">
@@ -70,7 +73,7 @@
       <label class="check"><input id="live-sound" type="checkbox"> Sound my playing</label>
       <label>Live instrument <select id="live-instrument"><option value="piano">Piano synth</option><option value="organ">Organ synth</option></select></label>
       <label>Live volume <input id="live-volume" type="range" min="0" max="100" value="35"></label>
-      <label class="check"><input id="reference-sound" type="checkbox" checked> Target audition</label>
+      <label class="check"><input id="reference-sound" type="checkbox" checked> Reference sound</label>
       <label>Target instrument <select id="reference-instrument"><option value="piano">Piano synth</option><option value="organ">Organ synth</option></select></label>
       <label>Target volume <input id="reference-volume" type="range" min="0" max="100" value="25"></label>
       <div class="range-buttons"><button id="hear-target" class="quiet">Hear target</button><button id="sound-panic" class="quiet">Stop sound</button></div>

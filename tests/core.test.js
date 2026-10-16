@@ -1,3 +1,4 @@
+import {secondsAt,referencePlan,PlaybackCursor} from '../static/transport.js';
 import {layoutPreset,staffViewport} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
@@ -406,4 +407,60 @@ test('reading history does not duplicate large imported source-note arrays',()=>
   assert.equal(record.notes[0].sourceIds,undefined); assert.ok(JSON.stringify(record).length<500);
   const text=JSON.stringify({version:1,records:Array.from({length:1000},(_,i)=>({...record,responseMs:i,context:{identity:'x'.repeat(4000)}}))},null,2);
   assert.ok(text.length>2_000_000); assert.equal(parseHistory(text).length,1000);
+});
+
+function playbackFixture() {
+  const event=(tick,index,message,track=1)=>({tick,index,track,message});
+  return {ticks_per_quarter:480,duration_ticks:960,tempo_map:[{tick:0,seconds:0,microseconds_per_quarter:500000},{tick:480,seconds:.5,microseconds_per_quarter:600000}],notes:[{id:'a',midi:60,start_tick:0,channel:0,track:1},{id:'b',midi:64,start_tick:480,channel:0,track:1}],events:[event(0,0,{type:'note_on',channel:0,note:60,velocity:80}),event(240,1,{type:'control_change',channel:0,control:64,value:127},0),event(480,2,{type:'note_off',channel:0,note:60,velocity:0}),event(480,3,{type:'note_on',channel:0,note:64,velocity:100}),event(720,4,{type:'control_change',channel:0,control:64,value:0},0),event(960,5,{type:'note_on',channel:0,note:64,velocity:0})]};
+}
+test('source playback derives pedal spans and tempo timing without changing original events',()=>{
+  const score=playbackFixture(), original=JSON.stringify(score), plan=referencePlan(score);
+  assert.equal(secondsAt(score,240),.25); assert.equal(secondsAt(score,720),.8);
+  assert.deepEqual(plan.notes.map(note=>[note.pitch,note.start,note.end]),[[60,0,.8],[64,.5,1.1]]);
+  assert.equal(plan.duration,1.1); assert.equal(JSON.stringify(score),original);
+  assert.deepEqual(referencePlan(score,{start:1,end:1}).notes.map(note=>[note.pitch,note.end]),[[60,.5]]);
+  const later=referencePlan(score,{start:2,end:2},.5);
+  assert.equal(later.notes.length,2); assert.deepEqual(later.notes.map(note=>note.pitch),[60,64]); assert.equal(later.notes[0].start,0); assert.ok(Math.abs(later.notes[0].end-.6)<1e-9); assert.ok(Math.abs(later.duration-1.2)<1e-9);
+  assert.equal(referencePlan(score,{tracks:[]}).notes.length,0);
+  assert.equal(referencePlan(score,{tracks:[{track:1,enabled:true}]}).notes[0].end,.8,'conductor pedal applies to selected notes');
+  assert.equal(referencePlan({...score,notes:[]}).duration,0);
+});
+test('source playback respects controller ordering, all-notes/off resets and voice limits',()=>{
+  const score=playbackFixture();
+  score.events[1].tick=480; score.events.sort((a,b)=>a.tick-b.tick || b.index-a.index);
+  // Note-off before pedal-down at the same tick must not extend that note.
+  assert.equal(referencePlan(score).notes[0].end,.5);
+  const cutoff=control=>{const data=playbackFixture(); data.events[4].message.control=control; return referencePlan(data);};
+  assert.equal(cutoff(121).notes[0].end,.8);
+  assert.ok(cutoff(120).notes.every(note=>note.end===.8));
+  assert.equal(cutoff(123).notes[0].end,1.1,'all notes off still obeys a down pedal');
+  const unmatched=playbackFixture(); unmatched.events.unshift({tick:0,index:9,track:1,message:{type:'note_off',note:20,channel:0}});
+  unmatched.events.push({tick:961,index:10,track:1,message:{type:'note_on',note:20,velocity:80,channel:9}});
+  assert.equal(referencePlan(unmatched).notes.length,2);
+  const dense=playbackFixture(); dense.events=Array.from({length:129},(_,i)=>({tick:0,index:i,track:1,message:{type:'note_on',note:60,channel:0,velocity:80}}));
+  assert.throws(()=>referencePlan(dense),/128/);
+  assert.equal(referencePlan(playbackFixture(),{start:0,end:999},999).duration,.55);
+});
+test('audio-clock playback pauses/resumes held spans and skips elapsed notes after a stall',()=>{
+  const plan={duration:2,notes:[{id:'a',pitch:60,start:0,end:1},{id:'b',pitch:64,start:.5,end:.6},{id:'c',pitch:67,start:1,end:2}]};
+  const cursor=new PlaybackCursor(), emitted=[];
+  cursor.pump(0,note=>emitted.push(note)); cursor.pause(0); assert.equal(emitted.length,0);
+  cursor.play(plan,10); cursor.pump(10,note=>emitted.push(note));
+  assert.equal(emitted[0].time,10.03); assert.equal(emitted[0].duration,1);
+  cursor.pause(10.43); assert.ok(Math.abs(cursor.position-.4)<1e-8);
+  cursor.play(plan,20,cursor.position); assert.ok(Math.abs(cursor.at(20)-.4)<1e-8);
+  cursor.pump(20,note=>emitted.push(note)); assert.ok(Math.abs(emitted.at(-1).duration-.6)<1e-8);
+  cursor.pump(20.73,note=>emitted.push(note));
+  assert.equal(emitted.at(-1).id,'c'); assert.ok(!emitted.some(note=>note.id==='b'));
+  cursor.pump(30,note=>emitted.push(note)); assert.equal(cursor.state,'ended'); assert.equal(cursor.position,2);
+  cursor.stop(); assert.equal(cursor.position,0); assert.equal(cursor.state,'stopped');
+});
+test('scheduled reference voices cancel before attack, own repeated pitches independently and clean up tails',()=>{
+  const context=fakeAudio(), path=new SynthPath(context,context.destination);
+  path.noteOn(60,2,.5,'a',.5); path.noteOn(60,2.1,.5,'b',1);
+  assert.equal(path.voices.size,2); assert.equal(path.sounding.size,2);
+  path.stop(); assert.equal(path.voices.size,0); assert.ok(context.nodes.every(node=>node.stopped===1));
+  for(const node of context.nodes) node.onended(); assert.equal(path.sounding.size,0);
+  path.noteOn(60); path.noteOff(60); assert.equal(path.voices.size,0); assert.equal(path.sounding.size,1);
+  path.stop(); assert.equal(path.voices.size,0);
 });

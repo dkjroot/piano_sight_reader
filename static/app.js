@@ -6,6 +6,7 @@ import {SoundPanel} from './sound.js';
 import {ScorePanel} from './score.js';
 import {makeOutline} from './outline.js';
 import {layoutPreset,staffViewport} from './layout.js';
+import {SourcePlayer} from './playback.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
@@ -23,6 +24,7 @@ let phrase = [], phraseIndex = 0, waitingForRelease = false;
 let streamOffset = 0;
 let inputRevision = 0;
 const sound=new SoundPanel(()=>target,()=>new Set([...performance.held,...performance.sustained]));
+const sourcePlayer=new SourcePlayer(sound,scorePanel);
 const SETTLE_MS = 120;
 const storageKey = 'piano-sight-reader-v1';
 // Set bounds before restoring saved endpoints, avoiding browser clamping.

@@ -262,3 +262,27 @@ Progress records retain written pitches and source tick/onset, while source hash
 passage identify imported material. They omit bulky per-attack source-ID lists, which
 remain in the active outline/inspection. The 16 MB restore limit allows complete
 1,000-attempt exports of complex passages; the count limit stays unchanged.
+
+
+## Source performance playback
+
+`transport.js` derives a separate reference-audio plan from preserved MIDI events,
+applying tempo-map conversion, velocity, per-track/channel note ownership and global
+channel sustain. Same-tick controller order is preserved. CC64/121 release pedal;
+CC120 kills sounding voices; CC123 releases held notes while respecting sustain.
+Percussion is excluded; selected tracks determine note inclusion while conductor
+controllers still apply. Source notes/events remain unchanged. Passage boundaries
+clip sound; already sounding tones are chased at the start with a fresh envelope.
+Playback is capped at 128 concurrent voices and 25–200% speed.
+
+`PlaybackCursor` uses audio-clock look-ahead, retains held spans across pause/resume
+and skips elapsed attacks after a stall. `playback.js` owns explicit play/pause/stop
+controls, a snapshot plan and revision guards. The reference synth uses unique voice
+IDs so repeated pitches remain independent; stopping cancels future scheduled attacks
+and release tails as well as active mapped voices. All oscillator/gain nodes clean up.
+
+No generated audio reaches input matching. Source playback does not move the untimed
+practice cursor; metronome remains independent. Reference mute/instrument changes,
+target audition, source-passage edits, panic and backgrounding stop playback. MIDI
+bank/program/pitch-bend/expression data are retained but not yet rendered by these
+original piano/organ instruments. Timed scoring and full notation remain future work.

@@ -4,7 +4,7 @@ const $=id=>document.getElementById(id);
 export class ScorePanel {
   constructor(onPractice=()=>{},getSettings=()=>({low:48,high:84,hand:'right',material:'white',span:'near',size:1,key:'C'})) {
     this.getSettings=getSettings;
-    this.score=null; this.revision=0; this.trackControls=[];
+    this.score=null; this.revision=0; this.trackControls=[]; this.onPassageChange=()=>{};
     $('score-file').addEventListener('change',async()=>{
       const revision=++this.revision, file=$('score-file').files[0];
       if(!file) return;
@@ -22,10 +22,10 @@ export class ScorePanel {
         $('export-score').disabled=false; this.drawTracks();
         const count=attackGroups(result).length;
         for(const id of ['passage-start','passage-end']) {$(id).disabled=!count; $(id).max=Math.max(1,count);}
-        $('passage-start').value=1; $('passage-end').value=Math.min(512,count)||1; this.refresh();
+        $('passage-start').value=1; $('passage-end').value=Math.min(512,count)||1; this.refresh(); this.onPassageChange();
       } catch(error) {if(revision===this.revision) $('score-status').textContent='Import failed: '+error.message;}
     });
-    for(const id of ['passage-start','passage-end']) $(id).addEventListener('change',()=>this.refresh());
+    for(const id of ['passage-start','passage-end']) $(id).addEventListener('change',()=>{this.refresh(); this.onPassageChange();});
     $('practice-score').addEventListener('click',()=>{const outline=this.refresh(); if(outline?.targets.length) onPractice(this.score,{start:outline.start,end:outline.end,tracks:this.rules()},this.filename);});
     $('export-score').addEventListener('click',()=>{
       if(!this.score) return;
@@ -43,7 +43,7 @@ export class ScorePanel {
       name.textContent=`${track.name} · ${count} piano attacks`; label.append(include,name);
       staff.id='score-staff-'+track.index; staff.setAttribute('aria-label','Staff for '+track.name); staff.disabled=!count;
       staff.append(new Option('Infer from middle C','auto'),new Option('Treble','treble'),new Option('Bass','bass'));
-      for(const input of [include,staff]) input.addEventListener('change',()=>this.refresh());
+      for(const input of [include,staff]) input.addEventListener('change',()=>{this.refresh(); this.onPassageChange();});
       row.append(label,staff); container.append(row); this.trackControls.push({track:track.index,include,staff});
     }
   }

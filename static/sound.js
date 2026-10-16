@@ -1,9 +1,9 @@
 import {LocalAudio,MetronomeClock} from './audio.js';
 const $=id=>document.getElementById(id);
-const ids=['live-instrument','live-volume','reference-instrument','reference-volume','reference-sound','click-volume','tempo','beats'];
+const ids=['live-instrument','live-volume','reference-instrument','reference-volume','reference-sound','click-volume','tempo','beats','source-speed'];
 export class SoundPanel {
   constructor(getTarget,getPitches) {
-    this.getTarget=getTarget; this.getPitches=getPitches; this.clock=new MetronomeClock(); this.engine=null; this.timer=null; this.revision=0;
+    this.getTarget=getTarget; this.getPitches=getPitches; this.clock=new MetronomeClock(); this.engine=null; this.timer=null; this.revision=0; this.onReferenceStop=()=>{}; this.onConfigure=()=>{};
     try {const saved=JSON.parse(localStorage.getItem('piano-sight-reader-sound')||'{}');
       for(const id of ids) if(saved[id]!==undefined) {
         const element=$(id);
@@ -12,9 +12,9 @@ export class SoundPanel {
         else if(Number.isFinite(+saved[id])) element.value=Math.max(+element.min,Math.min(+element.max,+saved[id]));
       }
     } catch { /* Sound settings are optional. */ }
-    for(const id of ids) $(id).addEventListener('change',()=>{this.configure(); this.persist(); if(this.clock.running && ['tempo','beats'].includes(id)) {this.engine.stopClicks(); this.clock.start(this.engine.context.currentTime,+$('tempo').value,+$('beats').value);}});
+    for(const id of ids) $(id).addEventListener('change',()=>{if(['reference-instrument','reference-sound'].includes(id)) this.onReferenceStop(); this.configure(); this.persist(); if(this.clock.running && ['tempo','beats'].includes(id)) {this.engine.stopClicks(); this.clock.start(this.engine.context.currentTime,+$('tempo').value,+$('beats').value);}});
     $('live-sound').addEventListener('change',async()=>{if($('live-sound').checked) await this.activate(); this.sync();});
-    $('hear-target').addEventListener('click',async()=>{if($('reference-sound').checked && await this.activate()) this.engine.audition(this.getTarget().map(note=>note.midi));});
+    $('hear-target').addEventListener('click',async()=>{if($('reference-sound').checked && await this.activate()) {this.onReferenceStop(); this.engine.audition(this.getTarget().map(note=>note.midi));}});
     $('metronome').addEventListener('change',async()=>{
       const revision=++this.revision, enabled=$('metronome').checked;
       this.clock.stop(); clearInterval(this.timer); this.engine?.stopClicks();
@@ -42,10 +42,10 @@ export class SoundPanel {
     this.engine.reference.configure($('reference-instrument').value,+$('reference-volume').value/100);
     this.engine.clickGain.gain.setTargetAtTime(+$('click-volume').value/100,this.engine.context.currentTime,.015);
     if(!$('reference-sound').checked) this.engine.reference.stop();
-    this.sync();
+    this.sync(); this.onConfigure();
   }
   sync() {if(this.engine) this.engine.live.sync($('live-sound').checked ? this.getPitches() : []);}
   pump() {this.clock.pump(this.engine.context.currentTime,event=>this.engine.click(event));}
   stopClock() {this.revision++; this.clock.stop(); this.engine?.stopClicks(); clearInterval(this.timer); this.timer=null; $('metronome').checked=false;}
-  panic() {this.stopClock(); if(this.engine) this.engine.panic(); $('live-sound').checked=false;}
+  panic() {this.onReferenceStop(); this.stopClock(); if(this.engine) this.engine.panic(); $('live-sound').checked=false;}
 }

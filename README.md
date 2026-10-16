@@ -133,8 +133,10 @@ and set your physical keyboard range to practise further from the staff.
 ## Sound and metronome
 
 **Sound my playing** enables local sound for MIDI and on-screen keys. Choose piano
-or organ synthesis and adjust its volume independently of **Target audition**.
+or organ synthesis and adjust its volume independently of **Reference sound**.
 **Hear target** plays the current target briefly without counting it as your input.
+The reference path also plays imported source passages; its instrument/volume are
+independent of your live playing.
 These are original synthetic instruments; no samples or downloads are needed.
 Your keyboard may also make its own sound: leave live sound off if you prefer that.
 
@@ -197,6 +199,23 @@ timing, up to 256 KB, 64 tracks and 25,000 events. MIDI does not preserve origin
 spelling, printed voices, ties or notation; these are not inferred as authored facts.
 A failed import leaves the previous valid inspection available. Files are not added
 to a shared library, and their redistribution rights are not assumed.
+
+### Listening to the source passage
+
+**Play source passage** plays the selected MIDI tracks and attack range through
+Reference sound, retaining source tempo changes, velocities and sustain. Choose
+25–200% **Playback speed**, pause/resume, or stop. Sounding notes from before the
+passage start are resumed; notes are cut off at its end. **Stop sound**, leaving
+the tab, changing the source passage/tracks/instrument or disabling Reference sound
+also stops playback. Re-enable Reference sound if playback controls are disabled.
+
+This is the selected source performance, including pitches your outline filters
+omit. It never counts as your playing or moves the practice pointer. The metronome
+is currently an independent practice click, not synchronised accompaniment. The
+original piano/organ synth uses your chosen instrument; MIDI program/bank changes,
+pitch bends and expressive controllers remain data for future instrument support.
+A resumed held piano tone restarts its synthetic envelope. Playback rejects passages
+above 128 simultaneous voices rather than overloading the sound engine.
 
 ## Finding music for future practice
 
