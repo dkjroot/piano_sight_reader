@@ -863,6 +863,22 @@ const { chromium } = require('playwright');
     await page.selectOption('#progression','flow');
 
     assert.ok(rapid.elapsed<250,'a rapid phrase must not wait for settle/release timers');
+    await page.locator('#clear-history').click(); await page.locator('#save-history').check();
+    await Promise.all([page.waitForEvent('domcontentloaded'),page.evaluate(()=>{window.testMidi.send([0x90,60,90]); window.testMidi.send([0x80,60,0]); location.reload();})]);
+    await page.waitForSelector('.note');
+    assert.equal(await page.locator('#stats-count').innerText(),'1','a result must survive refresh before the debounce fires');
+    await page.locator('#connect').click(); await page.locator('#clear-history').click();
+    await page.evaluate(()=>new Promise(resolve=>{
+      let count=0; const timer=setInterval(()=>{window.testMidi.send([0x90,60,90]); window.testMidi.send([0x80,60,0]); if(++count===45) {clearInterval(timer); resolve();}},50);
+    }));
+    assert.ok(await page.evaluate(()=>JSON.parse(localStorage.getItem('piano-sight-reader-history-v1')||'[]').length>0),'continuous playing must not postpone saving indefinitely');
+    await page.locator('#clear-history').click(); await page.locator('#save-history').uncheck();
+    await Promise.all([page.waitForEvent('domcontentloaded'),page.evaluate(()=>{window.testMidi.send([0x90,60,90]); window.testMidi.send([0x80,60,0]); location.reload();})]);
+    await page.waitForSelector('.note');
+    assert.equal(await page.locator('#stats-count').innerText(),'0','clearing and opting out must cancel every pending save');
+    assert.equal(await page.locator('#pause-practice').getAttribute('aria-label'),'Pause practice');
+    await page.locator('#connect').click();
+
     await page.locator('#score-file').setInputFiles('tests/fixtures/polyphony.mid');
     await page.waitForFunction(()=>document.getElementById('score-status').textContent.startsWith('polyphony.mid'));
     await page.evaluate(()=>{

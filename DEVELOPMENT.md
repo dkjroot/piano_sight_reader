@@ -430,3 +430,11 @@ row reserves its button height, and layout regressions verify pause never moves 
 keyboard in any preset. Reference playback/metronome are separate untimed controls.
 
 The user-supplied Buy Me a Coffee URL and exact support wording appear below all settings/music-library controls and above Progress. It uses theme colours and fine rules, wraps on narrow screens, and opens in a new tab without changing practice. Browser tests check the approved URL, wording, placement and narrow-screen fit.
+
+History-save lifecycle: normal saves remain debounced outside MIDI handlers, but a
+2-second maximum wait prevents uninterrupted playing from postponing persistence
+forever. Dirty records flush synchronously on pagehide/visibility-hidden. No clean
+or opted-out state is written, and both pending timers are cancelled by clearing
+or opting out. The immediate-refresh reproduction lost the last result before this
+fix; browser regressions now reload in the same task as a correct MIDI attack,
+exercise 45 uninterrupted attacks and verify opt-out/clear never resurrect data.

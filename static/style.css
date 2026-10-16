@@ -321,4 +321,4 @@ h1 .subtitle { display:block; letter-spacing:0; }
 .support-panel p { margin:0; font:18px/1.65 'Palatino Linotype','Book Antiqua',Georgia,serif; }
 .support-panel strong { font-weight:600; }
 .support-panel a { color:var(--ink); font:600 15px 'Segoe UI',sans-serif; text-underline-offset:4px; text-decoration-thickness:1.5px; overflow-wrap:anywhere; }
-.support-panel a:hover { color:var(--accent); }
+.support-panel a:hover { text-decoration-thickness:2px; text-decoration-color:var(--accent); }

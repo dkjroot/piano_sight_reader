@@ -314,6 +314,7 @@ $('pause-practice').addEventListener('click',()=>{
   practicePaused=!practicePaused;
   $('pause-practice').textContent=practicePaused ? 'Resume' : 'Pause';
   $('pause-practice').setAttribute('aria-pressed',String(practicePaused));
+  $('pause-practice').setAttribute('aria-label',practicePaused ? 'Resume practice' : 'Pause practice');
   if(practicePaused) progress.pause('practice');
   else {
     flowGate.start(target,target,performance.held,performance.attacks);

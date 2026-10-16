@@ -5,7 +5,7 @@ const STORE='piano-sight-reader-history-v1', PREF='piano-sight-reader-save-histo
 const seconds=value=>value===null ? '—' : (value/1000).toFixed(2)+' s';
 export class ProgressPanel {
   constructor() {
-    this.tracker=new AttemptTracker(); this.records=[]; this.identity=''; this.saveTimer=null; this.pauses=new Set(); this.importRevision=0;
+    this.tracker=new AttemptTracker(); this.records=[]; this.identity=''; this.saveTimer=null; this.maxSaveTimer=null; this.pauses=new Set(); this.importRevision=0;
     try {this.records=cleanHistory(JSON.parse(localStorage.getItem(STORE)||'[]')); $('save-history').checked=localStorage.getItem(PREF)==='true';} catch { $('history-status').textContent='Saved history is unavailable; session measurements still work.'; }
     $('save-history').addEventListener('change',()=>{try {localStorage.setItem(PREF,String($('save-history').checked));} catch {} this.scheduleSave();});
     $('import-history').addEventListener('click',()=>$('history-file').click());
@@ -26,10 +26,12 @@ export class ProgressPanel {
       const url=URL.createObjectURL(new Blob([JSON.stringify({version:1,records:this.records},null,2)],{type:'application/json'}));
       const link=document.createElement('a'); link.href=url; link.download='piano-progress-'+new Date().toISOString().slice(0,10)+'.json'; link.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
     });
+    window.addEventListener('pagehide',()=>this.flushSave());
+    document.addEventListener('visibilitychange',()=>{if(document.hidden) this.flushSave();});
     this.render();
   }
   clear(period) {
-    this.importRevision++; $('history-file').value=''; $('history-import-status').textContent=''; clearTimeout(this.saveTimer);
+    this.importRevision++; $('history-file').value=''; $('history-import-status').textContent=''; this.cancelSave();
     const before=this.records.length; this.records=clearHistoryPeriod(this.records,period);
     try {
       if(!this.records.length) localStorage.removeItem(STORE);
@@ -51,10 +53,21 @@ export class ProgressPanel {
   }
   pause(reason='window') {this.pauses.add(reason); this.tracker.pause();}
   resume(reason='window') {this.pauses.delete(reason); if(!this.pauses.size && !document.hidden && document.hasFocus()) this.tracker.resume();}
+  cancelSave() {
+    clearTimeout(this.saveTimer); clearTimeout(this.maxSaveTimer); this.saveTimer=this.maxSaveTimer=null;
+  }
+  flushSave() {
+    const dirty=this.saveTimer!==null || this.maxSaveTimer!==null;
+    this.cancelSave();
+    if(!dirty || !$('save-history').checked) return;
+    try {localStorage.setItem(STORE,JSON.stringify(this.records)); $('history-status').textContent='';}
+    catch {$('history-status').textContent='History could not be saved; export it to keep this session.';}
+  }
   scheduleSave() {
     clearTimeout(this.saveTimer);
-    if (!$('save-history').checked) return;
-    this.saveTimer=setTimeout(()=>{try {localStorage.setItem(STORE,JSON.stringify(this.records)); $('history-status').textContent='';} catch {$('history-status').textContent='History could not be saved; export it to keep this session.';}},200);
+    if (!$('save-history').checked) {this.cancelSave(); return;}
+    this.saveTimer=setTimeout(()=>this.flushSave(),200);
+    if(this.maxSaveTimer===null) this.maxSaveTimer=setTimeout(()=>this.flushSave(),2000);
   }
   renderBest() {
     const best=this.records.filter(r=>r.context.identity===this.identity && r.firstAttemptCorrect).map(r=>r.responseMs);

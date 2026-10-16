@@ -449,3 +449,5 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Reproducible optional browser-test dependency and regression CI configuration with compact reports. Hosted execution is pending a push.
 
 - [x] Session-only practice pause preserves measurements and demands fresh articulation on resume, with live key feedback.
+
+- [x] Flush queued opted-in history before refresh/leaving and bound persistence delay during continuous playing.

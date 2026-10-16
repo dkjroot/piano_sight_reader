@@ -179,7 +179,7 @@ pitch set. In release-between-targets mode, confirmation and release delays are 
 pauses, keyboard-endpoint learning and MIDI reconnection waits are excluded. Staggering chord fingers is allowed; wrong pitches affect accuracy.
 
 History is session-only unless **Save history locally** is checked. The browser keeps
-up to 1,000 attempts, including exercise settings and written pitches. **Export history**
+up to 1,000 attempts, including exercise settings and written pitches. Queued results are saved when you leave or refresh the page, and periodically during continuous playing. **Export history**
 saves JSON; **Import history** merges a previous export without duplicates;
 **Clear last hour** and **Clear today** remove recent attempts; today starts at midnight in your local timezone. **Clear all** deletes the entire history. Invalid imports, files over 16 MB, or more than 1,000 attempts leave it intact. Nothing is uploaded. Daily
 median response times and hand/key/note/staff-position/accidental breakdowns help spot
