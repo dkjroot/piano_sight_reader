@@ -166,6 +166,13 @@ arbitrarily blamed on one finger. Counts remain visible; small samples are not d
 Personal bests compare the same target, settings and (in Repeat) phrase, not easier
 material against harder exercises. These are reading measurements, not game points.
 
+**Reading patterns** lists repeated corrections after at least eight comparable
+single-note attempts (three or more corrected targets). Slower-response flags also
+need three different notes and 24 attempts with matching settings, then compare a
+note's median against that exercise's baseline. Key, range, mode, source passage and
+spelling remain distinct. These are practice clues with visible evidence counts,
+not diagnoses of finger/hand ability or conclusions from sparse samples.
+
 ## Inspecting a local MIDI file
 
 Choose a `.mid` or `.midi` file under **Local MIDI file**. The app previews its note

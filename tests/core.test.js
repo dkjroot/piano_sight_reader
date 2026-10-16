@@ -2,7 +2,7 @@ import {secondsAt,referencePlan,PlaybackCursor} from '../static/transport.js';
 import {layoutPreset,staffViewport} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
-import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory} from '../static/metrics.js';
+import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns} from '../static/metrics.js';
 import {makePracticePhrase, harmonicPitchClasses} from '../static/harmony.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -463,4 +463,23 @@ test('scheduled reference voices cancel before attack, own repeated pitches inde
   for(const node of context.nodes) node.onended(); assert.equal(path.sounding.size,0);
   path.noteOn(60); path.noteOff(60); assert.equal(path.voices.size,0); assert.equal(path.sounding.size,1);
   path.stop(); assert.equal(path.voices.size,0);
+});
+
+test('reading patterns require evidence and compare only matching single-note exercises',()=>{
+  const settings={...defaults,low:48,high:84,size:1,key:'C',source:'random',endAction:'new'};
+  const record=(pitch,ms,clean=true,overrides={})=>{const note={...spell(pitch),staff:'treble'}, config={...settings,...overrides}; return {version:1,at:'2026-10-16T12:00:00Z',responseMs:ms,wrongPresses:clean?0:1,firstAttemptCorrect:clean,notes:[note],context:{identity:exerciseIdentity([note],config,[])}};};
+  const rows=[...Array.from({length:8},()=>record(60,100)),...Array.from({length:8},()=>record(62,200)),...Array.from({length:8},(_,i)=>record(64,1000,i>=3))];
+  const original=JSON.stringify(rows), result=readingPatterns(rows);
+  assert.equal(result.length,1); assert.equal(result[0].note,'E4'); assert.equal(result[0].count,8); assert.equal(result[0].corrected,3);
+  assert.deepEqual(result[0].flags,['Repeated corrections','Slower responses']); assert.equal(result[0].baseline,200);
+  assert.equal(result[0].context.key,'C'); assert.equal(JSON.stringify(rows),original);
+  const sparse=Array.from({length:7},()=>record(65,5000,false)); assert.deepEqual(readingPatterns(sparse),[]);
+  const otherKey=Array.from({length:24},()=>record(67,5000,true,{key:'G'}));
+  assert.equal(readingPatterns([...rows,...sparse,...otherKey]).length,1,'another key or sparse exposure must not create a speed flag');
+  const onlyCorrections=Array.from({length:8},()=>record(66,2000,false));
+  assert.deepEqual(readingPatterns(onlyCorrections)[0].flags,['Repeated corrections']);
+  const invalid=[{...rows[0],notes:[rows[0].notes[0],rows[0].notes[0]]},{...rows[0],context:{}},{...rows[0],context:{identity:'bad'}},{...rows[0],context:{identity:'[2,[]]'}},{...rows[0],context:{identity:'[1,[null]]'}}];
+  assert.deepEqual(readingPatterns(invalid),[]);
+  const duplicates=[...rows,...rows]; assert.equal(readingPatterns(duplicates)[0].count,16);
+  assert.deepEqual(readingPatterns([]),[]);
 });

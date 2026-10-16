@@ -289,3 +289,12 @@ practice cursor; metronome remains independent. Reference mute/instrument change
 target audition, source-passage edits, panic and backgrounding stop playback. MIDI
 bank/program/pitch-bend/expression data are retained but not yet rendered by these
 original piano/organ instruments. Timed scoring and full notation remain future work.
+
+
+`readingPatterns` groups single-note attempts by versioned comparable exercise
+settings (plus exact repeat phrase/source passage) and written pitch/staff. It needs
+8 exposures to flag >=3 corrected targets. A speed flag additionally needs 24 cohort
+attempts / 3 distinct written notes, and median >1.5*cohort median+200 ms. These are
+transparent heuristics, not statistical diagnoses. Unknown identity versions and
+chords are excluded. Source data stay unchanged; the UI shows counts/context and
+uses text rather than colour-only warnings. Recommendations/drills remain future work.

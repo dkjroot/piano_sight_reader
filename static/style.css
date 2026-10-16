@@ -235,3 +235,7 @@ h1 .subtitle { display:block; letter-spacing:0; }
 :root[data-layout="720"] h1 { display:flex; align-items:baseline; gap:8px; }
 :root[data-layout="720"] h1 .subtitle { display:inline; }
 @media(max-width:650px) { .score-banner::before { right:110px; } }
+
+.patterns-heading { margin-top:24px; }
+.table-scroll { overflow-x:auto; }
+#patterns-table { min-width:760px; }

@@ -39,7 +39,7 @@ try {
 } catch { /* Restricted storage or an old setting must not prevent practice. */ }
 if (+$('low').value > +$('high').value) $('high').value = $('low').value;
 if (+$('min-size').value > +$('size').value) $('min-size').value = $('size').value;
-function settings() { return {...Object.fromEntries(controls.map(id => [id, ['low', 'high', 'size','min-size','length','preview'].includes(id) ? +$(id).value : $(id).value])), endAction:document.querySelector('[name="end-action"]:checked').value,scoreId:$('source').value==='midi' ? activePiece?.score.sha256 : null,passage:$('source').value==='midi' ? activePiece?.bounds : null}; }
+function settings() { return {...Object.fromEntries(controls.map(id => [id, ['low', 'high', 'size','min-size','length','preview'].includes(id) ? +$(id).value : $(id).value])), endAction:document.querySelector('[name="end-action"]:checked').value,scoreId:$('source').value==='midi' ? activePiece?.score.sha256 : null,passage:$('source').value==='midi' ? activePiece?.bounds : null,scoreTitle:$('source').value==='midi' ? activePiece?.filename : null}; }
 function persist() { try { localStorage.setItem(storageKey, JSON.stringify(settings())); } catch { /* Session still works. */ } }
 function syncMode() {
   const imported=$('source').value==='midi';

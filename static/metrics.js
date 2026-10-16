@@ -82,3 +82,39 @@ export function mergeHistory(existing,incoming) {
   }
   return [...merged.values()].sort((a,b)=>Date.parse(a.at)-Date.parse(b.at)).slice(-1000);
 }
+
+
+export function readingPatterns(records) {
+  const cohorts=new Map(), cache=new Map();
+  for(const record of records) {
+    if(record.notes.length!==1 || typeof record.context.identity!=='string') continue;
+    const identity=record.context.identity;
+    if(!cache.has(identity)) {
+      let parsed;
+      try {parsed=JSON.parse(identity);} catch {parsed=null;}
+      cache.set(identity,Array.isArray(parsed) && parsed[0]===1 && Array.isArray(parsed[1]) && parsed[1].every(field=>Array.isArray(field) && field.length===2 && typeof field[0]==='string') ? {key:JSON.stringify([parsed[0],parsed[1],parsed[3]]),fields:new Map(parsed[1])} : null);
+    }
+    const context=cache.get(identity); if(!context) continue;
+    if(!cohorts.has(context.key)) cohorts.set(context.key,{fields:context.fields,rows:[],notes:new Map()});
+    const cohort=cohorts.get(context.key), note=record.notes[0];
+    const key=JSON.stringify([note.letter,note.accidental,note.octave,note.staff]);
+    cohort.rows.push(record);
+    if(!cohort.notes.has(key)) cohort.notes.set(key,{note,rows:[]});
+    cohort.notes.get(key).rows.push(record);
+  }
+  const result=[];
+  for(const cohort of cohorts.values()) {
+    const baseline=summary(cohort.rows).median;
+    for(const {note,rows} of cohort.notes.values()) {
+      if(rows.length<8) continue;
+      const stats=summary(rows), corrected=rows.filter(record=>!record.firstAttemptCorrect).length, flags=[];
+      if(corrected>=3) flags.push('Repeated corrections');
+      if(cohort.rows.length>=24 && cohort.notes.size>=3 && stats.median>baseline*1.5+200) flags.push('Slower responses');
+      if(!flags.length) continue;
+      const fields=cohort.fields;
+      result.push({note:note.letter+({'-2':'𝄫','-1':'♭',0:'',1:'♯',2:'𝄪'})[note.accidental]+note.octave,staff:note.staff,count:rows.length,corrected,median:stats.median,baseline,flags,
+        context:{scoreTitle:cohort.rows[0].context.scoreTitle,passage:fields.get('passage'),key:fields.get('key'),hand:fields.get('hand'),source:fields.get('source'),mode:fields.get('endAction'),low:fields.get('low'),high:fields.get('high'),material:fields.get('material')}});
+    }
+  }
+  return result.sort((a,b)=>b.corrected/b.count-a.corrected/a.count || b.median/b.baseline-a.median/a.baseline || b.count-a.count).slice(0,12);
+}

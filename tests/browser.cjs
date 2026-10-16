@@ -497,6 +497,21 @@ const { chromium } = require('playwright');
     await page.waitForTimeout(50);
     assert.equal(await page.locator('#stats-count').innerText(),'0');
     assert.equal(await page.locator('#history-import-status').innerText(),'');
+    const patternHistory=await page.evaluate(async()=>{
+      const {exerciseIdentity}=await import('/static/metrics.js'), {spell}=await import('/static/core.js');
+      const settings={hand:'right',key:'C',source:'random',material:'white',span:'near',low:60,high:72,size:1,'min-size':1,endAction:'new'};
+      return {version:1,records:[60,62,64].flatMap((pitch,group)=>Array.from({length:8},(_,i)=>{
+        const note={...spell(pitch),staff:'treble'}, clean=group!==2||i>=3;
+        return {version:1,at:new Date(Date.UTC(2026,9,15,12,0,group*8+i)).toISOString(),responseMs:[100,200,1000][group],wrongPresses:clean?0:1,firstAttemptCorrect:clean,notes:[note],context:{identity:exerciseIdentity([note],settings,[]),key:'C',hand:'right',source:'random',mode:'new'}};
+      }))};
+    });
+    await page.locator('#history-file').setInputFiles({name:'patterns.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(patternHistory))});
+    await page.waitForFunction(()=>document.querySelectorAll('#pattern-rows tr').length===1);
+    assert.match(await page.locator('#pattern-rows').innerText(),/E4/);
+    assert.match(await page.locator('#pattern-rows').innerText(),/Repeated corrections/);
+    assert.match(await page.locator('#pattern-rows').innerText(),/Slower responses/);
+    await page.locator('#clear-history').click();
+    assert.equal(await page.locator('#patterns-table').isVisible(),false);
     // Range-learning and device recovery are pauses, not slow reading attempts.
     await page.locator('#connect').click();
     await page.locator('#learn-low').click();
@@ -643,6 +658,7 @@ const { chromium } = require('playwright');
     assert.equal(await page.inputValue('#live-instrument'),'organ');
     assert.equal(await page.inputValue('#tempo'),'120');
     assert.equal(await page.inputValue('#beats'),'3');
+    assert.equal(await page.inputValue('#source-speed'),'2');
     assert.equal(await page.locator('#reference-sound').isChecked(),false);
     assert.equal(await page.locator('#live-sound').isChecked(),false);
     assert.equal(await page.locator('#metronome').isChecked(),false);

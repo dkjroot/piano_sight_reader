@@ -1,4 +1,4 @@
-import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory} from './metrics.js';
+import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns} from './metrics.js';
 const $=id=>document.getElementById(id);
 const STORE='piano-sight-reader-history-v1', PREF='piano-sight-reader-save-history';
 const seconds=value=>value===null ? '—' : (value/1000).toFixed(2)+' s';
@@ -29,7 +29,7 @@ export class ProgressPanel {
   }
   start(notes,settings,phrase) {
     this.identity=exerciseIdentity(notes,settings,phrase);
-    const context={identity:this.identity,key:settings.key,hand:settings.hand,source:settings.source||'random',mode:settings.endAction};
+    const context={identity:this.identity,key:settings.key,hand:settings.hand,source:settings.source||'random',mode:settings.endAction,scoreTitle:settings.scoreTitle||null};
     this.tracker.start(notes,context); if (this.pauses.size || document.hidden || !document.hasFocus()) this.tracker.pause(); this.renderBest();
   }
   observe(held) {this.tracker.observe(held);}
@@ -62,6 +62,19 @@ export class ProgressPanel {
       const tr=document.createElement('tr');
       for (const value of [row.label,row.count,Math.round(row.accuracy*100)+'%',seconds(row.median)]) {const td=document.createElement('td'); td.textContent=value; tr.append(td);}
       body.append(tr);
+    }
+    const patterns=readingPatterns(this.records), patternBody=$('pattern-rows'); patternBody.replaceChildren();
+    $('patterns-empty').hidden=!!patterns.length; $('patterns-table').hidden=!patterns.length;
+    for(const pattern of patterns) {
+      const row=document.createElement('tr'), context=pattern.context;
+      const source=context.source==='midi' && context.scoreTitle ? context.scoreTitle : ({random:'Random',triads:'Diatonic',cadence:'Cadence',midi:'Local score'})[context.source]||'Practice';
+      const mode=context.mode==='repeat' ? 'Repeat' : 'Continuous';
+      const material=({white:'In key',sharps:'Chromatic ♯',flats:'Chromatic ♭'})[context.material]||'';
+      const hand=({left:'Bass',right:'Treble',both:'Both staves'})[context.hand]||'';
+      const passage=context.passage ? ` · attacks ${context.passage.start}–${context.passage.end}` : '';
+      const scope=`${source} · ${mode} · ${hand} · ${context.key||''} · ${material} · MIDI ${context.low}–${context.high}${passage}`;
+      for(const value of [pattern.note,pattern.staff,scope,pattern.count,pattern.corrected,seconds(pattern.median),pattern.flags.join(' · ')]) {const cell=document.createElement('td'); cell.textContent=value; row.append(cell);}
+      patternBody.append(row);
     }
     const days=daily(this.records);
     const dailyBody=$('daily-rows'); dailyBody.replaceChildren();

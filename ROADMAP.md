@@ -251,7 +251,9 @@ local history (1,000 attempts), validated JSON import/export/deletion, daily med
 and exact UTC daily table, 90th-percentile response time and hand/key/
 single-note pitch/accidental/ledger-position breakdowns. Background and unfocused time,
 release waits and the confirmation delay are excluded. The tasks below include the
-remaining session, rhythm, import, coverage and recommendation work.
+remaining session, rhythm, coverage and recommendation work. Reading patterns now
+flag repeated corrections or slower single-note responses with minimum exposure
+counts and comparable exercise cohorts; direct targeted-drill actions remain future work.
 
 - [ ] Record local practice sessions and per-target attempts, with timestamps, written
   pitches, staff/hand assignment, key signature, generated seed or source passage IDs,
