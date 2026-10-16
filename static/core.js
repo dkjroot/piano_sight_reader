@@ -137,12 +137,20 @@ export function match(target, held) {
 }
 
 export class Performance {
-  constructor() { this.sources = new Map(); this.attackSerial=0; }
+  constructor() { this.sources = new Map(); this.attackSerial=0; this.pressSerials=new Map(); }
   source(id) {
     if (!this.sources.has(id)) this.sources.set(id, {held: new Set(), sustained: new Set(), pedal: false, attacks:new Map()});
     return this.sources.get(id);
   }
-  noteOn(id, pitch, velocity=100) { const s = this.source(id); const changed = !s.held.has(pitch); s.held.add(pitch); s.sustained.delete(pitch); s.attacks.set(pitch,{serial:++this.attackSerial,velocity:Math.max(1,Math.min(127,Number(velocity)||100))}); return changed; }
+  noteOn(id, pitch, velocity=100) {
+    const s=this.source(id), changed=!s.held.has(pitch);
+    const fresh=![...this.sources.values()].some(source=>source.held.has(pitch));
+    const serial=++this.attackSerial;
+    if(fresh) this.pressSerials.set(pitch,serial);
+    s.held.add(pitch); s.sustained.delete(pitch);
+    s.attacks.set(pitch,{serial,pressSerial:this.pressSerials.get(pitch),velocity:Math.max(1,Math.min(127,Number(velocity)||100))});
+    return changed;
+  }
   noteOff(id, pitch) { const s = this.source(id); const changed = s.held.delete(pitch); if (changed && s.pedal) s.sustained.add(pitch); else if(changed) s.attacks.delete(pitch); return changed; }
   sustain(id, down) { const s = this.source(id); const changed = s.pedal !== down; s.pedal = down; if (!down) {for(const pitch of s.sustained) s.attacks.delete(pitch); s.sustained.clear();} return changed; }
   clear(id) { if (id === undefined) this.sources.clear(); else this.sources.delete(id); }

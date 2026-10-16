@@ -102,8 +102,8 @@ You can practise without MIDI by using the on-screen keys.
   labels refer to natural minor, without harmonic or melodic alterations.
 - Play all written pitches together without extra notes. There is no timer:
   fingers can arrive at different times. Fluid progression advances immediately;
-  shared pitches may continue into a changing chord, and repeated targets require
-  fresh attacks. Choose Release between targets for deliberate step-by-step practice.
+  every pitch needs a fresh release and press for each target, including notes
+  shared between changing chords. Other retiring notes may overlap briefly for legato. Choose Release between targets for deliberate step-by-step practice.
   The sustain pedal may stay down.
 - When enabled, amber marks target keys. Green marks correct held keys, red marks
   extra held keys, and blue marks released but sustained keys. Arrows appear
@@ -256,7 +256,7 @@ is clicked.
 
 Each target contains simultaneous note attacks, not every note still sounding.
 Play through it using your chosen Fluid or Release-between-targets progression.
-In Fluid mode, every written MIDI-outline note requires a fresh key press, including
+In Fluid mode, every written note requires a fresh key press, including
 notes shared with the preceding chord. Other notes may overlap briefly for legato.
 A MIDI note-on is a new attack; printed ties require a notation source and are not inferred.
 Written-note ticks and green noteheads credit only the presses accepted for the

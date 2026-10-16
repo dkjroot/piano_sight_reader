@@ -939,6 +939,27 @@ const { chromium } = require('playwright');
     assert.deepEqual(repeatedAttacks.hits,repeatedAttacks.ticks,'green noteheads and ticks must agree');
     assert.deepEqual(repeatedAttacks.accidentals,[[],[],[],[69],[]],'accidentals must not turn green from carried keys');
     await page.locator('#reset').click();
+    await page.evaluate(()=>{
+      for(const [id,value] of Object.entries({source:'random',low:60,high:64,size:2,'min-size':2,length:2,preview:1,hand:'right',material:'white',span:'near',key:'C'})) document.getElementById(id).value=value;
+      document.getElementById('end-repeat').checked=true;
+      const original=Math.random; let calls=0;
+      try {Math.random=()=>calls++<3 ? 0 : .999; document.getElementById('source').dispatchEvent(new Event('change'));}
+      finally {Math.random=original;}
+    });
+    assert.deepEqual(await page.locator('.note[data-step="0"]').evaluateAll(notes=>notes.map(note=>+note.dataset.midi).sort()),[60,62]);
+    assert.deepEqual(await page.locator('.note[data-step="1"]').evaluateAll(notes=>notes.map(note=>+note.dataset.midi).sort()),[62,64]);
+    const generatedAttack=await page.evaluate(()=>{
+      const send=(status,pitch)=>window.testMidi.send([status,pitch,90]);
+      send(0x90,60); send(0x90,62); send(0x80,60); send(0x90,64);
+      const pending={position:document.getElementById('phrase-position').textContent,ticks:[...document.querySelectorAll('.note-check')].filter(note=>note.textContent==='✓').map(note=>+note.dataset.target)};
+      send(0x90,62); // A duplicate note-on while held must not earn a new attack.
+      const duplicate=document.getElementById('phrase-position').textContent;
+      send(0x80,62); send(0x90,62);
+      return {pending,duplicate,complete:document.getElementById('phrase-position').textContent,ticksAfter:[...document.querySelectorAll('.note-check')].filter(note=>note.textContent==='✓').length};
+    });
+    assert.deepEqual(generatedAttack,{pending:{position:'2 / 2',ticks:[64]},duplicate:'2 / 2',complete:'1 / 2',ticksAfter:0});
+    await page.locator('#reset').click(); await page.selectOption('#size','3');
+
     await page.reload(); await page.waitForSelector('.note');
     assert.equal(await page.inputValue('#progression'),'flow');
     await page.waitForFunction(()=>document.querySelectorAll('#library-piece option').length===3);

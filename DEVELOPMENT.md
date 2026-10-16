@@ -446,7 +446,7 @@ Computer-key input ignores event.repeat and duplicate activation while the same 
 
 MIDI attack matching: FlowGate requires fresh attack serials for every imported
 pitch (identified by sourceIds), even when a chord changes around a repeated
-pitch. Generated changing chords retain their shared-hold policy. This consumes
+pitch. Generated chords follow the same fresh-press rule. This consumes
 explicit MIDI note-ons without guessing printed ties; it adds no settling delay.
 Original regression fixture repeated-attacks.mid changes C/E to E/G to E/A, and
 browser tests require a new E for each target while permitting retiring-note legato.
@@ -484,7 +484,7 @@ budget. Disabled imported minimum chord size and harmonic pitch material are omi
 Written-note feedback now uses FlowGate.accepted: a held MIDI pitch without a new
 attack in the current target cannot light or tick the next column. Partial fresh
 chords light only their accepted pitches; repeated loop entries reset credit.
-Generated changing chords retain their legitimate shared-hold behavior. Both initial
+Generated changing chords also require fresh presses. Both initial
 SVG rendering and in-place notehead/accidental/tick updates use the same credit set.
 The physical on-screen keyboard continues to describe actual held keys separately.
 
@@ -501,3 +501,11 @@ my playing. A separate temporary SynthPath shares the acoustic bank and master b
 so live MIDI sync does not cancel the preview or release held voices. Configuration,
 panic and stale asynchronous sample loads cannot resurrect a cancelled preview.
 Hear target retains its Target sound enable policy and source-playback stop hook.
+
+
+All untimed targets now require fresh physical presses for every pitch. Performance
+keeps raw attack serials for velocity/audio retriggering and separate press serials
+that advance only after no input source physically holds that pitch. FlowGate uses
+press baselines for matching/notation credit. Sustain does not block a released-key
+re-press; duplicate note-ons and overlapping source ownership cannot fabricate it.
+Retiring non-target notes from the previous chord retain their bounded legato grace.

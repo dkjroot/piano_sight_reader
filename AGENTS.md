@@ -32,8 +32,10 @@ Web MIDI without a front-end build step.
   preview the opening beyond a double barline. Continuous mode replenishes a
   bounded random stream; phrase length only applies to Repeat. Repeats require
   fresh articulation. Fluid progression is the default: complete exact physical pitch sets
-  immediately, allow previous-target legato overlap into the next target, and require
-  fresh attacks for repeated notes/chords. Keep the optional release-between-targets
+  immediately, allow retiring notes from the previous target to overlap briefly,
+  and require a fresh physical release/press for every pitch in every new target,
+  including shared pitches in changing generated chords. Duplicate note-on messages
+  while a pitch remains physically held do not earn practice credit. Keep the optional release-between-targets
   mode. Never add fixed settling/release delays to fluid mode. Preserve the current scrolling policy pending real scores.
 - Repeat/Continuous are the automatic modes; do not restore redundant manual
   Repeat phrase/New phrase buttons. Optional note-by-note versus page-by-page
@@ -65,7 +67,7 @@ Web MIDI without a front-end build step.
 - Local MIDI outlines are derived untimed attack exercises, not original notation.
   Every retained target pitch represents an explicit source note-on and requires a
   fresh physical attack, including shared notes in changing chords. Never apply
-  generated-chord shared holds as if they were inferred MIDI ties.
+  shared holds as if they were inferred MIDI ties.
 - Keep the local Help page and README aligned with visible button names and workflows.
   Help must not initialize MIDI/audio or reset the existing practice session.
   Preserve imported tick/event/track/channel/controller data and source hashes. Keep

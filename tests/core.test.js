@@ -564,15 +564,16 @@ test('fluid progression allows legato overlap but demands fresh attacks and reje
   p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
   gate.start(notes(64,67),notes(60,64),p.held,p.attacks);
   assert.equal(gate.evaluate(p.held,p.attacks).ready,false);
-  p.noteOn('m',67); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  p.noteOn('m',67); assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'shared pitches need their own fresh press');
+  p.noteOff('m',64); p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
   p.noteOff('m',60); p.noteOn('m',60); assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'a reattacked old pitch becomes an extra');
   p.noteOff('m',60); gate.start(notes(64,67),notes(64,67),p.held,p.attacks);
   assert.equal(gate.evaluate(p.held,p.attacks).ready,false);
-  p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'all repeated chord pitches need new attacks');
-  p.noteOn('m',67); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  p.noteOff('m',64); p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'all repeated chord pitches need new attacks');
+  p.noteOff('m',67); p.noteOn('m',67); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
   gate.start(notes(64),notes(64,67),p.held,p.attacks);
   assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'carried subset must not auto-skip');
-  p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  p.noteOff('m',64); p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
   p.sustain('m',true); p.noteOff('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'pedal is not a held target');
   gate.start([],[],p.held,p.attacks); assert.equal(gate.evaluate(p.held,p.attacks).ready,false);
 });
@@ -769,7 +770,7 @@ test('written-note credit resets for every repeated source column, including loo
   gate.start(second,second,p.held,p.attacks);
   assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[],'repeat loops do not carry visual credit');
   gate.start([{midi:64},{midi:69}],[{midi:64},{midi:67}],p.held,p.attacks);
-  assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[64],'generated changing chords retain legitimate shared holds');
+  assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[],'generated changing chords also require fresh presses');
 });
 
 test('live instrument audition uses the selected sound and gain without changing held or target voices',()=>{
@@ -791,4 +792,18 @@ test('live instrument audition uses the selected sound and gain without changing
   audio.panic(); assert.equal(audio.livePreview.voices.size,0); assert.equal(audio.reference.voices.size,0);
   for(const node of context.nodes) node.onended();
   assert.equal(audio.livePreview.sounding.size,0);
+});
+
+test('duplicate note-ons and another still-held source cannot substitute for a physical re-press',()=>{
+  const p=new Performance(), gate=new FlowGate(), target=[{midi:60}];
+  p.noteOn('a',60); const first=p.attacks.get(60);
+  gate.start(target,target,p.held,p.attacks);
+  p.noteOn('a',60,120);
+  assert.ok(p.attacks.get(60).serial>first.serial,'audio retains repeated note-on velocity updates');
+  assert.equal(p.attacks.get(60).pressSerial,first.pressSerial);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,false);
+  p.noteOn('b',60); p.noteOff('a',60); p.noteOn('a',60);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'a second owner still physically holds the pitch');
+  p.sustain('a',true); p.noteOff('a',60); p.noteOff('b',60); p.noteOn('a',60);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,true,'pedal may stay down across a physical re-press');
 });

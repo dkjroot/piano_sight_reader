@@ -434,3 +434,5 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Close the Help tab with a top-right ×; remove the redundant return link and footer explanation.
 
 - [x] Make both Hear buttons temporary instrument auditions; live preview preserves Sound my playing and held voices. Use Target consistently in visible sound labels.
+
+- [x] Require fresh physical presses for every generated or imported target pitch, including shared changing-chord notes; ignore duplicate held note-ons for practice credit.
