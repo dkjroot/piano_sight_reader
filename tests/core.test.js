@@ -9,7 +9,7 @@ import {layoutPreset,staffViewport} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
 import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from '../static/metrics.js';
-import {makePracticePhrase, harmonicPitchClasses} from '../static/harmony.js';
+import {makePracticePhrase, harmonicPitchClasses,cadenceLabels} from '../static/harmony.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {KEYS, keyAlterations, spellInKey, spell, spellChord, noteName, staffStep, candidates, makeTarget, makePhrase, chordName, match, Performance} from '../static/core.js';
@@ -650,4 +650,38 @@ test('source beat scheduling never bursts stale clicks and resumes without a sec
   cursor.pump(1.7,beat=>emitted.push(beat)); assert.equal(emitted.length,1,'stale clicks are skipped');
   cursor.pump(2,beat=>emitted.push(beat)); assert.equal(emitted.length,2); assert.equal(emitted[1].beat,2);
   cursor.start(beats,4.53,.5); cursor.pump(5,beat=>emitted.push(beat)); assert.equal(emitted.at(-1).beat,1);
+});
+
+test('diatonic sevenths cover every key and preserve voicing bounds and written spellings',()=>{
+  assert.deepEqual(harmonicPitchClasses('C',false,0,true),[0,4,7,11]);
+  assert.deepEqual(harmonicPitchClasses('C',false,4,true),[7,11,2,5]);
+  assert.deepEqual(harmonicPitchClasses('C',true,1,true),[11,2,5,9]);
+  for(const {id:key} of KEYS) for(const minor of [false,true]) for(let degree=0;degree<7;degree++) {
+    const settings={...defaults,key,source:'triads','harmony-kind':'sevenths','harmony-scale':minor?'minor':'major',span:'full',low:48,high:96,size:4,'min-size':4,length:1,'hand-span':12};
+    const chord=makePracticePhrase(settings,()=>degree/7+.0001)[0];
+    assert.equal(chord.length,4);
+    assert.deepEqual([...new Set(chord.map(note=>note.midi%12))].sort((a,b)=>a-b),harmonicPitchClasses(key,minor,degree,true).sort((a,b)=>a-b));
+    assert.ok(chord.at(-1).midi-chord[0].midi<=12);
+    assert.equal(new Set(chord.map(staffStep)).size,4);
+  }
+});
+
+test('cadence choices preserve sequence phase and comparable practice identities',()=>{
+  const settings={...defaults,source:'cadence',key:'C',span:'wide',low:60,high:84,size:4,'min-size':4,'harmony-kind':'sevenths',length:3,'cadence-shape':'ii-v-i','hand-span':12};
+  const pcs=phrase=>phrase.map(chord=>[...new Set(chord.map(note=>note.midi%12))].sort((a,b)=>a-b));
+  assert.deepEqual(pcs(makePracticePhrase(settings,()=>.2)),[[0,2,5,9],[2,5,7,11],[0,4,7,11]]);
+  assert.deepEqual(pcs(makePracticePhrase({...settings,sequenceOffset:2,length:2},()=>.2)),[[0,4,7,11],[0,2,5,9]]);
+  assert.deepEqual(pcs(makePracticePhrase({...settings,'cadence-shape':'turnaround',length:4},()=>.2)),[[0,4,7,11],[0,4,7,9],[0,2,5,9],[2,5,7,11]]);
+  const note={...spell(60),staff:'treble'};
+  const id=exerciseIdentity([note],settings,[[note]]);
+  assert.notEqual(id,exerciseIdentity([note],{...settings,'harmony-kind':'triads'},[[note]]));
+  assert.notEqual(id,exerciseIdentity([note],{...settings,'cadence-shape':'authentic'},[[note]]));
+  assert.equal(exerciseIdentity([note],{...settings,source:'random'},[]),exerciseIdentity([note],{...settings,source:'random','harmony-kind':'triads','cadence-shape':'authentic'},[]));
+});
+
+test('cadence labels distinguish minor diminished triads from half-diminished sevenths',()=>{
+  assert.deepEqual(cadenceLabels(),['I–IV–V–I','ii–V–I','I–vi–ii–V']);
+  assert.equal(cadenceLabels(true)[1],'ii°–v–i');
+  assert.equal(cadenceLabels(true,true)[1],'iiø7–v7–i7');
+  assert.equal(cadenceLabels(false,true)[1],'ii7–V7–Imaj7');
 });

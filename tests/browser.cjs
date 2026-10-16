@@ -465,6 +465,17 @@ const { chromium } = require('playwright');
     await page.screenshot({path:'test-results/harmonic-cadence.png',fullPage:true});
     await page.reload(); await page.waitForSelector('.note');
     assert.equal(await page.inputValue('#source'),'cadence');
+    await page.selectOption('#harmony-kind','sevenths');
+    await page.selectOption('#cadence-shape','ii-v-i');
+    await page.selectOption('#size','4'); await page.selectOption('#min-size','4');
+    await page.selectOption('#length','3');
+    const seventhSteps=await page.locator('.note').evaluateAll(notes=>Object.entries(Object.groupBy(notes,note=>note.dataset.step)).map(([,group])=>[...new Set(group.map(note=>+note.dataset.midi%12))].sort((a,b)=>a-b)));
+    assert.deepEqual(seventhSteps.slice(0,3),[[0,2,5,9],[2,5,7,11],[0,4,7,11]]);
+    await page.reload(); await page.waitForSelector('.note');
+    assert.equal(await page.inputValue('#harmony-kind'),'sevenths'); assert.equal(await page.inputValue('#cadence-shape'),'ii-v-i');
+    await page.selectOption('#harmony-scale','minor');
+    assert.equal(await page.locator('#cadence-shape option:checked').textContent(),'iiø7–v7–i7');
+    await page.selectOption('#harmony-scale','major');
     await page.locator('#save-history').check();
     await page.locator('#connect').click();
     await page.evaluate(()=>{

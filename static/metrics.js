@@ -38,6 +38,8 @@ export function exerciseIdentity(notes,settings,phrase) {
   const fields=['hand','key','source','material','span','low','high','size','min-size','harmony-scale','hand-span','endAction'];
   if(imported) fields.push('scoreId','passage');
   if(settings.progression) fields.push('progression');
+  if(['triads','cadence'].includes(settings.source) && settings['harmony-kind']) fields.push('harmony-kind');
+  if(settings.source==='cadence' && settings['cadence-shape']) fields.push('cadence-shape');
   return JSON.stringify([1,fields.map(field=>[field,settings[field]??null]),notes.map(n=>{const values=[n.midi,n.letter,n.accidental,n.octave,n.staff]; if(imported) values.push(n.sourceOnset); return values;}),settings.endAction==='repeat' && !imported ? phrase.map(chord=>chord.map(n=>n.midi)) : null]);
 }
 export function grouped(records,dimension) {
@@ -114,7 +116,7 @@ export function readingPatterns(records) {
       if(!flags.length) continue;
       const fields=cohort.fields;
       result.push({note:note.letter+({'-2':'𝄫','-1':'♭',0:'',1:'♯',2:'𝄪'})[note.accidental]+note.octave,staff:note.staff,count:rows.length,corrected,median:stats.median,baseline,flags,
-        context:{scoreTitle:cohort.rows[0].context.scoreTitle,passage:fields.get('passage'),key:fields.get('key'),hand:fields.get('hand'),source:fields.get('source'),mode:fields.get('endAction'),low:fields.get('low'),high:fields.get('high'),material:fields.get('material')}});
+        context:{scoreTitle:cohort.rows[0].context.scoreTitle,passage:fields.get('passage'),key:fields.get('key'),hand:fields.get('hand'),source:fields.get('source'),harmonyKind:fields.get('harmony-kind'),harmonyScale:fields.get('harmony-scale'),cadenceShape:fields.get('cadence-shape'),mode:fields.get('endAction'),low:fields.get('low'),high:fields.get('high'),material:fields.get('material')}});
     }
   }
   return result.sort((a,b)=>b.corrected/b.count-a.corrected/a.count || b.median/b.baseline-a.median/a.baseline || b.count-a.count).slice(0,12);

@@ -90,8 +90,10 @@ You can practise without MIDI by using the on-screen keys.
   **None** shows only the current target. Changing look-ahead preserves the phrase.
 - **Exercise** chooses Random pitches, Diatonic chords or Cadence. Harmonic
   exercises follow the selected key's major or relative natural-minor tonality;
-  Cadence uses I–IV–V–I (i–iv–v–i in natural minor). Set both chord-size bounds to
-  3 for full triads, or allow single chord tones and doublings. Maximum hand span
+  Cadence offers I–IV–V–I, ii–V–I and I–vi–ii–V, with the corresponding natural-minor
+  degrees when Minor is selected. Choose Triads or Diatonic sevenths. Set both
+  chord-size bounds to 3 for full triads or 4 for full seventh chords, or allow
+  single chord tones and doublings. Phrase lengths 3/6 suit ii–V–I loops. Maximum hand span
   bounds harmonic voicings; smaller targets may be necessary in narrow ranges.
   Harmonic exercises stay diatonic, so chromatic preference is inactive there.
 - Choose **Key** for the signature on both staves. All 15 standard signatures

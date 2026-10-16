@@ -412,3 +412,11 @@ losing the test report. Runner regressions cover success, nonzero status, covera
 parsing and concise failure extraction.
 
 The runner explicitly requests TAP and accepts both flat and directory-style Node coverage tables, keeping test counts and per-module reports stable across Node 18/24.
+
+Harmonic vocabulary now includes diatonic sevenths (stacked scale thirds, including
+major/minor/dominant/half-diminished qualities as the selected major/natural-minor
+scale requires). Cadence patterns include I–IV–V–I, ii–V–I and I–vi–ii–V with absolute
+sequence phase preserved during continuous refill. Existing per-hand span/five-note
+limits and spelling rules apply. All 15 keys in major/natural-minor are tested at
+every scale degree; new harmonic dimensions enter comparable progress identities
+only for relevant exercise sources. No harmonic-minor leading tone is implied.

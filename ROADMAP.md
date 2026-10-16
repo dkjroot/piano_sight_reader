@@ -23,7 +23,7 @@ exercises independently useful throughout. These are plans, not implemented clai
 - [x] Offer random pitches and diatonic chords/cadences as choices; random remains unrestricted.
 - [ ] Add explicitly authored dissonant/advanced harmonic vocabularies.
 - [x] Generate diatonic triads, inversions/doublings and major/natural-minor cadences.
-- [ ] Add sevenths and more varied tonal progressions.
+- [x] Add diatonic sevenths and ii–V–I / I–vi–ii–V progressions alongside I–IV–V–I.
 - [x] Bound harmonic hand spans and prefer nearby voicings.
 - [ ] Extend explicit per-hand planning and leap limits to every exercise source.
 - [ ] Add melody, bass, chordal and broken-chord textures, with separate hand difficulty.

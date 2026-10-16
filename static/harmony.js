@@ -3,10 +3,15 @@ import {candidates, makePhrase, spellChord} from './core.js';
 const TONICS={C:0,G:7,D:2,A:9,E:4,B:11,'F#':6,'C#':1,F:5,Bb:10,Eb:3,Ab:8,Db:1,Gb:6,Cb:11};
 const MAJOR=[0,2,4,5,7,9,11], MINOR=[0,2,3,5,7,8,10];
 
-export function harmonicPitchClasses(key, minor, degree) {
+export function cadenceLabels(minor=false,sevenths=false) {
+  if(sevenths) return minor ? ['i7–iv7–v7–i7','iiø7–v7–i7','i7–VImaj7–iiø7–v7'] : ['Imaj7–IVmaj7–V7–Imaj7','ii7–V7–Imaj7','Imaj7–vi7–ii7–V7'];
+  return minor ? ['i–iv–v–i','ii°–v–i','i–VI–ii°–v'] : ['I–IV–V–I','ii–V–I','I–vi–ii–V'];
+}
+
+export function harmonicPitchClasses(key, minor, degree, sevenths=false) {
   const scale=minor ? MINOR : MAJOR;
   const tonic=((TONICS[key] ?? 0)+(minor ? 9 : 0))%12;
-  return [0,2,4].map(offset=>(tonic+scale[(degree+offset)%7])%12);
+  return (sevenths ? [0,2,4,6] : [0,2,4]).map(offset=>(tonic+scale[(degree+offset)%7])%12);
 }
 
 function voicings(pool, pcs, count, settings) {
@@ -37,8 +42,9 @@ export function makePracticePhrase(settings, random=Math.random) {
   let previous=[];
   for (let step=0; step<length; step++) {
     const absolute=step+(settings.sequenceOffset || 0);
-    const degree=source === 'cadence' ? [0,3,4,0][absolute%4] : Math.floor(random()*7);
-    const pcs=harmonicPitchClasses(settings.key,minor,degree);
+    const pattern=({'ii-v-i':[1,4,0],turnaround:[0,5,1,4]})[settings['cadence-shape']]||[0,3,4,0];
+    const degree=source === 'cadence' ? pattern[absolute%pattern.length] : Math.floor(random()*7);
+    const pcs=harmonicPitchClasses(settings.key,minor,degree,settings['harmony-kind']==='sevenths');
     const requested=min+Math.floor(random()*(max-min+1));
     let options=[];
     for (let count=requested; count>=1 && !options.length; count--) options=voicings(pool,pcs,count,settings);

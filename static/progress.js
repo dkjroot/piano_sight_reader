@@ -1,3 +1,4 @@
+import {cadenceLabels} from './harmony.js';
 import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from './metrics.js';
 const $=id=>document.getElementById(id);
 const STORE='piano-sight-reader-history-v1', PREF='piano-sight-reader-save-history';
@@ -82,7 +83,10 @@ export class ProgressPanel {
       const material=({white:'In key',sharps:'Chromatic ♯',flats:'Chromatic ♭'})[context.material]||'';
       const hand=({left:'Bass',right:'Treble',both:'Both staves'})[context.hand]||'';
       const passage=context.passage ? ` · attacks ${context.passage.start}–${context.passage.end}` : '';
-      const scope=`${source} · ${mode} · ${hand} · ${context.key||''} · ${material} · MIDI ${context.low}–${context.high}${passage}`;
+      const harmony=context.harmonyKind==='sevenths' ? ' · Sevenths' : '';
+      const cadenceIndex=['authentic','ii-v-i','turnaround'].indexOf(context.cadenceShape);
+      const cadence=cadenceIndex<0 ? '' : cadenceLabels(context.harmonyScale==='minor',context.harmonyKind==='sevenths')[cadenceIndex];
+      const scope=`${source}${harmony}${cadence ? ' · '+cadence : ''} · ${mode} · ${hand} · ${context.key||''} · ${material} · MIDI ${context.low}–${context.high}${passage}`;
       for(const value of [pattern.note,pattern.staff,scope,pattern.count,pattern.corrected,seconds(pattern.median),pattern.flags.join(' · ')]) {const cell=document.createElement('td'); cell.textContent=value; row.append(cell);}
       patternBody.append(row);
     }

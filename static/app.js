@@ -1,7 +1,7 @@
 import {FlowGate} from './flow.js';
 import {KEYS, keyAlterations, spell, noteName, staffStep, chordName, match, Performance} from './core.js';
 import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
-import {makePracticePhrase as makePhrase} from './harmony.js';
+import {makePracticePhrase as makePhrase,cadenceLabels} from './harmony.js';
 import {ProgressPanel} from './progress.js';
 import {SoundPanel} from './sound.js';
 import {ScorePanel} from './score.js';
@@ -19,7 +19,7 @@ const scorePanel = new ScorePanel((score,bounds,filename)=>{
   activePiece={score,bounds,filename}; $('source-midi').disabled=false; $('source').value='midi'; $('end-repeat').checked=true;
   completed=0; $('count').textContent='0'; persist(); syncMode(); newTarget();
 },()=>settings());
-const controls = ['progression', 'hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
+const controls = ['progression', 'hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-kind', 'cadence-shape', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
 for (const id of ['size','min-size']) $(id).replaceChildren(...Array.from({length:10}, (_, i) => new Option(String(i+1), String(i+1))));
 $('key').replaceChildren(...KEYS.map(key => new Option(key.label, key.id)));
 let target = [], completed = 0, solved = false, settleTimer, nextTimer, access, selectedInput, learning;
@@ -51,7 +51,10 @@ function syncMode() {
   const continuous = settings().endAction === 'new';
   $('length').disabled = continuous || imported; $('min-size').disabled=imported;
   const harmonic=['triads','cadence'].includes($('source').value);
-  $('harmony-scale').disabled=!harmonic; $('hand-span').disabled=!harmonic;
+  $('harmony-scale').disabled=!harmonic; $('hand-span').disabled=!harmonic; $('harmony-kind').disabled=!harmonic;
+  $('cadence-shape').disabled=$('source').value!=='cadence';
+  const labels=cadenceLabels($('harmony-scale').value==='minor',$('harmony-kind').value==='sevenths');
+  [...$('cadence-shape').options].forEach((option,i)=>option.textContent=labels[i]);
   $('material').disabled=harmonic;
   $('practice-title').textContent = imported ? 'Pitch outline' : continuous ? 'Practice' : 'Phrase';
   $('count-label').textContent = continuous ? 'targets completed' : 'repetitions completed';
