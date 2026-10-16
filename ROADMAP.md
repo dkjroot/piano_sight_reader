@@ -199,7 +199,8 @@ notation where supplied. This is the first proof toward a full Chopin piece.
 ## Stage 4 — Progressive outlines of real pieces
 
 Shipped first step: local MIDI attack outlines, explicit 1–512-onset passage selection,
-range/key/material/staff/max-chord filters, highest/bass/inner reduction and source
+range/key/material/staff/max-chord filters, track inclusion and explicit treble/bass
+assignment, highest/bass/inner reduction and source
 identity per retained note. Preview counts omissions; the original performance model
 stays unchanged. This untimed view skips empty attacks and requires release between
 targets; preserving scored silence/holds and voice-aware reduction remains future work.

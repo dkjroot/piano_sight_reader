@@ -59,6 +59,7 @@
   <section class="card settings" aria-label="Local MIDI file"><h2>Local MIDI file</h2>
     <label>Inspect file <input id="score-file" type="file" accept=".mid,.midi,audio/midi"></label>
     <p id="score-status" class="small" role="status"></p><p id="score-details" class="small"></p><p id="score-warnings" class="small" role="status"></p>
+    <div id="score-tracks" role="group" aria-label="MIDI tracks"></div>
     <div class="range-buttons"><button id="export-score" class="quiet" disabled>Export inspection</button><button id="practice-score" disabled>Practise pitch outline</button></div>
     <label>First attack <input id="passage-start" type="number" min="1" max="1" value="1" disabled></label>
     <label>Last attack <input id="passage-end" type="number" min="1" max="1" value="1" disabled></label>

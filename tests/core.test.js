@@ -370,11 +370,40 @@ test('history restoration validates complete files and merges without duplicatin
   const record={version:1,at:'2026-10-16T12:00:00Z',responseMs:150,wrongPresses:0,firstAttemptCorrect:true,wrongPitches:[],notes:[{...spell(60),staff:'treble'}],context:{identity:'one',hand:'right'}};
   const json=records=>JSON.stringify({version:1,records});
   assert.deepEqual(parseHistory(json([record])),[record]); assert.deepEqual(parseHistory(json([])),[]);
-  for(const text of [null,'x'.repeat(2_000_001),'oops','null','{}',JSON.stringify({version:2,records:[]}),json(Array(1001).fill(record)),json([record,{...record,responseMs:-1}]),json([{...record,firstAttemptCorrect:false}]),json([{...record,context:{identity:123}}]),json([{...record,context:{identity:'x'.repeat(8001)}}]),json([{...record,notes:[{...record.notes[0],octave:5}]}])]) assert.throws(()=>parseHistory(text));
+  for(const text of [null,'x'.repeat(16_000_001),'oops','null','{}',JSON.stringify({version:2,records:[]}),json(Array(1001).fill(record)),json([record,{...record,responseMs:-1}]),json([{...record,firstAttemptCorrect:false}]),json([{...record,context:{identity:123}}]),json([{...record,context:{identity:'x'.repeat(8001)}}]),json([{...record,notes:[{...record.notes[0],octave:5}]}])]) assert.throws(()=>parseHistory(text));
   const second={...record,at:'2026-10-17T12:00:00Z',responseMs:200};
   assert.deepEqual(mergeHistory([second,record],[record,second]),[record,second]);
   const equivalent={...record,context:{hand:'right',identity:'one'},notes:[{staff:'treble',octave:4,letter:'C',accidental:0,midi:60}]};
   assert.equal(mergeHistory([record],[equivalent]).length,1);
   assert.equal(mergeHistory([],Array.from({length:1100},(_,i)=>({...record,responseMs:i}))).length,1000);
   assert.equal(mergeHistory([{...record,context:{},wrongPitches:undefined}],[]).length,1);
+});
+
+test('MIDI track selection and explicit staff assignments respect hands without inventing voices',()=>{
+  const score={notes:[{id:'low',midi:48,start_tick:0,track:1,channel:0},{id:'high',midi:72,start_tick:0,track:2,channel:0},{id:'next',midi:55,start_tick:480,track:1,channel:0}]};
+  const settings={...defaults,low:0,high:127,span:'full',hand:'both',size:3};
+  const tracks=[{track:1,enabled:true,staff:'treble'},{track:2,enabled:false,staff:'bass'}];
+  const result=makeOutline(score,{...settings,hand:'right'},{tracks});
+  assert.deepEqual(result.targets.map(chord=>chord.map(note=>note.midi)),[[48],[55]]);
+  assert.ok(result.targets.every(chord=>chord.every(note=>note.staff==='treble')));
+  assert.equal(result.omittedNotes,1); assert.equal(result.totalOnsets,2);
+  assert.equal(makeOutline(score,{...settings,hand:'left'},{tracks}).targets.length,0);
+  tracks[0].staff='bass'; tracks[1].enabled=true;
+  const bass=makeOutline(score,{...settings,hand:'left'},{tracks});
+  assert.deepEqual(bass.targets[0].map(note=>[note.midi,note.staff]),[[48,'bass'],[72,'bass']]);
+  assert.equal(makeOutline(score,settings,{tracks:[]}).targets.length,0);
+  assert.equal(makeOutline(score,{...settings,hand:'right'},{tracks:[{track:2,enabled:true,staff:'auto'}]}).targets[0][0].midi,72);
+  const duplicate={notes:[{id:'a',midi:60,start_tick:0,track:1},{id:'b',midi:60,start_tick:0,track:2}]};
+  const one=makeOutline(duplicate,settings,{tracks:[{track:1,enabled:false,staff:'auto'},{track:2,enabled:true,staff:'bass'}]});
+  assert.deepEqual(one.targets[0][0].sourceIds,['b']); assert.equal(one.targets[0][0].staff,'bass');
+});
+
+test('reading history does not duplicate large imported source-note arrays',()=>{
+  let now=0; const tracker=new AttemptTracker({now:()=>now});
+  const note={...spell(60),staff:'treble',sourceOnset:1,sourceTick:0,sourceIds:Array(25000).fill('source-note')};
+  tracker.start([note],{identity:'source hash and passage'}); now=50; tracker.observe(new Set([60]));
+  const record=tracker.finish(); assert.equal(record.notes[0].sourceOnset,1); assert.equal(record.notes[0].sourceTick,0);
+  assert.equal(record.notes[0].sourceIds,undefined); assert.ok(JSON.stringify(record).length<500);
+  const text=JSON.stringify({version:1,records:Array.from({length:1000},(_,i)=>({...record,responseMs:i,context:{identity:'x'.repeat(4000)}}))},null,2);
+  assert.ok(text.length>2_000_000); assert.equal(parseHistory(text).length,1000);
 });

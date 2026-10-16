@@ -242,8 +242,23 @@ JSON/Markdown report; missing-line annotations stay in ignored
 coverage are not measured. Normal successful tool output remains four summary lines.
 
 
-History restoration validates complete version-1 JSON files before mutation (2 MB /
+History restoration validates complete version-1 JSON files before mutation (16 MB /
 1,000 attempts), checks pitch-spelling and accuracy consistency, merges duplicates
 by canonical attempt content and retains the latest 1,000. Failed imports preserve
 existing records; saving remains opt-in. An exact UTC daily table complements the
 SVG graph, and the summary exposes the 90th-percentile response time.
+
+
+MIDI outline track rules are explicit preview choices, snapshotted into the active
+passage on Practise. Included tracks may infer staff from middle C or be assigned
+treble/bass by the player. Explicit assignments filter by assigned staff and the
+shared physical/reading range, allowing cross-middle-C notes; automatic assignments
+retain existing pitch-based hand/range behavior. Original tracks/channels/notes stay
+unchanged. Duplicate simultaneous pitches collapse to one playable key while retaining
+all included source IDs. Progress identities include the passage's track-rule snapshot.
+
+
+Progress records retain written pitches and source tick/onset, while source hash and
+passage identify imported material. They omit bulky per-attack source-ID lists, which
+remain in the active outline/inspection. The 16 MB restore limit allows complete
+1,000-attempt exports of complex passages; the count limit stays unchanged.

@@ -155,7 +155,7 @@ pauses, keyboard-endpoint learning and MIDI reconnection waits are excluded. Sta
 History is session-only unless **Save history locally** is checked. The browser keeps
 up to 1,000 attempts, including exercise settings and written pitches. **Export history**
 saves JSON; **Import history** merges a previous export without duplicates;
-**Clear history** deletes the current history. Invalid/oversized imports leave it intact. Nothing is uploaded. Daily
+**Clear history** deletes the current history. Invalid imports, files over 16 MB, or more than 1,000 attempts leave it intact. Nothing is uploaded. Daily
 median response times and hand/key/note/staff-position/accidental breakdowns help spot
 patterns. Expand **Daily measurements (UTC)** for exact daily values. **90% within**
 shows the slower-tail response time: nine out of ten recorded attempts were at least
@@ -170,7 +170,8 @@ Choose a `.mid` or `.midi` file under **Local MIDI file**. The app previews its 
 attacks, tracks and duration; **Export inspection** saves the normalized performance
 as JSON, including original tick positions, channels, velocities, tempo/meter/key
 messages, controllers and a source-file hash. Missing note-offs and ambiguous repeated
-pitches are reported. Your original file stays unchanged and is not saved by the app.
+pitches are reported. Your original file stays unchanged and is not saved by the app. MIDI percussion
+(channel 10) is excluded from piano outlines.
 The file is sent only to the Python server on this computer, with no external upload.
 
 Choose **First attack** and **Last attack**, then **Practise pitch outline** to loop
@@ -178,11 +179,15 @@ that passage (up to 512 source onsets). The current range, hand, key, pitch mate
 and maximum chord size filter the source. Reduction keeps the highest note, then
 the bass, then inner notes; it never adds notes. Empty attacks are omitted from this
 untimed reading exercise. Minimum chord size and generated phrase length do not
-apply. The preview reports retained/omitted notes before starting.
+apply. The preview reports retained/omitted notes before starting. Include or exclude MIDI
+tracks and assign each to treble/bass explicitly, or keep the middle-C inference.
+An explicit assignment allows crossing middle C; the hand selector then follows
+your assigned staff. Track changes remain a preview until **Practise pitch outline**
+is clicked.
 
 Each target contains simultaneous note attacks, not every note still sounding.
-Play it, release and advance as in generated practice. Spelling and the middle-C
-staff split are derived choices, not original notation or detected hands. Source
+Play it, release and advance as in generated practice. Spelling and inferred/selected
+staff assignments are derived choices, not recovered notation or detected hands. Source
 durations, overlaps, pedal, rests and tempo remain in the inspection but are not
 judged or drawn as timed music yet. Reloading clears the local file and returns
 to generated practice; personal bests retain its source hash and passage identity.

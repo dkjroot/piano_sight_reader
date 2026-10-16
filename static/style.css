@@ -219,3 +219,8 @@ h1 { font-size:42px; margin-bottom:2px; }
   :root[data-layout="720"] .feedback { height:92px; min-height:92px; grid-template-rows:44px 48px; }
   :root[data-layout="720"] .feedback #detail { max-height:48px; }
 }
+
+.score-track { display:grid; grid-template-columns:minmax(0,1fr) 205px; gap:12px; align-items:center; padding:5px 0; border-bottom:1px solid var(--line); }
+.settings .score-track label { justify-content:flex-start; flex-wrap:nowrap; margin:6px 0; }
+.score-track select { width:100%; }
+@media(max-width:650px) { .score-track { grid-template-columns:1fr; gap:2px; padding:8px 0; } }

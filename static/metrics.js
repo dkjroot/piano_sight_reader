@@ -2,7 +2,7 @@
 export class AttemptTracker {
   constructor({now=()=>globalThis.performance.now(),stamp=()=>new Date().toISOString()}={}) {this.now=now; this.stamp=stamp; this.active=null;}
   start(notes,context={}) {
-    this.active=notes.length ? {notes:notes.map(n=>({...n})),context:{...context},elapsed:0,started:this.now(),extras:new Set(),wrongPresses:0,wrongPitches:new Set(),candidate:null} : null;
+    this.active=notes.length ? {notes:notes.map(n=>{const note={midi:n.midi,letter:n.letter,accidental:n.accidental,octave:n.octave,staff:n.staff}; for(const field of ['sourceTick','sourceOnset']) if(Number.isFinite(n[field])) note[field]=n[field]; return note;}),context:{...context},elapsed:0,started:this.now(),extras:new Set(),wrongPresses:0,wrongPitches:new Set(),candidate:null} : null;
   }
   pause() {const a=this.active; if (a && a.started!==null) {a.elapsed+=this.now()-a.started; a.started=null; a.candidate=null;}}
   resume() {const a=this.active; if (a && a.started===null) a.started=this.now();}
@@ -65,7 +65,7 @@ export function daily(records) {
 
 
 export function parseHistory(text) {
-  if(typeof text!=='string' || text.length>2_000_000) throw new Error('History files must be no larger than 2 MB.');
+  if(typeof text!=='string' || text.length>16_000_000) throw new Error('History files must be no larger than 16 MB.');
   let value;
   try {value=JSON.parse(text);} catch {throw new Error('Invalid history JSON.');}
   if(!value || value.version!==1 || !Array.isArray(value.records)) throw new Error('Unsupported history format or version.');

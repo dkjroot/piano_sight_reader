@@ -11,7 +11,7 @@ export class ProgressPanel {
     $('history-file').addEventListener('change',async()=>{
       const revision=++this.importRevision, file=$('history-file').files[0]; if(!file) return;
       try {
-        if(file.size>2_000_000) throw new Error('History files must be no larger than 2 MB.');
+        if(file.size>16_000_000) throw new Error('History files must be no larger than 16 MB.');
         const text=await file.text(); if(revision!==this.importRevision) return;
         const records=parseHistory(text);
         this.records=mergeHistory(this.records,records); this.scheduleSave(); this.render();
