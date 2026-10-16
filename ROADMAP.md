@@ -442,3 +442,6 @@ depend on catalogue downloads, audio setup or an account.
 
 - [x] Offline sampled acoustic grand piano, independent live/reference selection and attributed media.
 - [ ] Multiple acoustic velocity layers and measured sample-start latency; consider release/pedal/resonance modelling after profiling.
+
+- [x] Optional source-aligned metronome with tempo/meter changes, speed scaling and one/two-bar count-in.
+- [ ] Compound beat grouping, subdivisions and notation-aware pickup handling in the source clock.

@@ -308,3 +308,5 @@ h1 .subtitle { display:block; letter-spacing:0; }
 .sound-credits { margin:12px 0 0; font-size:12px; }
 .sound-credits summary { cursor:pointer; color:var(--muted); }
 .sound-credits a { color:var(--accent); }
+
+.score-panel > label.check { display:flex; justify-content:flex-start; }

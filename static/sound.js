@@ -1,6 +1,6 @@
 import {LocalAudio,MetronomeClock} from './audio.js';
 const $=id=>document.getElementById(id);
-const ids=['live-instrument','live-volume','reference-instrument','reference-volume','reference-sound','click-volume','tempo','beats','source-speed'];
+const ids=['live-instrument','live-volume','reference-instrument','reference-volume','reference-sound','click-volume','tempo','beats','source-speed','source-clicks','source-countin'];
 export class SoundPanel {
   constructor(getTarget,getPitches,getAttacks=()=>new Map()) {
     this.getTarget=getTarget; this.getPitches=getPitches; this.getAttacks=getAttacks; this.clock=new MetronomeClock(); this.engine=null; this.timer=null; this.revision=0; this.auditionRevision=0; this.onReferenceStop=()=>{}; this.onConfigure=()=>{};

@@ -288,7 +288,8 @@ IDs so repeated pitches remain independent; stopping cancels future scheduled at
 and release tails as well as active mapped voices. All oscillator/gain nodes clean up.
 
 No generated audio reaches input matching. Source playback does not move the untimed
-practice cursor; metronome remains independent. Reference mute/instrument changes,
+practice cursor. Optional source clicks share its audio origin, tempo map and
+meter; standalone metronome remains independent. Reference mute/instrument changes,
 target audition, source-passage edits, panic and backgrounding stop playback. MIDI
 bank/program/pitch-bend/expression data are retained but not yet rendered by these
 original piano/organ instruments. Timed scoring and full notation remain future work.
@@ -385,3 +386,13 @@ Ended held samples remain silent until a fresh attack; timed and released voices
 clean up their nodes. Unit tests cover transposition/ownership/load failures; native
 OfflineAudioContext renders the actual recordings and checks energy, release tail
 and node cleanup. Hardware latency and subjective speaker quality are unverified.
+
+Source-aligned clicks use a pure beat plan built from MIDI tempo/meter events and
+passage tick bounds. Count-in takes the entry tempo/meter, preserves offbeat entry
+phase and uses the same audio origin as reference notes. BeatCursor schedules with
+the audio look-ahead, skips stale pulses after stalls and omits negative count-in
+beats on resume. Plans reject more than 8,192 source pulses before constructing
+unbounded lists. Standalone and source-aligned clicks are mutually exclusive.
+No click or playback event reaches the input matcher or changes untimed practice.
+This implements MIDI denominator pulses, not recovered notated pickups or compound
+beat grouping; rhythmic scoring and written-duration matching remain separate work.

@@ -305,3 +305,12 @@ MIDI pitch outlines can already be practised; full notation and rhythmic perform
 
 This is an early working version. For development and planned features, see
 [DEVELOPMENT.md](DEVELOPMENT.md).
+
+For a click aligned to a piece, enable **Click with source playback**. It follows
+MIDI tempo/meter changes and Playback speed, with the metronome’s Click volume.
+**Source count-in** adds one or two bars before a fresh start. Pause/resume continues
+without another count-in. Starting aligned playback stops the standalone click;
+starting the standalone metronome stops aligned playback. Source clicks use the
+MIDI time-signature denominator as the pulse (six eighth-note pulses in 6/8), with
+an accent at the MIDI bar boundary. Missing meter defaults to 4/4. Printed pickups
+and compound-beat grouping are not recovered from MIDI.

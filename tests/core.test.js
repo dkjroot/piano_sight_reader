@@ -1,3 +1,4 @@
+import {sourceBeats,BeatCursor} from '../static/beats.js';
 import {AcousticSamples,nearestSample} from '../static/samples.js';
 import {suggestPassages} from '../static/sections.js';
 import {FlowGate} from '../static/flow.js';
@@ -623,4 +624,30 @@ test('acoustic sample loading is shared, local, atomic and retryable',async()=>{
   const invalid=new AcousticSamples(context,async()=>({ok:true,json:async()=>({version:2})})); await assert.rejects(invalid.load(),/Invalid/);
   const missing=new AcousticSamples(context,async url=>url.endsWith('.json') ? {ok:true,json:async()=>manifest} : {ok:false}); await assert.rejects(missing.load(),/sample unavailable/); assert.equal(missing.buffers.size,0);
   const failure=new AcousticSamples({decodeAudioData:async()=>{throw new Error('decode failed');}},fetcher); await assert.rejects(failure.load(),/decode failed/); assert.equal(failure.ready,false);
+});
+
+test('source metronome follows tempo, meter and speed, with phase-preserving count-in pulses',()=>{
+  const score=playbackFixture(), original=JSON.stringify(score), plan=referencePlan(score);
+  const beatPlan=sourceBeats(score,plan,1,1);
+  assert.equal(beatPlan.leadIn,2);
+  assert.deepEqual(beatPlan.beats.map(beat=>[beat.start,beat.beat]),[[-2,0],[-1.5,1],[-1,2],[-.5,3],[0,0],[.5,1]]);
+  const slow=sourceBeats(score,plan,.5,0); assert.deepEqual(slow.beats.map(beat=>beat.start),[0,1]);
+  const meter={...score,events:[...score.events,{tick:480,message:{type:'time_signature',numerator:3,denominator:8}}]};
+  assert.deepEqual(sourceBeats(meter,plan).beats.map(beat=>[beat.start,beat.beat]),[[0,0],[.5,0],[.8,1]]);
+  const offset=sourceBeats(score,{sourceStart:240,sourceEnd:960},1,1);
+  assert.deepEqual(offset.beats.slice(0,4).map(beat=>beat.start),[-1.75,-1.25,-.75,-.25]);
+  assert.equal(JSON.stringify(score),original);
+  assert.deepEqual(sourceBeats(score,{notes:[],duration:0}),{beats:[],leadIn:0});
+  assert.throws(()=>sourceBeats(score,{sourceStart:0,sourceEnd:10_000_000}),/8,192/);
+  assert.equal(sourceBeats(score,plan,999,999).leadIn,2);
+});
+
+test('source beat scheduling never bursts stale clicks and resumes without a second count-in',()=>{
+  const cursor=new BeatCursor(), emitted=[];
+  cursor.pump(0,beat=>emitted.push(beat)); assert.equal(emitted.length,0);
+  const beats=[{start:-1,beat:0},{start:0,beat:0},{start:.5,beat:1},{start:1,beat:2}];
+  cursor.start(beats,1.03); cursor.pump(0,beat=>emitted.push(beat)); assert.ok(Math.abs(emitted[0].time-.03)<1e-9);
+  cursor.pump(1.7,beat=>emitted.push(beat)); assert.equal(emitted.length,1,'stale clicks are skipped');
+  cursor.pump(2,beat=>emitted.push(beat)); assert.equal(emitted.length,2); assert.equal(emitted[1].beat,2);
+  cursor.start(beats,4.53,.5); cursor.pump(5,beat=>emitted.push(beat)); assert.equal(emitted.at(-1).beat,1);
 });
