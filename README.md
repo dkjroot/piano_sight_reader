@@ -124,7 +124,8 @@ You can practise without MIDI by using the on-screen keys.
   This is one feasible name, without harmonic context; unnamed combinations stay
   blank. Single notes are not named as chords.
 - On a touch screen, hold multiple keys with multiple fingers. With a mouse,
-  play single notes; you can also focus a key and hold Space or Enter. Chords
+  play single notes; you can also focus a key and hold Space or Enter. Each press
+  counts once; keyboard auto-repeat is ignored. Chords
   work best with MIDI or multitouch.
 
 These are generated pitch exercises, not composed pieces or suggested fingerings.
@@ -247,12 +248,13 @@ to a shared library, and their redistribution rights are not assumed.
 ### Saved passages
 
 Give a selected attack range a name and choose **Save passage**. Up to 50 bookmarks
-stay in this browser, including the track and staff choices. Reopen the same MIDI
-file, then choose its saved passage to restore the preview. **Practise pitch outline**
+stay in this browser, including the track and staff choices. Load the library
+piece again or reopen the same local MIDI file, then choose its saved passage
+to restore the preview. **Practise pitch outline**
 still starts it explicitly. Current pitch/range filters stay under your control.
 Bookmarks match the file's hash, so another file with the same name cannot receive
-the wrong range. **Delete saved passage** removes a bookmark; no music files are
-stored. Other tabs in the same browser receive bookmark changes.
+the wrong range. **Delete saved passage** removes a bookmark. Uploaded music files
+are not kept in browser storage. Other tabs in the same browser receive bookmark changes.
 
 ### Listening to the source passage
 
@@ -264,12 +266,20 @@ the tab, changing the source passage/tracks/instrument or disabling Reference so
 also stops playback. Re-enable Reference sound if playback controls are disabled.
 
 This is the selected source performance, including pitches your outline filters
-omit. It never counts as your playing or moves the practice pointer. The metronome
-is currently an independent practice click, not synchronised accompaniment. The
+omit. It never counts as your playing or moves the practice pointer. The
 reference instrument uses your chosen sound; MIDI program/bank changes,
 pitch bends and expressive controllers remain data for future instrument support.
 A resumed held tone starts a fresh envelope and, for the acoustic piano, a fresh sample. Playback rejects passages
 above 128 simultaneous voices rather than overloading the sound engine.
+
+For a click aligned to a piece, enable **Click with source playback**. It follows
+MIDI tempo/meter changes and Playback speed, with the metronome’s Click volume.
+**Source count-in** adds one or two bars before a fresh start. Pause/resume continues
+without another count-in. Starting aligned playback stops the standalone click;
+starting the standalone metronome stops aligned playback. Source clicks use the
+MIDI time-signature denominator as the pulse (six eighth-note pulses in 6/8), with
+an accent at the MIDI bar boundary. Missing meter defaults to 4/4. Printed pickups
+and compound-beat grouping are not recovered from MIDI.
 
 ## Finding music for future practice
 
@@ -312,12 +322,3 @@ MIDI pitch outlines can already be practised; full notation and rhythmic perform
 
 This is an early working version. For development and planned features, see
 [DEVELOPMENT.md](DEVELOPMENT.md).
-
-For a click aligned to a piece, enable **Click with source playback**. It follows
-MIDI tempo/meter changes and Playback speed, with the metronome’s Click volume.
-**Source count-in** adds one or two bars before a fresh start. Pause/resume continues
-without another count-in. Starting aligned playback stops the standalone click;
-starting the standalone metronome stops aligned playback. Source clicks use the
-MIDI time-signature denominator as the pulse (six eighth-note pulses in 6/8), with
-an accent at the MIDI bar boundary. Missing meter defaults to 4/4. Printed pickups
-and compound-beat grouping are not recovered from MIDI.

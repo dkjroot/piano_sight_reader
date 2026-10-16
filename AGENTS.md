@@ -44,6 +44,8 @@ Web MIDI without a front-end build step.
   look-ahead/viewport must not regenerate the sequence or reset progress.
 - Show a feasible chord name only after correct playing and an exact match to a
   recognised pitch-class template. Do not invent labels for arbitrary pitch sets.
+- Ignore computer-key auto-repeat; a held Space/Enter activation must not fabricate
+  repeated piano attacks.
 - Track physically held keys separately from sustain. A pedal must not cause
   false completion or stuck keys. Preserve source/channel ownership.
 - Give chord directions for mutually unique nearest unmatched pitches within two

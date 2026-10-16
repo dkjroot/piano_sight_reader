@@ -246,7 +246,11 @@ function drawKeyboard() {
     });
     // Keyboard navigation can audition one key at a time.
     key.addEventListener('keydown', event => {
-      if ([' ', 'Enter'].includes(event.key)) { event.preventDefault(); progress.resume('midi'); performance.noteOn('computer', pitch); update(); }
+      if ([' ', 'Enter'].includes(event.key)) {
+        event.preventDefault();
+        if(event.repeat || performance.sources.get('computer')?.held.has(pitch)) return;
+        progress.resume('midi'); performance.noteOn('computer', pitch); update();
+      }
     });
     key.addEventListener('keyup', event => {
       if ([' ', 'Enter'].includes(event.key)) { event.preventDefault(); performance.clear('computer'); update(); }

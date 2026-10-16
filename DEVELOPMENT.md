@@ -440,3 +440,5 @@ fix; browser regressions now reload in the same task as a correct MIDI attack,
 exercise 45 uninterrupted attacks and verify opt-out/clear never resurrect data.
 
 Daily progress graph positions use actual elapsed UTC dates, rather than evenly spaced practice visits. Missing days preserve their calendar distance; a single recorded day is centred and labelled once. Pure coordinate tests cover an irregular ten-day span, zero response time, one day and no data, while the exact daily table remains available.
+
+Computer-key input ignores event.repeat and duplicate activation while the same virtual key is physically held. Before the fix, a held Enter key advanced a repeated Fluid target twice without release. Browser regression checks Space autorepeat, Enter while Space remains held, and a genuine new Enter attack after release. MIDI rearticulation semantics remain based on actual note-on packets.

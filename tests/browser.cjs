@@ -863,6 +863,16 @@ const { chromium } = require('playwright');
     await page.evaluate(()=>window.testMidi.send([0x80,60,0])); await page.waitForTimeout(300);
     await page.selectOption('#progression','flow');
 
+    const keyboardPresses=await page.evaluate(()=>{
+      const key=document.querySelector('.key[data-pitch="60"]'), read=()=>+document.getElementById('count').textContent, before=read();
+      const event=(type,value,repeat=false)=>key.dispatchEvent(new KeyboardEvent(type,{key:value,repeat}));
+      event('keydown',' '); const first=read();
+      for(let i=0;i<5;i++) event('keydown',' ',true);
+      event('keydown','Enter'); const held=read();
+      event('keyup',' '); event('keydown','Enter'); const fresh=read(); event('keyup','Enter');
+      return [first-before,held-before,fresh-before];
+    });
+    assert.deepEqual(keyboardPresses,[1,1,2],'computer-key repeats or a second activator while held must not fake new attacks');
     assert.ok(rapid.elapsed<250,'a rapid phrase must not wait for settle/release timers');
     await page.locator('#clear-history').click(); await page.locator('#save-history').check();
     await Promise.all([page.waitForEvent('domcontentloaded'),page.evaluate(()=>{window.testMidi.send([0x90,60,90]); window.testMidi.send([0x80,60,0]); location.reload();})]);
