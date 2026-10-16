@@ -31,7 +31,10 @@ Web MIDI without a front-end build step.
 - Repeat mode loops 1–32 targets after correct playing and physical release;
   preview the opening beyond a double barline. Continuous mode replenishes a
   bounded random stream; phrase length only applies to Repeat. Repeats require
-  fresh articulation. Preserve the current scrolling policy pending real scores.
+  fresh articulation. Fluid progression is the default: complete exact physical pitch sets
+  immediately, allow previous-target legato overlap into the next target, and require
+  fresh attacks for repeated notes/chords. Keep the optional release-between-targets
+  mode. Never add fixed settling/release delays to fluid mode. Preserve the current scrolling policy pending real scores.
 - Repeat/Continuous are the automatic modes; do not restore redundant manual
   Repeat phrase/New phrase buttons. Optional note-by-note versus page-by-page
   scrolling must remain independent of practice progression.

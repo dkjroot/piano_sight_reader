@@ -1,3 +1,4 @@
+import {FlowGate} from '../static/flow.js';
 import {keyboardGeometry,keyboardKeyWidth} from '../static/keyboard.js';
 import {cleanPassages,parsePassages,savePassage,passageKey} from '../static/passages.js';
 import {secondsAt,referencePlan,PlaybackCursor} from '../static/transport.js';
@@ -549,4 +550,24 @@ test('history clearing respects local midnight, elapsed-hour boundaries and olde
   assert.throws(()=>clearHistoryPeriod(rows,'week',now));
   assert.throws(()=>clearHistoryPeriod(rows,'today',new Date(NaN)));
   assert.deepEqual(clearHistoryPeriod([{at:'invalid'}],'hour',now),[{at:'invalid'}]);
+});
+
+test('fluid progression allows legato overlap but demands fresh attacks and rejects extras',()=>{
+  const p=new Performance(), gate=new FlowGate(), notes=(...pitches)=>pitches.map(midi=>({midi}));
+  gate.start(notes(60,64),[],p.held,p.attacks);
+  p.noteOn('m',60); assert.equal(gate.evaluate(p.held,p.attacks).ready,false);
+  p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  gate.start(notes(64,67),notes(60,64),p.held,p.attacks);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,false);
+  p.noteOn('m',67); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  p.noteOff('m',60); p.noteOn('m',60); assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'a reattacked old pitch becomes an extra');
+  p.noteOff('m',60); gate.start(notes(64,67),notes(64,67),p.held,p.attacks);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,false);
+  p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'all repeated chord pitches need new attacks');
+  p.noteOn('m',67); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  gate.start(notes(64),notes(64,67),p.held,p.attacks);
+  assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'carried subset must not auto-skip');
+  p.noteOn('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,true);
+  p.sustain('m',true); p.noteOff('m',64); assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'pedal is not a held target');
+  gate.start([],[],p.held,p.attacks); assert.equal(gate.evaluate(p.held,p.attacks).ready,false);
 });

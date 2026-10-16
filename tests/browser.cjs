@@ -10,6 +10,7 @@ const { chromium } = require('playwright');
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
     await page.addInitScript(() => {
+      if(!localStorage.getItem('piano-sight-reader-v1')) localStorage.setItem('piano-sight-reader-v1',JSON.stringify({progression:'release'}));
       const makeInput = () => ({id: 'synthetic', name: 'Synthetic test piano', state: 'connected', connection: 'closed', onmidimessage: null,
         async open() { if (this.failOpen) throw new DOMException('Device busy', 'InvalidStateError'); this.connection = 'open'; access.onstatechange?.(); return this; },
         async close() { this.connection = 'closed'; access.onstatechange?.(); return this; }});
@@ -766,6 +767,37 @@ const { chromium } = require('playwright');
     await page.evaluate(()=>{const input=document.getElementById('live-sound'); input.checked=true; input.dispatchEvent(new Event('change'));});
     await page.waitForFunction(()=>!document.getElementById('live-sound').checked);
     assert.match(await page.locator('#sound-status').innerText(),/unavailable/);
+    await page.setViewportSize({width:1280,height:1000});
+    await page.selectOption('#progression','flow');
+    await page.evaluate(()=>{
+      for(const [id,value] of Object.entries({source:'random',low:60,high:60,size:1,'min-size':1,length:1,hand:'right',key:'C',material:'white'})) document.getElementById(id).value=value;
+      document.getElementById('source').dispatchEvent(new Event('change'));
+    });
+    await page.locator('#connect').click();
+    const rapid=await page.evaluate(()=>{
+      const read=()=>+document.getElementById('count').textContent, start=performance.now(), counts=[];
+      for(let i=0;i<8;i++) {window.testMidi.send([0x90,60,90]); counts.push(read()); window.testMidi.send([0x80,60,0]);}
+      return {counts,elapsed:performance.now()-start};
+    });
+    assert.deepEqual(rapid.counts,[1,2,3,4,5,6,7,8]);
+    assert.ok(rapid.elapsed<250,'a rapid phrase must not wait for settle/release timers');
+    await page.locator('#score-file').setInputFiles('tests/fixtures/polyphony.mid');
+    await page.waitForFunction(()=>document.getElementById('score-status').textContent.startsWith('polyphony.mid'));
+    await page.evaluate(()=>{
+      document.getElementById('high').value=72; document.getElementById('size').value=3;
+      document.getElementById('high').dispatchEvent(new Event('change'));
+    });
+    await page.locator('#practice-score').click();
+    const legato=await page.evaluate(()=>{
+      const positions=[]; const read=()=>positions.push(document.getElementById('phrase-position').textContent);
+      window.testMidi.send([0x90,60,90]); read(); window.testMidi.send([0x90,64,90]); read();
+      window.testMidi.send([0x90,67,90]); read();
+      return positions;
+    });
+    assert.deepEqual(legato,['1 / 2','2 / 2','1 / 2']);
+    await page.locator('#reset').click();
+    await page.reload(); await page.waitForSelector('.note');
+    assert.equal(await page.inputValue('#progression'),'flow');
     assert.deepEqual(errors, []);
     for(const width of [320,390]) {
       await page.setViewportSize({width,height:740});

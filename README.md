@@ -282,3 +282,5 @@ This is an early working version. For development and planned features, see
 [DEVELOPMENT.md](DEVELOPMENT.md).
 
 **Hear live instrument** toggles the same live audio as **Sound my playing**. Your selected live instrument and volume apply; the button shows whether it is on.
+
+**Fluid** progression advances immediately when the target matches. Shared notes can continue into a changing chord, and the preceding target may overlap the next. Repeated notes or identical chords need fresh attacks. **Release between targets** keeps the slower, deliberate step-by-step behaviour. This is untimed pitch practice; it does not yet assess a score’s written durations.

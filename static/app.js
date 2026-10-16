@@ -1,3 +1,4 @@
+import {FlowGate} from './flow.js';
 import {KEYS, keyAlterations, spell, noteName, staffStep, chordName, match, Performance} from './core.js';
 import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
 import {makePracticePhrase as makePhrase} from './harmony.js';
@@ -11,13 +12,14 @@ import {keyboardGeometry,keyboardKeyWidth} from './keyboard.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
+const flowGate=new FlowGate();
 const progress = new ProgressPanel();
 let activePiece=null;
 const scorePanel = new ScorePanel((score,bounds,filename)=>{
   activePiece={score,bounds,filename}; $('source-midi').disabled=false; $('source').value='midi'; $('end-repeat').checked=true;
   completed=0; $('count').textContent='0'; persist(); syncMode(); newTarget();
 },()=>settings());
-const controls = ['hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
+const controls = ['progression', 'hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
 for (const id of ['size','min-size']) $(id).replaceChildren(...Array.from({length:10}, (_, i) => new Option(String(i+1), String(i+1))));
 $('key').replaceChildren(...KEYS.map(key => new Option(key.label, key.id)));
 let target = [], completed = 0, solved = false, settleTimer, nextTimer, access, selectedInput, learning;
@@ -254,16 +256,17 @@ function drawKeyboard() {
 function paintKeys(hints = []) {
   const held = performance.held, sustained = performance.sustained;
   const pitches = new Set(target.map(n => n.midi));
+  const retiring=$('progression').value==='flow' ? flowGate.retiring||new Map() : new Map();
   const directions = new Map(hints.map(hint => [hint.played, hint.direction]));
   for (const key of $('keyboard').children) {
     const n = +key.dataset.pitch;
     key.classList.toggle('target', pitches.has(n));
-    key.classList.toggle('correct', held.has(n) && pitches.has(n));
-    key.classList.toggle('wrong', held.has(n) && !pitches.has(n));
+    key.classList.toggle('correct', held.has(n) && (pitches.has(n)||retiring.has(n)));
+    key.classList.toggle('wrong', held.has(n) && !pitches.has(n) && !retiring.has(n));
     key.classList.toggle('sustained', sustained.has(n));
     key.setAttribute('aria-pressed', String(held.has(n)));
     key.querySelector('.key-direction').textContent = directions.has(n) ? (directions.get(n) === 'up' ? '↑' : '↓') : '';
-    key.querySelector('.key-state').textContent = held.has(n) ? (pitches.has(n) ? '✓' : '×') : sustained.has(n) ? '≈' : '';
+    key.querySelector('.key-state').textContent = held.has(n) ? (pitches.has(n)||retiring.has(n) ? '✓' : '×') : sustained.has(n) ? '≈' : '';
   }
   $('pedal').textContent = performance.pedal ? 'Sustain on' : 'Sustain off';
 }
@@ -279,17 +282,17 @@ function restartPhrase() {
   clearTimeout(settleTimer); clearTimeout(nextTimer);
   phraseIndex = 0; solved = false;
   waitingForRelease = performance.held.size > 0;
-  target = phrase[0] || []; $('chord-name').textContent = '';
+  target = phrase[0] || []; flowGate.start(target,[],performance.held,performance.attacks); $('chord-name').textContent = '';
   $('staff').scrollTop = 0; drawStaff(); scrollToCurrent();
   progress.start(waitingForRelease ? [] : target,settings(),phrase);
   update();
 }
 function advancePhrase() {
-  if (performance.held.size) return;
+  const flow=$('progression').value==='flow', previous=target;
+  if (!flow && performance.held.size) return;
   if (phraseIndex === phrase.length-1) {
-    if (settings().endAction === 'repeat') restartPhrase();
-    else newTarget();
-    return;
+    if (settings().endAction === 'repeat') {if(flow) phraseIndex=-1; else {restartPhrase(); return;}}
+    else {newTarget(); return;}
   }
   phraseIndex++; target = phrase[phraseIndex]; solved = false;
   if (settings().endAction === 'new' && phraseIndex >= 24) {
@@ -298,6 +301,7 @@ function advancePhrase() {
     phrase = phrase.slice(prune).concat(makePhrase({...settings(),length:prune,sequenceOffset:streamOffset+phrase.length-prune}));
     phraseIndex -= prune; target = phrase[phraseIndex];
   }
+  flowGate.start(target,previous,performance.held,performance.attacks);
   drawStaff(); scrollToCurrent();
   progress.start(target,settings(),phrase);
   update();
@@ -305,8 +309,8 @@ function advancePhrase() {
 function update() {
   clearTimeout(settleTimer); clearTimeout(nextTimer);
   sound.sync();
-  const held = performance.held;
-  const result = match(target, held);
+  const held = performance.held, flow=$('progression').value==='flow';
+  const result = flow ? flowGate.evaluate(held,performance.attacks) : match(target, held);
   const hints = solved || waitingForRelease ? [] : result.hints;
   const directions = new Map(hints.map(hint => [hint.target, hint.direction]));
   paintKeys(hints);
@@ -323,12 +327,20 @@ function update() {
     $('detail').textContent = 'Choose another hand, widen the reading range, or adjust the keyboard endpoints.';
     return;
   }
-  if (!solved) progress.observe(held);
+  if (!solved && (!flow || !result.complete || result.ready)) progress.observe(flow ? result.effective : held);
+  if(flow && !solved && result.ready) {
+    progress.complete(); $('chord-name').textContent=chordName(target);
+    if(settings().endAction==='new' || phraseIndex===phrase.length-1) {completed++; $('count').textContent=completed;}
+    advancePhrase(); return;
+  }
   if (solved) {
     $('feedback').textContent = 'Correct. Release keys.';
     $('detail').textContent = '';
     if (!held.size) nextTimer = setTimeout(advancePhrase, 250);
     return;
+  }
+  if (flow && result.complete) {
+    $('feedback').textContent='Play again'; $('detail').textContent=''; return;
   }
   if (result.complete) {
     $('feedback').textContent = 'All notes matched';

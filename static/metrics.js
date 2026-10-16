@@ -37,6 +37,7 @@ export function exerciseIdentity(notes,settings,phrase) {
   const imported=settings.source==='midi';
   const fields=['hand','key','source','material','span','low','high','size','min-size','harmony-scale','hand-span','endAction'];
   if(imported) fields.push('scoreId','passage');
+  if(settings.progression) fields.push('progression');
   return JSON.stringify([1,fields.map(field=>[field,settings[field]??null]),notes.map(n=>{const values=[n.midi,n.letter,n.accidental,n.octave,n.staff]; if(imported) values.push(n.sourceOnset); return values;}),settings.endAction==='repeat' && !imported ? phrase.map(chord=>chord.map(n=>n.midi)) : null]);
 }
 export function grouped(records,dimension) {
