@@ -233,7 +233,8 @@ the top-right corner to close the guide and return to your existing practice tab
 
 The **Music library** includes Bach’s Prelude in C major BWV 846 and Chopin’s Prelude
 Op. 28 No. 7, ready to load offline. Filter by composer, era, style or difficulty,
-then select a piece, choose **Load piece**, adjust the
+then select a piece and choose **Load piece**, or choose **Random piece** to load
+a selection within those filters. Adjust the
 preview if needed, then **Start practising this passage**. Your range, hand and pitch
 filters still apply. Edition credits are linked beside the selection and recorded
 in `static/library/NOTICES.md`; these Mutopia editions carry a public-domain dedication.

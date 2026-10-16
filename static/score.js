@@ -1,4 +1,4 @@
-import {LIBRARY_FIELDS,libraryFacets,filterLibrary} from './library.js';
+import {LIBRARY_FIELDS,libraryFacets,filterLibrary,randomLibraryPiece} from './library.js';
 import {suggestPassages} from './sections.js';
 import {parsePassages,savePassage,passageKey} from './passages.js';
 import {attackGroups,makeOutline} from './outline.js';
@@ -15,6 +15,7 @@ export class ScorePanel {
     for(const field of LIBRARY_FIELDS) $('library-'+field).addEventListener('change',()=>this.renderLibrary());
     $('library-piece').addEventListener('change',()=>{$('load-piece').disabled=!$('library-piece').value;});
     $('load-piece').addEventListener('click',()=>void this.loadPiece());
+    $('random-piece').addEventListener('click',()=>{const piece=randomLibraryPiece(this.library,this.libraryFilters(),$('library-piece').value); if(piece) {$('library-piece').value=piece.id; void this.loadPiece();}});
     $('suggested-passages').addEventListener('change',()=>{
       const section=this.sections[+$('suggested-passages').value]; if(!section || $('suggested-passages').value==='') return;
       $('passage-start').value=section.start; $('passage-end').value=section.end; $('passage-name').value=section.label;
@@ -62,12 +63,13 @@ export class ScorePanel {
       this.renderLibrary();
     } catch(error) {$('library-status').textContent=error.message;}
   }
+  libraryFilters() {return Object.fromEntries(LIBRARY_FIELDS.map(field=>[field,$('library-'+field).value]));}
   renderLibrary() {
     const select=$('library-piece'), selected=select.value;
-    const pieces=filterLibrary(this.library,Object.fromEntries(LIBRARY_FIELDS.map(field=>[field,$('library-'+field).value])));
+    const pieces=filterLibrary(this.library,this.libraryFilters());
     select.replaceChildren(new Option(pieces.length ? 'Choose a piece' : 'No matching pieces',''),...pieces.map(piece=>new Option(`${piece.composer} · ${piece.title}`,piece.id)));
     if(pieces.some(piece=>piece.id===selected)) select.value=selected;
-    select.disabled=!pieces.length; $('load-piece').disabled=!select.value;
+    select.disabled=!pieces.length; $('load-piece').disabled=!select.value; $('random-piece').disabled=!pieces.length;
     $('library-status').textContent=`${pieces.length} of ${this.library.length} pieces`;
   }
   async loadPiece() {

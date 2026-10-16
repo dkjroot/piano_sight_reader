@@ -2,7 +2,7 @@ import {scoreSecondsAt,authoredPlan} from '../static/score_transport.js';
 import {readFileSync} from 'node:fs';
 import {beat,addBeat,multiplyBeat,compareBeat,compileScore} from '../static/score_model.js';
 import {describeExercise} from '../static/exercise.js';
-import {libraryValue,libraryFacets,filterLibrary} from '../static/library.js';
+import {libraryValue,libraryFacets,filterLibrary,randomLibraryPiece} from '../static/library.js';
 import {sourceBeats,BeatCursor} from '../static/beats.js';
 import {AcousticSamples,nearestSample} from '../static/samples.js';
 import {suggestPassages} from '../static/sections.js';
@@ -920,4 +920,18 @@ test('audio-clock cursor chases an authored tie once on resume and skips elapsed
   cursor.pause(10.1); const saved=cursor.position; cursor.play(plan,20,saved);
   const resumed=[]; cursor.pump(20,note=>resumed.push(note));
   assert.equal(resumed.filter(note=>note.id==='m1-inner-2-note').length,1);
+});
+
+test('random library selection respects all filters and avoids the current choice when alternatives exist',()=>{
+  const pieces=[{id:'a',composer:'Bach',era:'Baroque',style:'Prelude',difficulty:'Unrated',title:'A'},
+    {id:'b',composer:'Bach',era:'Baroque',style:'Prelude',difficulty:'Unrated',title:'B'},
+    {id:'c',composer:'Chopin',era:'Romantic',style:'Prelude',difficulty:'Unrated',title:'C'}];
+  assert.equal(randomLibraryPiece(pieces,{composer:'Bach'},'a',()=>.8).id,'b');
+  assert.equal(randomLibraryPiece(pieces,{era:'Romantic',style:'Prelude',difficulty:'Unrated'},'c',()=>0).id,'c');
+  assert.equal(randomLibraryPiece(pieces,{composer:'Missing'},'',()=>0),null);
+  assert.equal(randomLibraryPiece([],{},'',()=>0),null);
+  assert.equal(randomLibraryPiece(pieces,{},'',()=>0).id,'a'); assert.equal(randomLibraryPiece(pieces,{},'',()=>.999).id,'c');
+  assert.equal(randomLibraryPiece(pieces,{},'',()=>1).id,'c'); assert.equal(randomLibraryPiece(pieces,{},'',()=>-1).id,'a');
+  assert.equal(randomLibraryPiece(pieces,{},'',()=>NaN).id,'a');
+  assert.equal(randomLibraryPiece(pieces,{},'',()=>.42).id,randomLibraryPiece(pieces,{},'',()=>.42).id,'injected randomness is reproducible');
 });

@@ -602,3 +602,9 @@ resume/stop, seeking, unsupported Web Audio, cancelled sample loading, no main-s
 writes and real OfflineAudioContext rendering with clean voice/node termination.
 This proves authored notation-to-sound for the original study, not rhythmic input
 judgement, original-score recovery from MIDI or measured hardware latency.
+
+Random piece samples the intersected local library filters, excluding the current
+selection when there is an alternative. A pure helper accepts an injected RNG for
+reproducible checks. It loads only a preview through the existing revision guard;
+active practice still changes only with Start practising this passage. Empty
+filters/results and single-piece pools are covered; there is no online request.

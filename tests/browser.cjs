@@ -1,6 +1,7 @@
 // Optional browser integration suite. Start app.py first; see DEVELOPMENT.md.
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
+const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/catalogue.json','utf8')).pieces;
 
 (async () => {
   const browser = await chromium.launch({headless: true, ...(process.env.BROWSER_CHANNEL ? {channel: process.env.BROWSER_CHANNEL} : {})});
@@ -962,16 +963,18 @@ const { chromium } = require('playwright');
 
     await page.reload(); await page.waitForSelector('.note');
     assert.equal(await page.inputValue('#progression'),'flow');
-    await page.waitForFunction(()=>document.querySelectorAll('#library-piece option').length===3);
+    await page.waitForFunction(total=>document.querySelectorAll('#library-piece option').length===total+1,bundledPieces.length);
     assert.equal(await page.locator('#practice-score').innerText(),'Start practising this passage');
     assert.equal(await page.locator('#export-score').innerText(),'Download MIDI data (JSON)');
     assert.deepEqual(await page.locator('#library-difficulty option').allTextContents(),['All','Unrated']);
     await page.selectOption('#library-era','Baroque');
-    assert.deepEqual(await page.locator('#library-piece option').allTextContents(),['Choose a piece','Johann Sebastian Bach · Prelude in C major, BWV 846']);
+    const baroqueIds=await page.locator('#library-piece option').evaluateAll(options=>options.map(option=>option.value).filter(Boolean));
+    assert.ok(baroqueIds.includes('bach-bwv846')); assert.ok(baroqueIds.every(id=>bundledPieces.find(piece=>piece.id===id).era==='Baroque'));
     await page.selectOption('#library-composer','Frédéric Chopin');
     assert.equal(await page.locator('#library-piece').isDisabled(),true);
     assert.equal(await page.locator('#load-piece').isDisabled(),true);
-    assert.equal(await page.locator('#library-status').innerText(),'0 of 2 pieces');
+    assert.equal(await page.locator('#library-status').innerText(),`0 of ${bundledPieces.length} pieces`);
+    assert.equal(await page.locator('#random-piece').isDisabled(),true);
     await page.selectOption('#library-era','Romantic');
     await page.selectOption('#library-piece','chopin-op28-7');
     await page.selectOption('#library-style','Prelude');
@@ -1000,13 +1003,15 @@ const { chromium } = require('playwright');
     assert.equal(await page.locator('#load-piece').isDisabled(),true);
     assert.equal(await page.locator('#score-playing').innerText(),activeChopin);
     assert.match(await page.locator('#score-status').innerText(),/168 attacks/);
-    await page.selectOption('#library-composer','');
-    await page.selectOption('#library-piece','bach-bwv846'); await page.locator('#load-piece').click();
+    assert.equal(await page.locator('#random-piece').isDisabled(),false);
+    await page.locator('#random-piece').click();
     await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('549 attacks'));
     assert.equal(await page.locator('#exercise-summary').innerText(),activeDescription,'loading another preview must not rename active practice');
     const summaryBox=await page.locator('#exercise-summary').boundingBox(), activeStaffBox=await page.locator('#staff').boundingBox();
     assert.ok(summaryBox.y+summaryBox.height<=activeStaffBox.y,'exercise description stays above the stave');
     assert.ok(await page.locator('#suggested-passages option').count()>5);
+    assert.equal(await page.inputValue('#library-piece'),'bach-bwv846','random selection must follow the composer filter');
+    await page.selectOption('#library-composer','');
     assert.ok(requests.every(url=>!url.includes('/api/inspect-midi')),'bundled pieces use pre-ingested local data');
     assert.equal(await page.locator('.settings-stack #live-instrument').count(),1);
     assert.equal(await page.locator('.settings-stack #metronome').count(),1);

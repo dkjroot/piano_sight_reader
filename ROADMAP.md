@@ -243,8 +243,9 @@ voice structure preserved. The untimed filtering foundation is complete.
 - [ ] Define and review Easy, Medium, Hard, Expert and Virtuoso tiers using range,
   accidentals, density, leaps, hand independence and rhythm; retain uncertainty and
   edition-specific evidence. A single grade must not replace those dimensions.
-- [ ] Add random selection within the composer/era/style/difficulty filters, reproducible
-  for tests; add recent pieces and richer catalogue search as the collection grows.
+- [x] Choose a random piece within composer/era/style/difficulty filters, excluding the
+  current choice when alternatives exist, with reproducible injected randomness in tests.
+- [ ] Add recent pieces and richer catalogue search as the collection grows.
 - [ ] Add notation-aware phrase/bar loops, continuous traversal of a real score, tempo
   goals and ramped loops. Current endpoints are attack ranges, not recovered bar numbers.
 - [ ] Extend suggestions with repeated motifs, harmonic cadences and editable timeline

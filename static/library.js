@@ -10,3 +10,11 @@ export function filterLibrary(pieces,filters={}) {
   return pieces.filter(piece=>LIBRARY_FIELDS.every(field=>!filters[field] || libraryValue(piece,field)===filters[field]))
     .slice().sort((a,b)=>`${a.composer} ${a.title}`.localeCompare(`${b.composer} ${b.title}`,'en'));
 }
+
+export function randomLibraryPiece(pieces,filters={},currentId='',random=Math.random) {
+  const matches=filterLibrary(pieces,filters);
+  const pool=matches.length>1 ? matches.filter(piece=>piece.id!==currentId) : matches;
+  if(!pool.length) return null;
+  const value=Number(random()), index=Number.isFinite(value) ? Math.max(0,Math.min(pool.length-1,Math.floor(value*pool.length))) : 0;
+  return pool[index];
+}
