@@ -771,3 +771,24 @@ test('written-note credit resets for every repeated source column, including loo
   gate.start([{midi:64},{midi:69}],[{midi:64},{midi:67}],p.held,p.attacks);
   assert.deepEqual([...gate.evaluate(p.held,p.attacks).accepted],[64],'generated changing chords retain legitimate shared holds');
 });
+
+test('live instrument audition uses the selected sound and gain without changing held or target voices',()=>{
+  const context=fakeAudio(), audio=new LocalAudio(context);
+  audio.live.configure('organ',.73); audio.reference.configure('piano',.17);
+  audio.live.sync([48]); const held=audio.live.voices.get(48);
+  audio.audition([60,64,67],'live');
+  assert.equal(audio.livePreview.instrument,'organ'); assert.equal(audio.livePreview.volume,.73);
+  assert.equal(audio.livePreview.voices.size,3); assert.equal(audio.live.voices.get(48),held);
+  assert.equal(audio.reference.voices.size,0);
+  audio.live.sync([48]); assert.equal(audio.livePreview.voices.size,3,'physical sync must not cancel the preview');
+  audio.audition([72],'reference'); assert.equal(audio.livePreview.voices.size,3);
+  assert.equal(audio.reference.instrument,'piano'); assert.equal(audio.reference.volume,.17);
+  assert.equal(audio.reference.voices.size,1);
+  const previous=[...audio.livePreview.voices.values()];
+  audio.live.configure('piano',.31); audio.audition([60],'live');
+  assert.equal(audio.livePreview.instrument,'piano'); assert.equal(audio.livePreview.volume,.31);
+  assert.equal(audio.livePreview.voices.size,1); assert.ok(previous.every(voice=>voice.released));
+  audio.panic(); assert.equal(audio.livePreview.voices.size,0); assert.equal(audio.reference.voices.size,0);
+  for(const node of context.nodes) node.onended();
+  assert.equal(audio.livePreview.sounding.size,0);
+});

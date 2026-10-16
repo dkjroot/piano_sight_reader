@@ -12,10 +12,10 @@ export class SoundPanel {
         else if(Number.isFinite(+saved[id])) element.value=Math.max(+element.min,Math.min(+element.max,+saved[id]));
       }
     } catch { /* Sound settings are optional. */ }
-    for(const id of ids) $(id).addEventListener('change',()=>{if(['reference-instrument','reference-sound'].includes(id)) {this.auditionRevision++; this.onReferenceStop();} this.configure(); this.persist(); if(this.clock.running && ['tempo','beats'].includes(id)) {this.engine.stopClicks(); this.clock.start(this.engine.context.currentTime,+$('tempo').value,+$('beats').value);}});
+    for(const id of ids) $(id).addEventListener('change',()=>{if(['reference-instrument','reference-sound','live-instrument'].includes(id)) {this.auditionRevision++; if(id==='live-instrument') this.engine?.livePreview.stop(); else this.onReferenceStop();} this.configure(); this.persist(); if(this.clock.running && ['tempo','beats'].includes(id)) {this.engine.stopClicks(); this.clock.start(this.engine.context.currentTime,+$('tempo').value,+$('beats').value);}});
     $('live-sound').addEventListener('change',()=>this.setLive($('live-sound').checked));
-    $('hear-live').addEventListener('click',()=>this.setLive(!$('live-sound').checked));
-    $('hear-target').addEventListener('click',async()=>{const revision=++this.auditionRevision; if($('reference-sound').checked && await this.activate() && revision===this.auditionRevision && $('reference-sound').checked) {this.onReferenceStop(); this.engine.audition(this.getTarget().map(note=>note.midi));}});
+    $('hear-live').addEventListener('click',()=>void this.audition('live'));
+    $('hear-target').addEventListener('click',()=>void this.audition('reference'));
     $('metronome').addEventListener('change',async()=>{
       const revision=++this.revision, enabled=$('metronome').checked;
       this.clock.stop(); clearInterval(this.timer); this.engine?.stopClicks();
@@ -26,6 +26,14 @@ export class SoundPanel {
     });
     $('sound-panic').addEventListener('click',()=>this.panic());
     this.configure(); this.sync();
+  }
+  async audition(path) {
+    const revision=++this.auditionRevision;
+    if(path==='reference' && !$('reference-sound').checked) return;
+    const pitches=this.getTarget().map(note=>note.midi);
+    if(!await this.activate(path) || revision!==this.auditionRevision) return;
+    if(path==='reference') {if(!$('reference-sound').checked) return; this.onReferenceStop();}
+    this.engine.audition(pitches.length ? pitches : [60,64,67],path);
   }
   async setLive(enabled) {
     $('live-sound').checked=enabled; this.sync();
@@ -55,13 +63,14 @@ export class SoundPanel {
     $('hear-target').disabled=!$('reference-sound').checked;
     if(!this.engine) return;
     this.engine.live.configure($('live-instrument').value,+$('live-volume').value/100);
+    this.engine.livePreview.configure($('live-instrument').value,+$('live-volume').value/100);
     this.engine.reference.configure($('reference-instrument').value,+$('reference-volume').value/100);
     this.engine.clickGain.gain.setTargetAtTime(+$('click-volume').value/100,this.engine.context.currentTime,.015);
     if(!$('reference-sound').checked) this.engine.reference.stop();
     this.sync(); this.onConfigure();
     if(!this.engine.samples.ready && [$('live-instrument').value,$('reference-instrument').value].includes('acoustic')) void this.loadSamples();
   }
-  sync() {$('hear-live').setAttribute('aria-pressed',String($('live-sound').checked)); if(this.engine) this.engine.live.sync($('live-sound').checked ? this.getPitches() : [],this.getAttacks());}
+  sync() {if(this.engine) this.engine.live.sync($('live-sound').checked ? this.getPitches() : [],this.getAttacks());}
   pump() {this.clock.pump(this.engine.context.currentTime,event=>this.engine.click(event));}
   stopClock() {this.revision++; this.clock.stop(); this.engine?.stopClicks(); clearInterval(this.timer); this.timer=null; $('metronome').checked=false;}
   panic() {this.auditionRevision++; this.onReferenceStop(); this.stopClock(); if(this.engine) this.engine.panic(); $('live-sound').checked=false; this.sync();}

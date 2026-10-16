@@ -491,3 +491,13 @@ The physical on-screen keyboard continues to describe actual held keys separatel
 The Help header has an accessible Close help × button calling window.close();
 the former Open practice/footer explanation is removed. Browser regressions
 close real guide tabs opened from both entry points and preserve the practice tab.
+
+
+Sound auditions: visible copy consistently calls the accompaniment/audition path
+Target (existing reference-* IDs and storage keys are retained for compatibility).
+Hear live instrument auditions the current target for 0.8 seconds with the chosen
+live instrument/gain; an empty exercise falls back to C/E/G. It never toggles Sound
+my playing. A separate temporary SynthPath shares the acoustic bank and master bus,
+so live MIDI sync does not cancel the preview or release held voices. Configuration,
+panic and stale asynchronous sample loads cannot resurrect a cancelled preview.
+Hear target retains its Target sound enable policy and source-playback stop hook.

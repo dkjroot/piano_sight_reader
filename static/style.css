@@ -273,7 +273,6 @@ h1 .subtitle { display:block; letter-spacing:0; }
   .score-banner, :root[data-density=compact] .score-banner { min-height:62px; }
 }
 
-#hear-live[aria-pressed=true] { background:var(--button); color:var(--button-text); border-color:var(--button); }
 
 /* Related controls share the right-hand settings column. */
 .settings-grid { align-items:start; }

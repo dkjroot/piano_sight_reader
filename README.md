@@ -141,7 +141,10 @@ and set your physical keyboard range to practise further from the staff.
 
 ## Sound and metronome
 
-**Hear live instrument** toggles the same live audio as **Sound my playing**. Your selected live instrument and volume apply; the button shows whether it is on.
+**Hear live instrument** briefly plays the current target with your selected live
+instrument and volume, without enabling or disabling **Sound my playing**.
+**Hear target** auditions the same notes using the Target instrument and volume.
+If the current exercise has no notes, either audition uses a C major chord.
 
 **Acoustic grand piano** uses bundled recordings of a real Yamaha C5, alongside
 **Piano synth** and **Organ synth**. Choose it independently for Live instrument or
@@ -153,9 +156,9 @@ Alexander Holm are distributed under CC BY 3.0; credits and the full licence are
 
 **Sound my playing** enables local sound for MIDI and on-screen keys. MIDI velocity
 controls attack strength; restriking a note under sustain produces a fresh attack. Choose
-an instrument and adjust its volume independently of **Reference sound**.
+an instrument and adjust its volume independently of **Target sound**.
 **Hear target** plays the current target briefly without counting it as your input.
-The reference path also plays imported source passages; its instrument/volume are
+The target sound path also plays imported source passages; its instrument/volume are
 independent of your live playing.
 The piano/organ synths are original additive instruments; the acoustic piano uses local samples.
 Your keyboard may also make its own sound: leave live sound off if you prefer that.
@@ -168,7 +171,7 @@ start off each visit. Audio requires a click/tap in the browser.
 
 **Pause**, beside the phrase counter, stops practice progression and response-time
 measurement. You can still see and hear the keys you play. **Resume** requires a
-fresh attack; held keys cannot complete a target merely by resuming. Reference
+fresh attack; held keys cannot complete a target merely by resuming. Target
 playback and the metronome have their own controls. Pause is not saved across visits.
 
 ## Progress
@@ -283,15 +286,15 @@ are not kept in browser storage. Other tabs in the same browser receive bookmark
 ### Listening to the source passage
 
 **Play source passage** plays the selected MIDI tracks and attack range through
-Reference sound, retaining source tempo changes, velocities and sustain. Choose
+Target sound, retaining source tempo changes, velocities and sustain. Choose
 25–200% **Playback speed**, pause/resume, or stop. Sounding notes from before the
 passage start are resumed; notes are cut off at its end. **Stop sound**, leaving
-the tab, changing the source passage/tracks/instrument or disabling Reference sound
-also stops playback. Re-enable Reference sound if playback controls are disabled.
+the tab, changing the source passage/tracks/instrument or disabling Target sound
+also stops playback. Re-enable Target sound if playback controls are disabled.
 
 This is the selected source performance, including pitches your outline filters
 omit. It never counts as your playing or moves the practice pointer. The
-reference instrument uses your chosen sound; MIDI program/bank changes,
+target instrument uses your chosen sound; MIDI program/bank changes,
 pitch bends and expressive controllers remain data for future instrument support.
 A resumed held tone starts a fresh envelope and, for the acoustic piano, a fresh sample. Playback rejects passages
 above 128 simultaneous voices rather than overloading the sound engine.

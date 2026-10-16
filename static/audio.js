@@ -2,14 +2,15 @@ import {AcousticSamples} from './samples.js';
 // Local synthesis and bundled acoustic recordings; no MIDI output.
 export class SynthPath {
   constructor(context, destination, samples=null) {
-    this.context=context; this.samples=samples; this.voices=new Map(); this.sounding=new Set(); this.instrument='piano';
+    this.context=context; this.samples=samples; this.voices=new Map(); this.sounding=new Set(); this.instrument='piano'; this.volume=.25;
     this.gain=context.createGain(); this.gain.gain.value=.25; this.gain.connect(destination);
   }
   configure(instrument,volume) {
     const selected=['organ','acoustic'].includes(instrument) ? instrument : 'piano';
     if (this.instrument!==selected) this.stop();
     this.instrument=selected;
-    this.gain.gain.setTargetAtTime(Math.max(0,Math.min(1,volume)),this.context.currentTime,.015);
+    this.volume=Math.max(0,Math.min(1,volume));
+    this.gain.gain.setTargetAtTime(this.volume,this.context.currentTime,.015);
   }
   noteOn(pitch,time=this.context.currentTime,duration=null,key=pitch,velocity=1) {
     if (!Number.isInteger(pitch) || pitch<0 || pitch>127) return;
@@ -81,6 +82,7 @@ export class LocalAudio {
     this.master=context.createGain(); this.master.gain.value=.65;
     this.limiter=context.createDynamicsCompressor(); this.master.connect(this.limiter); this.limiter.connect(context.destination);
     this.live=new SynthPath(context,this.master,this.samples); this.reference=new SynthPath(context,this.master,this.samples);
+    this.livePreview=new SynthPath(context,this.master,this.samples);
     this.clickGain=context.createGain(); this.clickGain.gain.value=.2; this.clickGain.connect(this.master); this.clicks=new Set();
   }
   click({time,beat}) {
@@ -91,7 +93,11 @@ export class LocalAudio {
     oscillator.onended=()=>{this.clicks.delete(oscillator); oscillator.disconnect(); gain.disconnect();};
     oscillator.start(time); oscillator.stop(time+.05);
   }
-  audition(pitches) {this.reference.stop(); for(const pitch of pitches) this.reference.noteOn(pitch,this.context.currentTime,.8);}
+  audition(pitches,path='reference') {
+    const instrument=path==='live' ? this.livePreview : this.reference;
+    if(path==='live') instrument.configure(this.live.instrument,this.live.volume);
+    instrument.stop(); for(const pitch of pitches) instrument.noteOn(pitch,this.context.currentTime,.8);
+  }
   stopClicks() {for(const click of this.clicks) click.stop(); this.clicks.clear();}
-  panic() {this.live.stop(); this.reference.stop(); this.stopClicks();}
+  panic() {this.live.stop(); this.reference.stop(); this.livePreview.stop(); this.stopClicks();}
 }
