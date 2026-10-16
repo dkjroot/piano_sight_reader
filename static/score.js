@@ -2,6 +2,8 @@ import {LIBRARY_FIELDS,libraryFacets,filterLibrary,randomLibraryPiece,parseRecen
 import {suggestPassages} from './sections.js';
 import {parsePassages,savePassage,passageKey} from './passages.js';
 import {attackGroups,makeOutline} from './outline.js';
+import {KEYS} from './core.js';
+import {scoreKeyForPassage} from './score_key.js';
 // Local file inspection is separate from the live MIDI event path.
 const $=id=>document.getElementById(id);
 const PASSAGES='piano-sight-reader-passages-v1';
@@ -9,7 +11,7 @@ const RECENT='piano-sight-reader-recent-pieces-v1';
 export class ScorePanel {
   constructor(onPractice=()=>{},getSettings=()=>({low:48,high:84,hand:'right',material:'white',span:'near',size:1,key:'C'})) {
     this.getSettings=getSettings;
-    this.score=null; this.revision=0; this.trackControls=[]; this.onPassageChange=()=>{}; this.savedPassages=[];
+    this.score=null; this.revision=0; this.trackControls=[]; this.onPassageChange=()=>{}; this.savedPassages=[]; this.practiceUsesSourceKey=false;
     try {this.savedPassages=parsePassages(localStorage.getItem(PASSAGES)||'[]');} catch {$('passage-status').textContent='Saved passages are unavailable; this visit still works.';}
     $('score-file').addEventListener('change',()=>{const file=$('score-file').files[0]; if(file) void this.readFile(file);});
     this.library=[]; this.sections=[];
@@ -47,7 +49,7 @@ export class ScorePanel {
     });
     void this.loadCatalogue();
     for(const id of ['passage-start','passage-end']) $(id).addEventListener('change',()=>this.editPassage());
-    $('practice-score').addEventListener('click',()=>{const outline=this.refresh(); if(outline?.targets.length) onPractice(this.score,{start:outline.start,end:outline.end,tracks:this.rules()},this.filename);});
+    $('practice-score').addEventListener('click',()=>{const outline=this.refresh(); if(outline?.targets.length) onPractice(this.score,{start:outline.start,end:outline.end,tracks:this.rules()},this.filename,this.keyInfo);});
     $('save-passage').addEventListener('click',()=>{
       const outline=this.refresh(); if(!outline?.totalOnsets) return;
       try {
@@ -111,6 +113,21 @@ export class ScorePanel {
       this.renderRecent();
     } catch(error) {if(revision===this.revision) $('score-status').textContent='Load failed: '+error.message;}
   }
+  updateKeyStatus() {
+    const info=this.keyInfo, selected=KEYS.find(key=>key.id===this.getSettings().key);
+    if(!info || !this.score) { $('score-key-status').textContent=''; return; }
+    let text;
+    if(info.keyId) {
+      text=info.source==='midi' ? `Key signature in MIDI: ${info.label}.` : `Estimated from MIDI pitches: ${info.label}.`;
+      text+=this.practiceUsesSourceKey ? ` Practice signature: ${selected?.label||'C major / A minor'}.` : ` Starting this passage will select ${KEYS.find(key=>key.id===info.keyId)?.label||info.label}.`;
+    } else {
+      text=info.ambiguous ? 'Conflicting opening key signatures in the MIDI.' : 'No reliable opening key signature found in the MIDI.';
+      text+=` Practice will keep ${selected?.label||'C major / A minor'} from Practice setup.`;
+    }
+    if(info.changes.length) text+=` ${info.changes.length} later key change${info.changes.length===1?'':'s'} are recorded; this untimed attack outline uses one key throughout.`;
+    $('score-key-status').textContent=text;
+  }
+  practiceStarted() {this.practiceUsesSourceKey=true; this.updateKeyStatus();}
   persistRecent() {
     try {
       if(this.recent.length) localStorage.setItem(RECENT,JSON.stringify({version:1,pieces:this.recent}));
@@ -135,7 +152,7 @@ export class ScorePanel {
     } catch(error) {if(revision===this.revision) $('score-status').textContent='Import failed: '+error.message;}
   }
   useScore(score,filename) {
-    this.score=score; this.filename=filename;
+    this.score=score; this.filename=filename; this.practiceUsesSourceKey=false;
     $('score-status').textContent=`${filename} · ${score.notes.length} attacks · ${score.tracks.length} tracks · ${score.duration_seconds.toFixed(1)} s${score.warning_count ? ' · '+score.warning_count+' warnings' : ''}`;
     $('score-details').textContent=score.tracks.map(track=>track.name).join(' · '); $('score-warnings').textContent=score.warnings.join(' ');
     $('export-score').disabled=false; this.drawTracks();
@@ -182,6 +199,9 @@ export class ScorePanel {
   refresh() {
     if(!this.score) return null;
     const outline=makeOutline(this.score,this.getSettings(),{start:+$('passage-start').value,end:+$('passage-end').value,tracks:this.rules()});
+    const groups=attackGroups(this.score);
+    this.keyInfo=scoreKeyForPassage(this.score,{startTick:groups[outline.start-1]?.tick??0,endTick:groups[outline.end-1]?.tick??Infinity});
+    this.updateKeyStatus();
     $('passage-start').value=outline.start; $('passage-end').value=outline.end;
     $('practice-score').disabled=!outline.targets.length;
     $('save-passage').disabled=!outline.totalOnsets || !this.rules().some(rule=>rule.enabled);

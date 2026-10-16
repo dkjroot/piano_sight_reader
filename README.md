@@ -277,6 +277,14 @@ An explicit assignment allows crossing middle C; the hand selector then follows
 your assigned staff. Track changes remain a preview until **Start practising this passage**
 is clicked.
 
+When you start a passage, the **Key** setting follows its opening key signature if the
+MIDI contains one. If it does not, the app estimates the key signature from note
+patterns only when the evidence is strong; an uncertain file keeps your selected key.
+Later key-change markers are reported. The current untimed pitch outline applies the
+opening key throughout, so a passage with modulations is not yet shown with changing
+key signatures. You can choose another key yourself at any time. Key checks run locally;
+the app does not search for the identity of a private MIDI file online.
+
 Each target contains simultaneous note attacks, not every note still sounding.
 Play through it using your chosen Fluid or Release-between-targets progression.
 In Fluid mode, every written note requires a fresh key press, including

@@ -985,6 +985,7 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     for(const field of ['composer','era','style','difficulty']) await page.selectOption('#library-'+field,'');
     const requests=[]; page.on('request',request=>requests.push(request.url()));
     const beforeLibrary=await page.locator('.key.target').evaluateAll(keys=>keys.map(key=>key.dataset.pitch));
+    const keyBeforePreview=await page.inputValue('#key');
     for(const piece of bundledPieces.filter(piece=>!['chopin-op28-7','bach-bwv846'].includes(piece.id))) {
       const inspection=JSON.parse(require('node:fs').readFileSync('static/library/'+piece.inspection,'utf8'));
       await page.selectOption('#library-piece',piece.id); await page.locator('#load-piece').click();
@@ -997,6 +998,8 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     await page.selectOption('#library-piece','chopin-op28-7'); await page.locator('#load-piece').click();
     await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('168 attacks'));
     assert.deepEqual(await page.locator('.key.target').evaluateAll(keys=>keys.map(key=>key.dataset.pitch)),beforeLibrary,'loading library preview must not replace active practice');
+    assert.equal(await page.inputValue('#key'),keyBeforePreview,'loading a score preview must not change practice key');
+    assert.match(await page.locator('#score-key-status').innerText(),/Key signature in MIDI: A major/);
     assert.match(await page.locator('#library-credit').innerText(),/Public Domain/);
     assert.equal(await page.locator('#library-source').getAttribute('href'),'https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=470');
     assert.ok(await page.locator('#suggested-passages option').count()>1);
@@ -1004,6 +1007,8 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     assert.equal(await page.inputValue('#passage-start'),'1');
     assert.ok(+(await page.inputValue('#passage-end'))<=32);
     await page.locator('#practice-score').click();
+    assert.equal(await page.inputValue('#key'),'A','starting a score follows its explicit opening key signature');
+    assert.match(await page.locator('#score-key-status').innerText(),/Practice signature: A major \/ F♯ minor/);
     assert.match(await page.locator('#score-playing').innerText(),/Prelude in A major/);
     const activeDescription=await page.locator('#exercise-summary').innerText();
     assert.match(activeDescription,/Prelude in A major/);
@@ -1016,6 +1021,8 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     assert.equal(await page.locator('#random-piece').isDisabled(),false);
     await page.locator('#random-piece').click();
     await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('549 attacks'));
+    assert.match(await page.locator('#score-key-status').innerText(),/Estimated from MIDI pitches: C major \/ A minor/);
+    assert.equal(await page.inputValue('#key'),'A','estimated preview keeps the active exercise key until start');
     assert.equal(await page.locator('#exercise-summary').innerText(),activeDescription,'loading another preview must not rename active practice');
     const summaryBox=await page.locator('#exercise-summary').boundingBox(), activeStaffBox=await page.locator('#staff').boundingBox();
     assert.ok(summaryBox.y+summaryBox.height<=activeStaffBox.y,'exercise description stays above the stave');

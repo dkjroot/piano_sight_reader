@@ -645,3 +645,14 @@ Local imports never enter it. Reopening a recent preview clears browsing constra
 without activating practice. Clear recent removes just this key. Storage errors fall
 back to an in-memory list with a short status; storage events update other open tabs.
 The parser bounds payload size, strips unknown fields and rejects unsupported versions.
+
+## Key selection from MIDI
+
+When a selected passage starts, explicit MIDI key-signature metadata determines the
+practice key. Repeated matching events across piano tracks are merged; conflicting
+markers at the passage start leave the user's key unchanged. A file without an opening
+marker gets a whole-file pitch-profile estimate only when it has enough notes and a
+clear best-fitting signature. An uncertain estimate leaves the setting alone. All
+calculation stays in the browser; a private file is never searched online. Key markers
+inside a passage are counted and reported, but the current untimed outline uses one key
+for every target. Showing score-accurate modulations remains open work.

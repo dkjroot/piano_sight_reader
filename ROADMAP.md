@@ -206,6 +206,10 @@ notation where supplied. Untimed MIDI practice is delivered; this full exit is n
 ## Stage 4 — Progressive outlines of real pieces
 
 - [x] Derive outlines separately, mapping retained notes to original IDs, ticks and onsets.
+- [x] Read explicit MIDI opening key signatures, cautiously estimate a missing whole-piece
+  signature from pitch evidence, and report recorded key changes.
+- [ ] Render key changes as passage targets cross them; the current untimed outline uses
+  its opening key throughout and reports later source markers.
 - [x] Select 1–512 source onsets, tracks and inferred/explicit staves; filter by physical
   and reading range, hand, key/material and maximum chord size without changing pitch.
 - [x] Reduce chords by highest note, bass, then inner notes; preview retained/omitted

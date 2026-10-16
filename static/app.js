@@ -16,9 +16,10 @@ const performance = new Performance();
 const flowGate=new FlowGate();
 const progress = new ProgressPanel();
 let activePiece=null;
-const scorePanel = new ScorePanel((score,bounds,filename)=>{
+const scorePanel = new ScorePanel((score,bounds,filename,keyInfo)=>{
+  if(keyInfo?.keyId) $('key').value=keyInfo.keyId;
   activePiece={score,bounds,filename}; $('source-midi').disabled=false; $('source').value='midi'; $('end-repeat').checked=true;
-  completed=0; $('count').textContent='0'; persist(); syncMode(); newTarget();
+  completed=0; $('count').textContent='0'; persist(); syncMode(); newTarget(); scorePanel.practiceStarted();
 },()=>settings());
 const controls = ['progression', 'hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-kind', 'cadence-shape', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
 for (const id of ['size','min-size']) $(id).replaceChildren(...Array.from({length:10}, (_, i) => new Option(String(i+1), String(i+1))));

@@ -1,4 +1,5 @@
 import {scoreSecondsAt,authoredPlan} from '../static/score_transport.js';
+import {scoreKeyForPassage} from '../static/score_key.js';
 import {readFileSync} from 'node:fs';
 import {beat,addBeat,multiplyBeat,compareBeat,compileScore} from '../static/score_model.js';
 import {describeExercise} from '../static/exercise.js';
@@ -978,4 +979,33 @@ test('recent library identities are bounded, ordered, portable and tied to revie
   assert.deepEqual(parseRecentLibrary(JSON.stringify({version:1,pieces:[{...a,path:'private.mid',data:'music'}]})),[{id:a.id,sha256:a.sha256}]);
   for(const text of ['oops','null','[]','{}','{"version":2,"pieces":[]}', 'x'.repeat(5001),null]) assert.throws(()=>parseRecentLibrary(text));
   for(const entry of bad) assert.throws(()=>rememberLibraryPiece([],entry));
+});
+
+test('score key selection trusts passage markers, reports modulations and ignores duplicate staff events',()=>{
+  const notes=[...Array(8)].flatMap((_,cycle)=>[60,62,64,65,67,69,71].map((midi,index)=>({midi,start_tick:cycle*2800+index*100,end_tick:cycle*2800+index*100+80,channel:0})));
+  const score={ticks_per_quarter:100,notes,events:[
+    {tick:0,track:1,message:{type:'key_signature',key:'A'}},{tick:0,track:2,message:{type:'key_signature',key:'A'}},
+    {tick:2800,track:1,message:{type:'key_signature',key:'Fm'}},{tick:2800,track:2,message:{type:'key_signature',key:'Fm'}},
+    {tick:5600,track:1,message:{type:'key_signature',key:'Db'}}]};
+  const opening=scoreKeyForPassage(score,{startTick:0,endTick:5500});
+  assert.equal(opening.keyId,'A'); assert.equal(opening.source,'midi'); assert.equal(opening.label,'A major');
+  assert.equal(opening.changes.length,1); assert.equal(opening.changes[0].keys[0],'Fm');
+  const later=scoreKeyForPassage(score,{startTick:3000,endTick:8000});
+  assert.equal(later.keyId,'Ab'); assert.equal(later.label,'F minor'); assert.equal(later.changes.length,1); assert.equal(later.changes[0].keys[0],'Db');
+  assert.equal(scoreKeyForPassage(score,{startTick:6000,endTick:8000}).keyId,'Db');
+  assert.equal(scoreKeyForPassage(score,{startTick:10000,endTick:12000}).keyId,'Db');
+});
+
+test('score key is estimated only from strong whole-piece pitch evidence when metadata is absent',()=>{
+  const bach=JSON.parse(readFileSync('static/library/bach-bwv846.json','utf8'));
+  const estimate=scoreKeyForPassage(bach);
+  assert.equal(estimate.keyId,'C'); assert.equal(estimate.mode,'major'); assert.equal(estimate.source,'estimated');
+  const conflicting={...bach,events:[...bach.events,{tick:0,track:50,message:{type:'key_signature',key:'G'}}]};
+  assert.equal(scoreKeyForPassage(conflicting).keyId,'G','explicit score metadata outranks a statistical estimate');
+  const notes=[...Array(2)].flatMap(()=>Array.from({length:12},(_,midi)=>({midi,start_tick:midi,end_tick:midi+1,channel:0})));
+  const chromatic=scoreKeyForPassage({notes,ticks_per_quarter:100,events:[]});
+  assert.equal(chromatic.keyId,null); assert.equal(chromatic.source,null);
+  assert.equal(scoreKeyForPassage({notes:notes.slice(0,12),ticks_per_quarter:100,events:[]}).keyId,null);
+  const conflict=scoreKeyForPassage({...bach,events:[...bach.events,{tick:0,track:50,message:{type:'key_signature',key:'G'}},{tick:0,track:51,message:{type:'key_signature',key:'F'}}]});
+  assert.equal(conflict.keyId,null); assert.equal(conflict.ambiguous,true); assert.equal(conflict.source,'conflict');
 });
