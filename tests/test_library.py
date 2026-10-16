@@ -33,3 +33,20 @@ class LibraryTests(unittest.TestCase):
             (directory / entry['midi']).write_bytes(b'changed')
             with self.assertRaises(ValueError):
                 compile_piece(directory, entry)
+
+
+class AcousticAssetTests(unittest.TestCase):
+    def test_sample_assets_match_pinned_manifest_and_credits(self):
+        from hashlib import sha256
+        directory = ROOT.parent / 'audio' / 'salamander'
+        manifest = json.loads((directory / 'manifest.json').read_text(encoding='utf-8'))
+        self.assertEqual(manifest['author'], 'Alexander Holm')
+        self.assertEqual(manifest['licence'], 'CC BY 3.0')
+        self.assertEqual(len(manifest['samples']), 30)
+        self.assertEqual([sample['pitch'] for sample in manifest['samples']], list(range(21, 109, 3)))
+        for sample in manifest['samples']:
+            data = (directory / sample['file']).read_bytes()
+            self.assertEqual(len(data), sample['bytes'])
+            self.assertEqual(sha256(data).hexdigest(), sample['sha256'])
+        self.assertIn('Alexander Holm', (directory / 'NOTICES.md').read_text(encoding='utf-8'))
+        self.assertIn('Attribution 3.0', (directory / 'CC-BY-3.0.txt').read_text(encoding='utf-8'))

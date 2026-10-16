@@ -439,3 +439,6 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Clear the last hour, local calendar day or all practice history.
 - [ ] Extend passage suggestions with repeated motifs, harmonic cadences and manual boundary editing on a timeline.
 - [ ] Expand the reviewed library across composers/styles and add evidence-based difficulty dimensions.
+
+- [x] Offline sampled acoustic grand piano, independent live/reference selection and attributed media.
+- [ ] Multiple acoustic velocity layers and measured sample-start latency; consider release/pedal/resonance modelling after profiling.

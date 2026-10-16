@@ -60,13 +60,14 @@
     </div>
     <div class="card settings"><h2>Sound</h2>
       <label class="check"><input id="live-sound" type="checkbox"> Sound my playing</label>
-      <label>Live instrument <select id="live-instrument"><option value="piano">Piano synth</option><option value="organ">Organ synth</option></select></label>
+      <label>Live instrument <select id="live-instrument"><option value="piano">Piano synth</option><option value="acoustic">Acoustic grand piano</option><option value="organ">Organ synth</option></select></label>
       <label>Live volume <input id="live-volume" type="range" min="0" max="100" value="35"></label>
       <label class="check"><input id="reference-sound" type="checkbox" checked> Reference sound</label>
-      <label>Target instrument <select id="reference-instrument"><option value="piano">Piano synth</option><option value="organ">Organ synth</option></select></label>
+      <label>Target instrument <select id="reference-instrument"><option value="piano">Piano synth</option><option value="acoustic">Acoustic grand piano</option><option value="organ">Organ synth</option></select></label>
       <label>Target volume <input id="reference-volume" type="range" min="0" max="100" value="25"></label>
       <div class="range-buttons"><button id="hear-target" class="quiet">Hear target</button><button id="hear-live" class="quiet" aria-pressed="false">Hear live instrument</button><button id="sound-panic" class="quiet">Stop sound</button></div>
       <p id="sound-status" class="small" role="status"></p>
+      <details class="sound-credits"><summary>Sound credits</summary><p class="small">Acoustic grand: Salamander Grand Piano V2 by Alexander Holm, <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a>. <a href="/static/audio/salamander/NOTICES.md">Sample details</a>.</p></details>
     </div>
     <div class="card settings"><h2>Metronome</h2>
       <label class="check"><input id="metronome" type="checkbox"> Metronome</label>

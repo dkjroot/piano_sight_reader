@@ -15,8 +15,10 @@ same spelling/range generator. Phrases stay in memory, and repeat reuses the
 sequence. Display-only changes never regenerate it. The active target remains
 leftmost after the signature in note view. In page view the pointer advances within
 a stationary window. Both use the pure readingWindow policy and bounded look-ahead. Completion
-requires a stable correct set and physical release, then automatically loops or
-advances according to the remembered mode. Repeat previews wrapped opening events
+uses immediate exact physical pitch matching in Fluid mode, with one-target
+legato overlap and fresh attacks for repeated targets. Release-between-targets
+mode retains its stable-match window and release gate. Both loop or advance
+according to the remembered mode. Repeat previews wrapped opening events
 with virtual step IDs beyond the end and a double barline at the loop boundary;
 future occurrences of the same pitch must not inherit current-key feedback.
 Continuous ignores repeat length and replenishes a bounded queue while retaining
@@ -43,8 +45,8 @@ are in static/assets/header-art.md. Product text remains selectable and accessib
 All imagery and fonts remain local; artwork adds no header height.
 
 Real-time, low-latency interaction is a core requirement. No server round trip or
-animation gates feedback. The 120 ms stable-correct-pitch window only gates exercise
-completion. Measure real device-to-paint latency before claiming a latency figure
+animation gates feedback. Fluid progression has no fixed completion or release
+delay. The optional release-between-targets mode has a 120 ms stable-pitch window. Measure real device-to-paint latency before claiming a latency figure
 or changing runtime architecture. Consider WebAssembly for demonstrated heavy work,
 such as future real-time audio analysis, rather than assuming it improves MIDI/DOM
 delivery. Preserve this requirement when adding features.
@@ -134,12 +136,13 @@ change; put architecture, tests, plans and working notes here or in AGENTS.md.
 
 ## Local audio foundation
 
-`audio.js` owns two independent additive-synthesis paths and a master limiter.
+`audio.js` owns two independent instrument paths (additive synthesis or bundled
+acoustic recordings) and a master limiter.
 Live voices follow the union of physically held and sustained notes; reference
 voices audition the active target for 0.8 seconds and never enter `Performance`.
 Both paths have independent instrument/gain controls. Original piano-like/organ
-oscillators require no third-party asset licence or download. Velocity-sensitive
-sampling, complete score playback and external MIDI output remain future work.
+oscillators require no third-party asset licence or download. Multiple velocity layers,
+advanced sampling, full notated-score playback and external MIDI output remain future work.
 
 `MetronomeClock` emits timestamped clicks into a 100 ms audio-clock look-ahead;
 a 25 ms scheduler pumps it. After a stall it re-anchors without a burst of overdue
@@ -368,3 +371,17 @@ phrasing, voices, rhythmic notation or a structural harmonic analysis.
 Sound/metronome now share the right settings column beneath keyboard range. The
 full-width library has a dividing rule and bounded aligned fields. File selector
 colours follow both themes; daily measurements and breakdown have explicit spacing.
+
+Acoustic grand: 30 unchanged Salamander V2 MP3 recordings, A0–C8 in minor thirds,
+2,012,677 bytes total. A pinned upstream commit, per-file SHA-256, original author
+notes, full CC BY 3.0 text and clear separate-media attribution accompany them.
+The nearest sample is pitch-shifted by AudioBufferSourceNode; velocity controls
+amplitude. This is a single-layer browser instrument, without the full Salamander
+release/pedal/resonance engine. Existing live sustain ownership still controls
+voice releases. Buffers are shared by live/reference paths, decoded asynchronously
+with four workers before audition/playback and never fetched or decoded in MIDI
+handlers. Load failures are retryable; panic invalidates pending target auditions.
+Ended held samples remain silent until a fresh attack; timed and released voices
+clean up their nodes. Unit tests cover transposition/ownership/load failures; native
+OfflineAudioContext renders the actual recordings and checks energy, release tail
+and node cleanup. Hardware latency and subjective speaker quality are unverified.

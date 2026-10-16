@@ -34,7 +34,7 @@ the app, repeat the dependency installation command before starting it.
 
 There is no front-end build step or Node.js requirement to use the app.
 Nothing you play is uploaded; MIDI and practice run locally in your browser.
-Use your instrument’s sound or enable the optional local piano/organ synthesis.
+Use your instrument’s sound or enable the local acoustic piano, piano synth or organ.
 
 ## Connect your piano
 
@@ -99,8 +99,10 @@ You can practise without MIDI by using the on-screen keys.
   that signature; chromatic modes add accidentals and naturals as needed. Minor
   labels refer to natural minor, without harmonic or melodic alterations.
 - Play all written pitches together without extra notes. There is no timer:
-  fingers can arrive at different times. Hold the correct set briefly (120 ms),
-  then release your keys for the next target. The sustain pedal may stay down.
+  fingers can arrive at different times. Fluid progression advances immediately;
+  shared pitches may continue into a changing chord, and repeated targets require
+  fresh attacks. Choose Release between targets for deliberate step-by-step practice.
+  The sustain pedal may stay down.
 - When enabled, amber marks target keys. Green marks correct held keys, red marks
   extra held keys, and blue marks released but sustained keys. Arrows appear
   beside the written note and on the wrong key. In chords, a wrong pitch within
@@ -136,13 +138,23 @@ and set your physical keyboard range to practise further from the staff.
 
 ## Sound and metronome
 
+**Hear live instrument** toggles the same live audio as **Sound my playing**. Your selected live instrument and volume apply; the button shows whether it is on.
+
+**Acoustic grand piano** uses bundled recordings of a real Yamaha C5, alongside
+**Piano synth** and **Organ synth**. Choose it independently for Live instrument or
+Target instrument. Samples load from your local server on first use; no internet
+connection is needed. The acoustic option uses one sampled velocity layer, with
+volume following your MIDI velocity. Salamander Grand Piano V2 recordings by
+Alexander Holm are distributed under CC BY 3.0; credits and the full licence are in
+`static/audio/salamander/` and linked in **Sound credits**.
+
 **Sound my playing** enables local sound for MIDI and on-screen keys. MIDI velocity
-controls attack strength; restriking a note under sustain produces a fresh attack. Choose piano
-or organ synthesis and adjust its volume independently of **Reference sound**.
+controls attack strength; restriking a note under sustain produces a fresh attack. Choose
+an instrument and adjust its volume independently of **Reference sound**.
 **Hear target** plays the current target briefly without counting it as your input.
 The reference path also plays imported source passages; its instrument/volume are
 independent of your live playing.
-These are original synthetic instruments; no samples or downloads are needed.
+The piano/organ synths are original additive instruments; the acoustic piano uses local samples.
 Your keyboard may also make its own sound: leave live sound off if you prefer that.
 
 The metronome has its own volume, tempo (30–240 BPM) and bar accent. It is a practice
@@ -155,8 +167,8 @@ start off each visit. Audio requires a click/tap in the browser.
 
 The Progress section measures targets correctly played, average/median response time,
 first-attempt accuracy and a clean best time for the current comparable target.
-Response time starts when the target activates and ends at the first stable correct
-pitch set; the deliberate 120 ms confirmation and release delay are excluded. Window
+Response time starts when the target activates and ends at the first correct
+pitch set. In release-between-targets mode, confirmation and release delays are excluded. Window
 pauses, keyboard-endpoint learning and MIDI reconnection waits are excluded. Staggering chord fingers is allowed; wrong pitches affect accuracy.
 
 History is session-only unless **Save history locally** is checked. The browser keeps
@@ -177,6 +189,19 @@ need three different notes and 24 attempts with matching settings, then compare 
 note's median against that exercise's baseline. Key, range, mode, source passage and
 spelling remain distinct. These are practice clues with visible evidence counts,
 not diagnoses of finger/hand ability or conclusions from sparse samples.
+
+## Music library
+
+The **Music library** includes Bach’s Prelude in C major BWV 846 and Chopin’s Prelude
+Op. 28 No. 7, ready to load offline. Select a piece, choose **Load piece**, adjust the
+preview if needed, then **Practise pitch outline**. Your range, hand and pitch
+filters still apply. Edition credits are linked beside the selection and recorded
+in `static/library/NOTICES.md`; these Mutopia editions carry a public-domain dedication.
+
+**Suggested section** splits a MIDI into manageable attack ranges, using marker
+messages, rest gaps and meter boundaries where available. These are practice
+suggestions, not recovered musical phrase markings. Adjust First/Last attack and
+save a named passage as usual. A local file uses the same section suggestions.
 
 ## Inspecting a local MIDI file
 
@@ -200,7 +225,7 @@ your assigned staff. Track changes remain a preview until **Practise pitch outli
 is clicked.
 
 Each target contains simultaneous note attacks, not every note still sounding.
-Play it, release and advance as in generated practice. Spelling and inferred/selected
+Play through it using your chosen Fluid or Release-between-targets progression. Spelling and inferred/selected
 staff assignments are derived choices, not recovered notation or detected hands. Source
 durations, overlaps, pedal, rests and tempo remain in the inspection but are not
 judged or drawn as timed music yet. Reloading clears the local file and returns
@@ -234,9 +259,9 @@ also stops playback. Re-enable Reference sound if playback controls are disabled
 This is the selected source performance, including pitches your outline filters
 omit. It never counts as your playing or moves the practice pointer. The metronome
 is currently an independent practice click, not synchronised accompaniment. The
-original piano/organ synth uses your chosen instrument; MIDI program/bank changes,
+reference instrument uses your chosen sound; MIDI program/bank changes,
 pitch bends and expressive controllers remain data for future instrument support.
-A resumed held piano tone restarts its synthetic envelope. Playback rejects passages
+A resumed held tone starts a fresh envelope and, for the acoustic piano, a fresh sample. Playback rejects passages
 above 128 simultaneous voices rather than overloading the sound engine.
 
 ## Finding music for future practice
@@ -280,18 +305,3 @@ MIDI pitch outlines can already be practised; full notation and rhythmic perform
 
 This is an early working version. For development and planned features, see
 [DEVELOPMENT.md](DEVELOPMENT.md).
-
-**Hear live instrument** toggles the same live audio as **Sound my playing**. Your selected live instrument and volume apply; the button shows whether it is on.
-
-**Fluid** progression advances immediately when the target matches. Shared notes can continue into a changing chord, and the preceding target may overlap the next. Repeated notes or identical chords need fresh attacks. **Release between targets** keeps the slower, deliberate step-by-step behaviour. This is untimed pitch practice; it does not yet assess a score’s written durations.
-
-The **Music library** includes Bach’s Prelude in C major BWV 846 and Chopin’s Prelude
-Op. 28 No. 7, ready to load offline. Select a piece, choose **Load piece**, adjust the
-preview if needed, then **Practise pitch outline**. Your range, hand and pitch
-filters still apply. Edition credits are linked beside the selection and recorded
-in `static/library/NOTICES.md`; these Mutopia editions carry a public-domain dedication.
-
-**Suggested section** splits a MIDI into manageable attack ranges, using marker
-messages, rest gaps and meter boundaries where available. These are practice
-suggestions, not recovered musical phrase markings. Adjust First/Last attack and
-save a named passage as usual. A local file uses the same section suggestions.

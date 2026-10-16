@@ -302,3 +302,9 @@ h1 .subtitle { display:block; letter-spacing:0; }
   .library-choice { align-items:flex-start; gap:6px; }
   .library-choice label { flex:1 1 100%; }
 }
+
+.settings label.check { justify-content:flex-start; gap:8px; }
+.score-panel input[type=checkbox] { width:auto; flex:none; }
+.sound-credits { margin:12px 0 0; font-size:12px; }
+.sound-credits summary { cursor:pointer; color:var(--muted); }
+.sound-credits a { color:var(--accent); }

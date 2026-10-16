@@ -1,3 +1,4 @@
+import {AcousticSamples,nearestSample} from '../static/samples.js';
 import {suggestPassages} from '../static/sections.js';
 import {FlowGate} from '../static/flow.js';
 import {keyboardGeometry,keyboardKeyWidth} from '../static/keyboard.js';
@@ -268,7 +269,7 @@ function fakeAudio() {
   const events=[], nodes=[];
   const param=()=>({value:0,setValueAtTime(...a){events.push(['set',...a]);},linearRampToValueAtTime(...a){events.push(['linear',...a]);},exponentialRampToValueAtTime(...a){events.push(['exp',...a]);},setTargetAtTime(...a){events.push(['target',...a]);},cancelAndHoldAtTime(t){events.push(['hold',t]);},cancelScheduledValues(t){events.push(['cancel',t]);}});
   const node=()=>({gain:param(),frequency:param(),connect(){},disconnect(){this.disconnected=true;},start(t){this.started=t;},stop(t=0){this.stopped=t;}});
-  return {currentTime:1,destination:{},events,nodes,createGain:node,createDynamicsCompressor:node,createOscillator(){const n=node();nodes.push(n);return n;}};
+  return {currentTime:1,destination:{},events,nodes,createGain:node,createDynamicsCompressor:node,createBufferSource(){const n=node();n.playbackRate=param();nodes.push(n);return n;},createOscillator(){const n=node();nodes.push(n);return n;}};
 }
 test('audio paths independently sync held/sustained pitch sets, release and panic',()=>{
   const context=fakeAudio(), audio=new LocalAudio(context);
@@ -589,4 +590,37 @@ test('passage suggestions cover the source in bounded adjustable sections using 
   const bounded=suggestPassages(long); assert.ok(bounded.length<=128); assert.equal(bounded.at(-1).end,25000);
   assert.ok(bounded.every(section=>section.end-section.start<512));
   assert.equal(suggestPassages(score,{maximum:1,minimum:100}).length,24);
+});
+
+test('acoustic paths transpose nearby recordings, preserve velocity and do not retrigger an ended hold',()=>{
+  const context=fakeAudio(), samples={ready:true,select:()=>({root:60,buffer:{sample:'C4'}})}, path=new SynthPath(context,context.destination,samples);
+  path.configure('acoustic',.4); path.noteOn(62,1,null,62,.2);
+  const voice=path.voices.get(62); assert.equal(voice.oscillators.length,1);
+  assert.equal(voice.oscillators[0].buffer.sample,'C4');
+  assert.ok(Math.abs(voice.oscillators[0].playbackRate.value-2**(2/12))<1e-10);
+  voice.oscillators[0].onended(); assert.equal(path.sounding.size,0);
+  path.sync([62]); assert.equal(context.nodes.length,1,'a naturally ended held key must stay silent');
+  path.noteOff(62); assert.equal(path.voices.size,0);
+  path.noteOn(60,1,.8); const timed=path.voices.get(60); timed.oscillators[0].onended(); assert.equal(path.voices.size,0);
+  samples.ready=false; path.sync([60]); assert.equal(path.voices.size,0);
+  const noBank=new SynthPath(context,context.destination); noBank.configure('acoustic',.2); noBank.noteOn(60); assert.equal(noBank.voices.size,0);
+  assert.equal(nearestSample(new Map(),60),null);
+  const buffers=new Map([[60,'C'],[63,'Ds']]); assert.equal(nearestSample(buffers,62).buffer,'Ds'); assert.equal(nearestSample(buffers,59).root,60);
+});
+
+test('acoustic sample loading is shared, local, atomic and retryable',async()=>{
+  const urls=[], context={decodeAudioData:async data=>({decoded:data})};
+  const manifest={version:1,samples:[{pitch:60,file:'C4.mp3'},{pitch:63,file:'Ds4.mp3'}]};
+  const fetcher=async url=>{urls.push(url); return {ok:true,json:async()=>manifest,arrayBuffer:async()=>url};};
+  const bank=new AcousticSamples(context,fetcher);
+  await Promise.all([bank.load(),bank.load()]); await bank.load();
+  assert.equal(urls.length,3); assert.ok(urls.every(url=>url.startsWith('/static/audio/salamander/')));
+  assert.equal(bank.ready,true); assert.equal(bank.select(62).root,63);
+  const originalFetch=globalThis.fetch;
+  try {globalThis.fetch=function(url){assert.equal(this,globalThis); return fetcher(url);}; await new AcousticSamples(context).load();} finally {globalThis.fetch=originalFetch;}
+  const bad=new AcousticSamples(context,async()=>({ok:false})); await assert.rejects(bad.load(),/manifest unavailable/); assert.equal(bad.pending,null);
+  bad.fetcher=fetcher; await bad.load(); assert.equal(bad.ready,true);
+  const invalid=new AcousticSamples(context,async()=>({ok:true,json:async()=>({version:2})})); await assert.rejects(invalid.load(),/Invalid/);
+  const missing=new AcousticSamples(context,async url=>url.endsWith('.json') ? {ok:true,json:async()=>manifest} : {ok:false}); await assert.rejects(missing.load(),/sample unavailable/); assert.equal(missing.buffers.size,0);
+  const failure=new AcousticSamples({decodeAudioData:async()=>{throw new Error('decode failed');}},fetcher); await assert.rejects(failure.load(),/decode failed/); assert.equal(failure.ready,false);
 });
