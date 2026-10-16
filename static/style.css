@@ -224,3 +224,14 @@ h1 { font-size:42px; margin-bottom:2px; }
 .settings .score-track label { justify-content:flex-start; flex-wrap:nowrap; margin:6px 0; }
 .score-track select { width:100%; }
 @media(max-width:650px) { .score-track { grid-template-columns:1fr; gap:2px; padding:8px 0; } }
+
+/* Decorative generated grand staff; the product name remains real accessible text. */
+.score-banner { position:relative; isolation:isolate; }
+.score-banner::before { content:''; position:absolute; inset:-6px 240px 4px -8px; max-width:720px; background:var(--accent); opacity:.23; mask:url('./assets/score-banner-v1.png') left center / 100% 100% no-repeat; -webkit-mask:url('./assets/score-banner-v1.png') left center / 100% 100% no-repeat; pointer-events:none; z-index:-1; }
+:root[data-theme=dark] .score-banner::before { opacity:.20; }
+.score-banner .title-block, .score-banner .header-actions { position:relative; }
+.score-banner h1 { text-shadow:0 0 4px var(--paper),0 0 8px var(--paper); }
+h1 .subtitle { display:block; letter-spacing:0; }
+:root[data-layout="720"] h1 { display:flex; align-items:baseline; gap:8px; }
+:root[data-layout="720"] h1 .subtitle { display:inline; }
+@media(max-width:650px) { .score-banner::before { right:110px; } }

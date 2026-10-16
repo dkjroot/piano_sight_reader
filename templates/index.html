@@ -9,7 +9,7 @@
 </head>
 <body>
 <main>
-  <header><div class="title-block"><img class="lyre" src="{{ url_for('static', filename='lyre.svg') }}" alt="" width="68" height="90"><div><h1>Piano</h1><p class="subtitle">Sight reader</p></div></div><div class="header-actions"><button id="theme-toggle" class="quiet" aria-pressed="true">Dark mode</button><button id="connect">Connect MIDI</button></div></header>
+  <header class="score-banner"><div class="title-block"><div><h1>Piano<span class="subtitle"> Sight reader</span></h1></div></div><div class="header-actions"><button id="theme-toggle" class="quiet" aria-pressed="true">Dark mode</button><button id="connect">Connect MIDI</button></div></header>
   <section class="connection" aria-label="MIDI connection">
     <span id="midi-status" role="status">MIDI disconnected</span>
     <label>Input <select id="inputs" disabled><option>No MIDI input connected</option></select></label>

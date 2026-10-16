@@ -37,7 +37,10 @@ Chord matching locks correct pitches, then identifies mutually unique nearest
 unmatched neighbours within two semitones. It leaves ties and distant candidates
 unassigned without recursively breaking ties. Single-note direction is unrestricted.
 This bounded local comparison is quadratic in pitch count and does no network work.
-The lyre SVG is original code-drawn ornament; all imagery and fonts remain local.
+The original lyre SVG remains available. The header uses a locally stored generated
+transparent grand-staff banner as a theme-coloured CSS mask; its prompt/provenance
+are in static/assets/header-art.md. Product text remains selectable and accessible.
+All imagery and fonts remain local; artwork adds no header height.
 
 Real-time, low-latency interaction is a core requirement. No server round trip or
 animation gates feedback. The 120 ms stable-correct-pitch window only gates exercise

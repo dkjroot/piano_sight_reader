@@ -26,6 +26,8 @@ const { chromium } = require('playwright');
     await page.goto(process.env.APP_URL || 'http://127.0.0.1:8766');
     await page.waitForSelector('.key.target');
     assert.equal(await page.locator('#repeat, #skip').count(),0);
+    assert.equal(await page.getByRole('heading',{level:1,name:'Piano Sight reader'}).count(),1);
+    assert.match(await page.locator('header').evaluate(header=>getComputedStyle(header,'::before').maskImage),/score-banner-v1.png/);
     await page.selectOption('#length','1');
     await page.selectOption('#preview','0');
     assert.equal(await page.locator('.staff-line').count(), 11);
@@ -341,6 +343,8 @@ const { chromium } = require('playwright');
     await page.locator('#end-new').check();
     assert.equal(await page.locator('#length').isDisabled(),true);
     assert.equal(await page.locator('#repeat, #skip').count(),0);
+    assert.equal(await page.getByRole('heading',{level:1,name:'Piano Sight reader'}).count(),1);
+    assert.match(await page.locator('header').evaluate(header=>getComputedStyle(header,'::before').maskImage),/score-banner-v1.png/);
     assert.equal(await page.locator('.phrase-boundary').count(),0);
     await page.locator('#connect').click();
     for (let step=1; step<=29; step++) {

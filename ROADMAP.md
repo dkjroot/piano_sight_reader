@@ -376,7 +376,7 @@ against an uninterrupted clock. Each mode has explicit, testable recovery rules.
 - [x] Fit the staff and on-screen keyboard together in a typical 1080p desktop
   browser viewport without page scrolling. Budget for title/tab/address/bookmark
   bars and the OS taskbar; use actual CSS viewport height, not screen resolution.
-- [ ] Recover roughly 100 px from the top area as a starting experiment: reduce
+- [x] Recover roughly 100 px from the top area as a starting experiment: reduce
   masthead height, padding and gaps, and combine compact status/control rows.
   Measure the result rather than treating 100 px or 10 percent as a fixed rule.
 - [x] Offer a remembered compact/density setting or collapsible masthead/status
@@ -389,7 +389,7 @@ against an uninterrupted clock. Each mode has explicit, testable recovery rules.
   mobile layouts, zoom and dense/extreme-ledger targets. Verify staff/keyboard
   bounds, readable controls and access to every setting below. Allow internal
   notation scrolling when extreme material cannot sensibly fit simultaneously.
-- [ ] Explore image-generated banner concepts: a wide rectangular piano-keyboard or
+- [x] Explore image-generated banner concepts: a wide rectangular piano-keyboard or
   two-clef score flag, gently rippling, anchored at the left and fading toward the right,
   with “Piano Sight Reader” superimposed. Keep it restrained, legible and compatible with
   both palettes; export local assets and check rights/provenance of any references.
@@ -416,3 +416,7 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Reserve feedback/MIDI activity and staff-pane height so notes do not move the keyboard.
 - [x] Verify both clefs and keyboard fit in normal-range exercises, including a 540 px
   browser viewport for a 720p screen; preserve vertical ledger scrolling for wider ranges.
+
+
+- [x] Add a local generated rippling grand-staff flag behind the real title, fading
+  to the right and coloured from each theme. Preserve the compact header height.
