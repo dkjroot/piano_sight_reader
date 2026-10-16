@@ -57,9 +57,17 @@ class ImportTests(unittest.TestCase):
         for data in bad:
             with self.subTest(size=len(data)), self.assertRaises(ScoreError):
                 inspect_midi(data)
-        for track in [b'\x81'*5, b'\x00\x3c\x40', b'\x00\x90\x3c\x80', b'\x00\xff', b'\x00\xff\x01\x05', b'\x00\xf8', b'\x00\xff\x2f\x01\x00', b'\x00\x90\x3c\x40']:
+        for track in [b'\x81', b'\x00', b'\x81'*5, b'\x00\x3c\x40', b'\x00\x90\x3c\x80', b'\x00\xff', b'\x00\xff\x01\x05', b'\x00\xf8', b'\x00\xff\x2f\x01\x00', b'\x00\x90\x3c\x40']:
             with self.subTest(track=track), self.assertRaises(ScoreError):
                 validate_track(track)
+        for header_size in [5,1025]:
+            with self.assertRaises(ScoreError):
+                inspect_midi(raw[:4]+header_size.to_bytes(4,'big')+raw[8:])
+        malformed=b'\x00\xff\x51\x00\x00\xff\x2f\x00'
+        with self.assertRaisesRegex(ScoreError,'Malformed MIDI'):
+            inspect_midi(b'MThd'+struct.pack('>IHHH',6,0,1,480)+b'MTrk'+len(malformed).to_bytes(4,'big')+malformed)
+        with patch('score_import.MAX_EVENTS', 14), self.assertRaises(ScoreError):
+            inspect_midi(raw)
         with patch('score_import.MAX_EVENTS', 2), self.assertRaises(ScoreError):
             inspect_midi(raw)
 

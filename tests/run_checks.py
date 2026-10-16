@@ -17,7 +17,7 @@ OUTPUT = ROOT / 'test-results'
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--browser', action='store_true', help='Include full browser regressions')
-    parser.add_argument('--coverage', action='store_true', help='Measure Node unit-test coverage')
+    parser.add_argument('--coverage', action='store_true', help='Measure JavaScript coverage and Python source-line coverage')
     parser.add_argument('--node', default='node')
     parser.add_argument('--browser-node', help='Node 20+ executable for Playwright')
     parser.add_argument('--channel', default=os.environ.get('BROWSER_CHANNEL', ''), help='E.g. msedge')
@@ -52,6 +52,19 @@ def main():
                     modules.append({'file': fields[0], 'line_percent': float(fields[1]),
                                     'branch_percent': float(fields[2]), 'function_percent': float(fields[3])})
             result['unit_coverage_modules'] = modules
+        if args.coverage and name == 'python':
+            modules = []
+            for line in output.splitlines():
+                match = re.match(r'^\s*(\d+)\s+(\d+)%\s+\S+\s+\((.+)\)\s*$', line)
+                if not match:
+                    continue
+                try:
+                    path = Path(match.group(3)).relative_to(ROOT).as_posix()
+                except ValueError:
+                    continue
+                if not path.startswith('tests/'):
+                    modules.append({'file': path, 'line_percent': int(match.group(2)), 'executable_lines': int(match.group(1))})
+            result['line_coverage_modules'] = modules
         results.append(result)
         print(f"{result['status']} {name}" + (f" ({result['tests']} tests)" if count else '')
               + f" [{result['seconds']:.2f}s]", flush=True)
@@ -63,7 +76,8 @@ def main():
     if args.coverage:
         node_command.append('--experimental-test-coverage')
     check('javascript', node_command + ['--test', 'tests/core.test.js'])
-    check('python', [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests'])
+    python_command = [sys.executable, 'tests/python_coverage.py'] if args.coverage else [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']
+    check('python', python_command)
     check('diff', ['git', 'diff', '--check'])
 
     if args.browser:
@@ -113,7 +127,9 @@ def main():
     for result in results:
         for module in result.get('unit_coverage_modules', []):
             lines.append(f"- Unit coverage {module['file']}: {module['line_percent']}% lines, {module['branch_percent']}% branches")
-    lines += ['', 'Coverage above is for the unit-tested modules, not the entire browser application.']
+        for module in result.get('line_coverage_modules', []):
+            lines.append(f"- Python line coverage {module['file']}: {module['line_percent']}% ({module['executable_lines']} executable lines)")
+    lines += ['', 'Coverage above is for unit-tested modules. Python branch coverage, browser-controller coverage and hardware coverage are not measured.']
     lines += ['', 'Hardware: not verified by automated checks.', 'Full details: report.json and individual .log files.']
     (OUTPUT / 'report.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
     print('Report: test-results/report.json (full logs saved alongside)')

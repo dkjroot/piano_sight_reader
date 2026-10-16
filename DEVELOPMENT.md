@@ -232,3 +232,11 @@ controls live below the keyboard. Tests cover fixed and Automatic presets at usa
 540/880/1160/1920 px heights, both clefs visible, unchanged targets across layout
 changes, and a stationary keyboard for empty, extra, partial, correct and advanced
 feedback. These are browser viewport tests, not physical monitor/DPI measurements.
+
+
+`--coverage` now also runs dependency-free Python source-line measurement through
+`tests/python_coverage.py`. The tracer includes project `.py` frames only (not Jinja's
+compiled HTML or installed dependencies). Per-module percentages go into the compact
+JSON/Markdown report; missing-line annotations stay in ignored
+`test-results/python-coverage/`. Python branch coverage and full browser-controller
+coverage are not measured. Normal successful tool output remains four summary lines.
