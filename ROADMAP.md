@@ -445,3 +445,5 @@ depend on catalogue downloads, audio setup or an account.
 
 - [x] Optional source-aligned metronome with tempo/meter changes, speed scaling and one/two-bar count-in.
 - [ ] Compound beat grouping, subdivisions and notation-aware pickup handling in the source clock.
+
+- [x] Reproducible optional browser-test dependency and regression CI configuration with compact reports. Hosted execution is pending a push.

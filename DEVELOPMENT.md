@@ -94,8 +94,8 @@ the runner's summary/failure reporting. No additional test dependency is needed
 for the runner itself. Direct `npm test` and unittest commands remain supported.
 
 Node 18+ is only required for JavaScript tests. Python tests use unittest.
-The optional integration suite needs Node 20+ and Playwright (`npm install
---no-save playwright`, then `npx playwright install chromium`). Start the app in
+The optional integration suite needs Node 20+ (CI uses Node 24) and the pinned
+Playwright development dependency: run `npm ci`, then `npx playwright install chromium`. Start the app in
 another terminal and run `node tests/browser.cjs`. Use `BROWSER_CHANNEL=msedge`
 (PowerShell: `$env:BROWSER_CHANNEL = 'msedge'`) to use installed Edge instead.
 Screenshots go to ignored `test-results/`. Neither Playwright nor Node is a runtime
@@ -396,3 +396,19 @@ unbounded lists. Standalone and source-aligned clicks are mutually exclusive.
 No click or playback event reaches the input matcher or changes untimed practice.
 This implements MIDI denominator pulses, not recovered notated pickups or compound
 beat grouping; rhythmic scoring and written-duration matching remain separate work.
+
+GitHub Actions runs the same compact unit/Python/browser checks on pushes to main,
+pull requests and manual dispatch. It uses Python 3.12, Node 24 and the lockfile's
+Playwright 1.62.1; official actions are pinned to reviewed commit hashes. The job
+summary contains report.md, with full logs, coverage data and synthetic-test
+screenshots retained as a seven-day artifact. No deployment or repository write
+permission is requested. Hosted CI execution is verified only after a future push;
+local passing checks do not claim a successful GitHub run.
+
+Failure output now selects the first named Node TAP failure ahead of any trailing
+coverage table, while complete output remains in its local log. Other failures
+retain a bounded tail; Windows consoles escape unencodable characters instead of
+losing the test report. Runner regressions cover success, nonzero status, coverage
+parsing and concise failure extraction.
+
+The runner explicitly requests TAP and accepts both flat and directory-style Node coverage tables, keeping test counts and per-module reports stable across Node 18/24.

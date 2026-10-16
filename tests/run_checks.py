@@ -14,7 +14,53 @@ ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / 'test-results'
 
 
+
+
+def javascript_coverage(output):
+    """Accept flat Node 18 paths and Node 24's indented directory table."""
+    modules, parents = [], []
+    for line in output.splitlines():
+        raw = line.removeprefix('# ')
+        fields = [part.strip() for part in raw.split('|')]
+        if len(fields) < 4:
+            continue
+        indent = len(raw)-len(raw.lstrip())
+        while parents and parents[-1][0] >= indent:
+            parents.pop()
+        if fields[0] and not fields[1]:
+            parents.append((indent, fields[0]))
+            continue
+        path = fields[0].replace('\\', '/')
+        if '/' not in path and parents:
+            path = '/'.join([entry[1] for entry in parents]+[path])
+        if not path.startswith('static/'):
+            continue
+        try:
+            line_percent, branch_percent, function_percent = map(float, fields[1:4])
+        except ValueError:
+            continue
+        modules.append({'file': path, 'line_percent': line_percent,
+                        'branch_percent': branch_percent, 'function_percent': function_percent})
+    return modules
+
+
+def failure_excerpt(output, limit=18):
+    """Keep the first named TAP failure visible even when coverage follows it."""
+    lines = output.splitlines()
+    start = next((i for i, line in enumerate(lines) if re.match(r'^\s*not ok \d+', line)), None)
+    if start is None:
+        selected = lines[-limit:]
+    else:
+        end = next((i+1 for i in range(start+1, len(lines)) if lines[i].strip() == '...'), len(lines))
+        block = lines[start:end]
+        frames = [line for line in block if re.search(r'(?:file:///|tests[/\\]).*:\d+', line)]
+        selected = block[:limit-len(frames[:2])] + frames[:2]
+    return '\n'.join(line[:500] for line in selected)
+
+
 def main():
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(errors='backslashreplace')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--browser', action='store_true', help='Include full browser regressions')
     parser.add_argument('--coverage', action='store_true', help='Measure JavaScript coverage and Python source-line coverage')
@@ -45,12 +91,7 @@ def main():
             coverage = [line.strip() for line in output.splitlines() if 'all files' in line]
             if coverage:
                 result['coverage_summary'] = coverage[-1]
-            modules = []
-            for line in output.splitlines():
-                fields = [part.strip() for part in line.removeprefix('# ').split('|')]
-                if len(fields) >= 4 and fields[0].replace('\\', '/').startswith('static/'):
-                    modules.append({'file': fields[0], 'line_percent': float(fields[1]),
-                                    'branch_percent': float(fields[2]), 'function_percent': float(fields[3])})
+            modules = javascript_coverage(output)
             result['unit_coverage_modules'] = modules
         if args.coverage and name == 'python':
             modules = []
@@ -69,13 +110,13 @@ def main():
         print(f"{result['status']} {name}" + (f" ({result['tests']} tests)" if count else '')
               + f" [{result['seconds']:.2f}s]", flush=True)
         if code:
-            print('\n'.join(output.splitlines()[-12:]))
+            print(failure_excerpt(output))
             print('Full log: ' + str(log))
 
     node_command = [args.node]
     if args.coverage:
         node_command.append('--experimental-test-coverage')
-    check('javascript', node_command + ['--test', 'tests/core.test.js'])
+    check('javascript', node_command + ['--test', '--test-reporter=tap', 'tests/core.test.js'])
     python_command = [sys.executable, 'tests/python_coverage.py'] if args.coverage else [sys.executable, '-m', 'unittest', 'discover', '-s', 'tests']
     check('python', python_command)
     check('diff', ['git', 'diff', '--check'])

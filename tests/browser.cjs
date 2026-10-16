@@ -887,6 +887,6 @@ const { chromium } = require('playwright');
       assert.ok(await p.locator('.key').count() > 0);
       await context.close();
     }
-    console.log('Browser checks passed: phrase progress/replay/release, fixed active column and remembered look-ahead, chord names, key signatures/naturals, enharmonic spacing, target contrast, MIDI port lifecycle, sustain, permissions, and desktop/mobile layout.');
+    console.log('Browser checks passed: MIDI/input matching, fluid/release progression, layout/themes, progress/history, library/passages, source playback/count-in, and synth/acoustic audio.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

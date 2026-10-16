@@ -43,3 +43,34 @@ class CheckRunnerTests(unittest.TestCase):
         code, report = self.run_report(True)
         self.assertEqual(code, 1)
         self.assertFalse(report['passed'])
+
+
+class FailureExcerptTests(unittest.TestCase):
+    def test_tap_failure_survives_a_trailing_coverage_table(self):
+        text = ('header\nnot ok 8 - wrong pitch matching\n  ---\n  error: expected 60, got 61\n'
+                '  stack: file:///project/tests/core.test.js:12:4\n  ...\n'
+                + '\n'.join('# coverage row '+str(i) for i in range(100)))
+        excerpt = runner.failure_excerpt(text)
+        self.assertIn('not ok 8 - wrong pitch matching', excerpt)
+        self.assertIn('expected 60, got 61', excerpt)
+        self.assertIn('core.test.js:12:4', excerpt)
+        self.assertNotIn('coverage row', excerpt)
+        self.assertLessEqual(len(excerpt.splitlines()), 18)
+
+    def test_other_failures_keep_the_tail_and_bound_line_lengths(self):
+        text = '\n'.join(str(i) for i in range(30))+'\n'+('x'*1000)
+        excerpt = runner.failure_excerpt(text)
+        self.assertEqual(len(excerpt.splitlines()), 18)
+        self.assertEqual(len(excerpt.splitlines()[-1]), 500)
+        self.assertIn('29', excerpt)
+
+
+class CoverageFormatTests(unittest.TestCase):
+    def test_flat_and_directory_tables_keep_the_same_module_measurements(self):
+        expected = {'file': 'static/core.js', 'line_percent': 100.0, 'branch_percent': 96.0, 'function_percent': 99.0}
+        self.assertEqual(runner.javascript_coverage('# static/core.js | 100 | 96 | 99 |'), [expected])
+        tree = ('# file | line % | branch % | funcs % |\n# static | | | |\n'
+                '#  core.js | 100 | 96 | 99 |\n#  invalid.js | bad | 0 | 0 |\n'
+                '# tests | | | |\n#  core.test.js | 100 | 100 | 100 |\n# all files | 100 | 99 | 98 |')
+        self.assertEqual(runner.javascript_coverage(tree), [expected])
+        self.assertEqual(runner.javascript_coverage('no coverage here'), [])
