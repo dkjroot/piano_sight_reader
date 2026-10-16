@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Piano · Sight reader</title>
+  <script>try { document.documentElement.dataset.theme = localStorage.getItem('piano-sight-reader-theme') === 'light' ? 'light' : 'dark'; } catch { /* Dark by default, even without storage. */ }</script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<main>
+  <header><div class="title-block"><img class="lyre" src="{{ url_for('static', filename='lyre.svg') }}" alt="" width="68" height="90"><div><h1>Piano</h1><p class="subtitle">Sight reader</p></div></div><div class="header-actions"><button id="theme-toggle" class="quiet" aria-pressed="true">Dark mode</button><button id="connect">Connect MIDI</button></div></header>
+  <section class="connection" aria-label="MIDI connection">
+    <span id="midi-status" role="status">MIDI disconnected</span>
+    <label>Input <select id="inputs" disabled><option>No MIDI input connected</option></select></label>
+    <span id="pedal">Sustain off</span><button id="reset" class="quiet">Clear held keys</button>
+    <span id="midi-activity" aria-label="Last MIDI note"></span>
+  </section>
+
+  <section class="practice card" aria-label="Practice">
+    <div class="practice-top"><h2><span id="practice-title">Phrase</span> <span id="phrase-position"></span></h2><span><strong id="count">0</strong> <span id="count-label">repetitions completed</span></span></div>
+    <div id="staff" aria-label="Grand staff"></div>
+    <div class="feedback"><h2 id="feedback" role="status" aria-live="polite"></h2><span id="chord-name" role="status"></span><p id="detail"></p></div>
+    <div class="practice-actions"><label class="check"><input id="reveal" type="checkbox"> Show note names</label><span id="note-names" hidden></span></div>
+    <fieldset class="phrase-end"><legend>Mode</legend><label class="check"><input id="end-repeat" type="radio" name="end-action" value="repeat" checked> Repeat phrase</label><label class="check"><input id="end-new" type="radio" name="end-action" value="new"> Continuous</label></fieldset>
+  </section>
+
+  <section class="card keyboard-card" aria-label="Live keyboard">
+    <div class="keyboard-heading"><h2>Keyboard</h2><div class="keyboard-options"><label class="check keyboard-option"><input id="show-targets" type="checkbox"> Show targets on keyboard</label><label class="check keyboard-option"><input id="invert-keyboard" type="checkbox"> Invert keyboard colours</label></div></div>
+    <div class="legend"><span id="target-legend" class="target-dot" hidden>Target</span><span class="correct-dot">Correct / held</span><span class="wrong-dot">Extra / held</span><span class="sustain-dot">Sustained</span></div>
+    <div id="keyboard-scroll"><div id="keyboard" role="group" aria-label="Playable piano keys"></div></div>
+  </section>
+
+  <section class="settings-grid">
+    <div class="card settings"><h2>Practice setup</h2>
+      <label>Key <select id="key"><option value="C">C major / A minor</option></select></label>
+      <label>Staff / hand <select id="hand"><option value="right">Treble · right hand</option><option value="left">Bass · left hand</option><option value="both">Both hands</option></select></label>
+      <label>Phrase length <select id="length"><option value="1">1</option><option value="2">2</option><option value="4" selected>4</option><option value="8">8</option><option value="12">12</option><option value="16">16</option><option value="24">24</option><option value="32">32</option></select></label>
+      <label>Look-ahead <select id="preview"><option value="0">None</option><option value="1">1 upcoming</option><option value="2">2 upcoming</option><option value="3" selected>3 upcoming</option><option value="4">4 upcoming</option><option value="7">7 upcoming</option></select></label>
+      <label>Minimum notes per chord <select id="min-size"></select></label>
+      <label>Maximum notes per chord <select id="size"></select></label>
+      <label>Pitch material <select id="material"><option value="white">Notes in key</option><option value="sharps">Chromatic · prefer sharps</option><option value="flats">Chromatic · prefer flats</option></select></label>
+      <label>Reading range <select id="span"><option value="near">Near middle C</option><option value="wide">Wider staff range</option><option value="full">All available notes</option></select></label>
+    </div>
+    <div class="card settings"><h2>Physical keyboard range</h2>
+      <p class="small">Set the notes your instrument can play. MIDI middle C is C4 (60).</p>
+      <label>Lowest <output id="low-label"></output><input id="low" type="range" min="21" max="108" value="48"></label>
+      <label>Highest <output id="high-label"></output><input id="high" type="range" min="21" max="108" value="84"></label>
+      <div class="range-buttons"><button id="learn-low" class="quiet">Learn lowest key</button><button id="learn-high" class="quiet">Learn highest key</button></div>
+      <p id="range-status" class="small" role="status"></p>
+    </div>
+  </section>
+  <div class="end-ornament" aria-hidden="true">❦</div>
+</main>
+<script type="module" src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
