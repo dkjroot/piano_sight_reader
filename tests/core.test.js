@@ -935,3 +935,24 @@ test('random library selection respects all filters and avoids the current choic
   assert.equal(randomLibraryPiece(pieces,{},'',()=>NaN).id,'a');
   assert.equal(randomLibraryPiece(pieces,{},'',()=>.42).id,randomLibraryPiece(pieces,{},'',()=>.42).id,'injected randomness is reproducible');
 });
+
+
+test('library search matches accents, opus spacing and accidentals within selected facets',()=>{
+  const pieces=[{id:'chopin-op28-7',composer:'Frédéric Chopin',title:'Prelude in A major, Op. 28 No. 7',era:'Romantic',style:'Prelude'},
+    {id:'rachmaninoff-op3-2',composer:'Sergei Rachmaninoff',title:'Prelude in C-sharp minor, Op. 3 No. 2',era:'Romantic',style:'Prelude'},
+    {id:'bach-bwv846',composer:'Johann Sebastian Bach',title:'Prelude in C major, BWV 846',era:'Baroque',style:'Prelude'}];
+  const before=JSON.stringify(pieces);
+  for(const query of ['frederic CHOPIN','op28 7','Frédéric 28','chopin-op28-7'])
+    assert.deepEqual(filterLibrary(pieces,{query}).map(piece=>piece.id),['chopin-op28-7']);
+  for(const query of ['c# minor','C♯ minor','RACHMANINOFF Op3'])
+    assert.deepEqual(filterLibrary(pieces,{query}).map(piece=>piece.id),['rachmaninoff-op3-2']);
+  assert.deepEqual(filterLibrary(pieces,{query:'bwv846'}).map(piece=>piece.id),['bach-bwv846']);
+  assert.equal(filterLibrary(pieces,{query:'prelude',era:'Romantic'}).length,2);
+  assert.equal(filterLibrary(pieces,{query:'Chopin',era:'Baroque'}).length,0);
+  assert.equal(filterLibrary(pieces,{query:'  ...  '}).length,3);
+  assert.equal(filterLibrary(pieces,{query:42}).length,3);
+  assert.equal(filterLibrary(pieces,{query:'x'.repeat(200000)}).length,0);
+  assert.equal(randomLibraryPiece(pieces,{query:'op3'},'',()=>0).id,'rachmaninoff-op3-2');
+  assert.equal(randomLibraryPiece(pieces,{query:'no such piece'},'',()=>0),null);
+  assert.equal(JSON.stringify(pieces),before);
+});

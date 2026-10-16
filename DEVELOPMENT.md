@@ -627,3 +627,12 @@ remains a separate source/edition/asset review. The offline builder now requires
 permission evidence, a reviewed licence label/URL pair, full local share-alike text
 when applicable, and the reviewed MIDI hash. Tests rebuild every inspection and
 serve each MIDI/JSON locally. Unknown licences require an explicit future review.
+
+
+Library search is local and bounded to 120 query characters and the existing 500-piece
+catalogue. All tokens must match normalised title/composer/source-title/catalogue
+metadata; accents, punctuation and opus spacing are ignored, with sharp/flat symbols
+expanded. Facets still intersect and Random piece uses the same search result. Input
+updates browse controls only, preserving a compatible selection and active practice.
+No search work runs on MIDI events. Unit and browser regressions cover accents,
+catalogue numbers, empty results, filter intersections and preview isolation.

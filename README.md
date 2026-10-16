@@ -233,7 +233,8 @@ the top-right corner to close the guide and return to your existing practice tab
 
 The **Music library** has eight editions ready to load offline: Bach, Chopin,
 Beethoven, Haydn, Handel, Schumann, Clementi and Rachmaninoff. Filter by composer,
-era, style or difficulty, then select a piece and choose **Load piece**, or choose
+era, style or difficulty. Search by title, composer or opus number (accents and
+opus spacing are optional), then select a piece and choose **Load piece**, or choose
 **Random piece** for a selection within those filters. Adjust the preview if needed,
 then **Start practising this passage**. Your range, hand and pitch filters still apply.
 Edition credits are linked beside the selection and recorded in

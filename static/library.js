@@ -6,8 +6,14 @@ export function libraryValue(piece,field) {
 export function libraryFacets(pieces,field) {
   return [...new Set(pieces.map(piece=>libraryValue(piece,field)))].sort((a,b)=>a.localeCompare(b,'en'));
 }
+function searchable(value) {
+  return String(value??'').normalize('NFKD').replace(/\p{M}/gu,'').toLocaleLowerCase('en')
+    .replace(/[#♯]/g,'sharp').replace(/♭/g,'flat').replace(/[^\p{L}\p{N}]/gu,'');
+}
 export function filterLibrary(pieces,filters={}) {
-  return pieces.filter(piece=>LIBRARY_FIELDS.every(field=>!filters[field] || libraryValue(piece,field)===filters[field]))
+  const tokens=(typeof filters.query==='string' ? filters.query.slice(0,120) : '').split(/\s+/).map(searchable).filter(Boolean);
+  return pieces.filter(piece=>LIBRARY_FIELDS.every(field=>!filters[field] || libraryValue(piece,field)===filters[field]) &&
+    (!tokens.length || tokens.every(token=>searchable([piece.title,piece.composer,piece.source_title,piece.id,...LIBRARY_FIELDS.map(field=>libraryValue(piece,field))].join(' ')).includes(token))))
     .slice().sort((a,b)=>`${a.composer} ${a.title}`.localeCompare(`${b.composer} ${b.title}`,'en'));
 }
 

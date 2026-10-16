@@ -12,6 +12,7 @@ export class ScorePanel {
     try {this.savedPassages=parsePassages(localStorage.getItem(PASSAGES)||'[]');} catch {$('passage-status').textContent='Saved passages are unavailable; this visit still works.';}
     $('score-file').addEventListener('change',()=>{const file=$('score-file').files[0]; if(file) void this.readFile(file);});
     this.library=[]; this.sections=[];
+    $('library-search').addEventListener('input',()=>this.renderLibrary());
     for(const field of LIBRARY_FIELDS) $('library-'+field).addEventListener('change',()=>this.renderLibrary());
     $('library-piece').addEventListener('change',()=>{$('load-piece').disabled=!$('library-piece').value;});
     $('load-piece').addEventListener('click',()=>void this.loadPiece());
@@ -60,10 +61,11 @@ export class ScorePanel {
         select.replaceChildren(new Option('All',''),...libraryFacets(this.library,field).map(value=>new Option(value,value)));
         select.disabled=!this.library.length;
       }
+      $('library-search').disabled=!this.library.length;
       this.renderLibrary();
     } catch(error) {$('library-status').textContent=error.message;}
   }
-  libraryFilters() {return Object.fromEntries(LIBRARY_FIELDS.map(field=>[field,$('library-'+field).value]));}
+  libraryFilters() {return {...Object.fromEntries(LIBRARY_FIELDS.map(field=>[field,$('library-'+field).value])),query:$('library-search').value};}
   renderLibrary() {
     const select=$('library-piece'), selected=select.value;
     const pieces=filterLibrary(this.library,this.libraryFilters());

@@ -284,7 +284,7 @@ h1 .subtitle { display:block; letter-spacing:0; }
 .score-panel h3 { font:normal 19px 'Palatino Linotype',Georgia,serif; margin:24px 0 12px; }
 .score-panel > label, .library-choice label { display:grid; grid-template-columns:145px minmax(0,360px); justify-content:start; gap:14px; }
 .score-panel input, .score-panel select { min-width:0; width:100%; }
-.score-panel input[type=text], .score-panel input[type=number] { background:var(--paper); color:var(--ink); border:1px solid var(--line); padding:8px; border-radius:2px; font:inherit; }
+.score-panel input[type=text], .score-panel input[type=search], .score-panel input[type=number] { background:var(--paper); color:var(--ink); border:1px solid var(--line); padding:8px; border-radius:2px; font:inherit; }
 .score-panel input[type=number] { max-width:110px; }
 .score-panel input[type=file] { font:inherit; color:var(--ink); }
 .score-panel input[type=file]::file-selector-button { background:var(--button); color:var(--button-text); border:1px solid var(--button); border-radius:2px; padding:8px 12px; margin-right:10px; cursor:pointer; font:inherit; }

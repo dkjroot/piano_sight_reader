@@ -246,7 +246,9 @@ voice structure preserved. The untimed filtering foundation is complete.
   edition-specific evidence. A single grade must not replace those dimensions.
 - [x] Choose a random piece within composer/era/style/difficulty filters, excluding the
   current choice when alternatives exist, with reproducible injected randomness in tests.
-- [ ] Add recent pieces and richer catalogue search as the collection grows.
+- [x] Search catalogue titles, composers and opus numbers alongside filters and random
+  selection; ignore accents and opus spacing, and recognise sharp/flat symbols.
+- [ ] Add recent pieces as the collection grows.
 - [ ] Add notation-aware phrase/bar loops, continuous traversal of a real score, tempo
   goals and ramped loops. Current endpoints are attack ranges, not recovered bar numbers.
 - [ ] Extend suggestions with repeated motifs, harmonic cadences and editable timeline
