@@ -575,3 +575,30 @@ Primary API/source references:
 - https://vexflow.github.io/vexflow-examples/demos/interactivity/svg-interaction/
 - https://github.com/vexflow/vexflow/tree/0ca6f889545c33cce851b420c24945f6eb685aeb
 Full code/font notices and acquisition metadata are beside the bundled engine.
+
+
+## Authored study playback
+
+score_transport.js converts validated rational beats to seconds only at the audio
+boundary, integrating the authored tempo map. It builds scheduler plans from tied
+sounding spans (one attack per chain), preserves source segment IDs, supports voice
+selection and clipped beat ranges, and caps concurrent playback at 128 voices.
+PlaybackCursor handles look-ahead, pause/resume hold chase and overdue-event skips
+using the same contract as source MIDI. Binary audio seconds use numerical tolerances;
+the underlying score beats/durations remain exact and unchanged.
+
+StudyPlayer drives /notation-study with Play/Pause/Stop, selectable piano/organ/
+acoustic sound, volume and speed. Defaults copy current Target instrument/volume;
+preview changes are session-only and never rewrite main practice preferences.
+Selecting a score position stops audio and sets the next entry point; continuing
+sounds are deliberately re-articulated on playback entry. The visual cursor follows
+audio time without rerunning engraving or feeding a performance matcher. Background,
+blur, stop and configuration changes silence scheduled voices. Async acoustic loads
+are revision guarded, so Stop cannot cause delayed playback after decoding finishes.
+
+Tests cover tempo integration, triplets, tie versus repeat attacks, range clipping,
+voice selection, speed scaling, held-note chase, polyphony limits, UI pause/background/
+resume/stop, seeking, unsupported Web Audio, cancelled sample loading, no main-setting
+writes and real OfflineAudioContext rendering with clean voice/node termination.
+This proves authored notation-to-sound for the original study, not rhythmic input
+judgement, original-score recovery from MIDI or measured hardware latency.

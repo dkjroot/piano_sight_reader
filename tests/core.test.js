@@ -1,3 +1,4 @@
+import {scoreSecondsAt,authoredPlan} from '../static/score_transport.js';
 import {readFileSync} from 'node:fs';
 import {beat,addBeat,multiplyBeat,compareBeat,compileScore} from '../static/score_model.js';
 import {describeExercise} from '../static/exercise.js';
@@ -876,4 +877,47 @@ test('unisons in different authored voices stay independent rather than losing e
   Object.assign(bass.notes[0],{letter:'E',octave:4}); const score=compileScore(source);
   assert.equal(score.sounds.filter(note=>note.midi===64 && compareBeat(note.start,[0,1])===0).length,2);
   assert.ok(score.moments[0].attacks.includes('m1-inner-1-note')); assert.ok(score.moments[0].attacks.includes('m1-bass-1-note'));
+});
+
+test('authored playback respects tempo changes, exact tuplets and tie chains without extra attacks',()=>{
+  const score=compileScore(authoredStudy()), before=JSON.stringify(score), plan=authoredPlan(score);
+  const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-10,`${a} differs from ${b}`);
+  close(scoreSecondsAt(score,[4,1]),20/7); close(plan.duration,75/14);
+  assert.equal(plan.notes.length,16);
+  const tie=plan.notes.find(note=>note.id==='m1-inner-2-note');
+  assert.deepEqual(tie.sourceIds,['m1-inner-2-note','m2-inner-1-note']); close(tie.start,10/7); close(tie.end,20/7+1.25);
+  assert.ok(!plan.notes.some(note=>note.id==='m2-inner-1-note'));
+  const repeats=plan.notes.filter(note=>note.id.startsWith('m2-melody-') && note.pitch===76);
+  assert.equal(repeats.length,2); close(repeats[1].start-repeats[0].start,.625);
+  const triplets=plan.notes.filter(note=>note.id.startsWith('m1-triplet'));
+  for(const note of triplets) close(note.end-note.start,5/21);
+  assert.equal(plan.moments.length,score.moments.length); close(plan.moments[7].time,20/7);
+  assert.equal(JSON.stringify(score),before);
+});
+test('authored playback clips tied holds at boundaries, filters voices and scales only audio time',()=>{
+  const score=compileScore(authoredStudy()), original=authoredPlan(score), fast=authoredPlan(score,{speed:2});
+  assert.equal(fast.duration,original.duration/2);
+  assert.deepEqual(fast.notes.map(note=>note.sourceIds),original.notes.map(note=>note.sourceIds));
+  const cut=authoredPlan(score,{start:[4,1],end:[6,1],voices:['inner']});
+  assert.equal(cut.notes.length,1); assert.equal(cut.notes[0].start,0); assert.ok(Math.abs(cut.notes[0].end-1.25)<1e-10); assert.ok(Math.abs(cut.duration-1.25)<1e-10);
+  assert.deepEqual(cut.notes[0].sourceIds,['m1-inner-2-note','m2-inner-1-note']);
+  assert.equal(authoredPlan(score,{voices:[]}).notes.length,0);
+  assert.equal(authoredPlan(score,{speed:NaN}).duration,original.duration);
+  for(const options of [{start:[-1,1]},{end:[9,1]},{start:[4,1],end:[4,1]}]) assert.throws(()=>authoredPlan(score,options));
+  assert.throws(()=>scoreSecondsAt(score,[-1,1])); assert.throws(()=>scoreSecondsAt(score,[9,1]));
+  const dense={...score,sounds:Array.from({length:129},(_,i)=>({...score.sounds[0],id:'dense-'+i}))};
+  assert.throws(()=>authoredPlan(dense),/128 simultaneous/);
+});
+test('audio-clock cursor chases an authored tie once on resume and skips elapsed score attacks',()=>{
+  const score=compileScore(authoredStudy()), plan=authoredPlan(score), cursor=new PlaybackCursor(), notes=[];
+  const position=scoreSecondsAt(score,[4,1]); cursor.play(plan,10,position);
+  cursor.pump(10,note=>notes.push(note));
+  assert.equal(notes.filter(note=>note.id==='m1-inner-2-note').length,1);
+  assert.ok(!notes.some(note=>note.id==='m2-inner-1-note'));
+  assert.ok(!notes.some(note=>note.id==='m1-melody-1-note'));
+  assert.equal(notes.filter(note=>note.pitch===76).length,1);
+  assert.ok(notes.every(note=>note.duration>0 && note.time>=10));
+  cursor.pause(10.1); const saved=cursor.position; cursor.play(plan,20,saved);
+  const resumed=[]; cursor.pump(20,note=>resumed.push(note));
+  assert.equal(resumed.filter(note=>note.id==='m1-inner-2-note').length,1);
 });

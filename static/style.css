@@ -377,3 +377,8 @@ h1 .subtitle { display:block; letter-spacing:0; }
 .engraving-output .vf-stavenote > rect[opacity="0"] { pointer-events:none; }
 
 .engraving-output [data-note-hit] { fill:transparent !important; stroke:none !important; pointer-events:all; }
+
+.notation-sound { display:flex; align-items:center; flex-wrap:wrap; gap:12px 20px; }
+.notation-sound label { display:flex; align-items:center; gap:8px; }
+.notation-sound input { max-width:140px; }
+#study-audio-status { min-height:1.65em; }

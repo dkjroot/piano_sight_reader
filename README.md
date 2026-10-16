@@ -204,8 +204,13 @@ not diagnoses of finger/hand ability or conclusions from sparse samples.
 ## Notation study preview
 
 Choose **Explore the notation study** in Help to view an original two-bar example
-with independent voices, rests, dotted rhythm, triplets and a cross-bar tie. Use
-the position controls or select a note to inspect new attacks and continuing notes.
+with independent voices, rests, dotted rhythm, triplets and a cross-bar tie.
+**Play study** follows the written timing and tempo changes; **Pause**, **Resume study**
+and **Stop** control playback. Select a note or use Position to start from that point.
+The study has its own instrument, volume and speed controls, initially using your
+Target sound choices; changes here do not alter practice settings. Tied notes sound
+once across the barline, while repeated melody notes receive separate attacks.
+The position controls also inspect new attacks and continuing notes silently.
 This offline preview is a step toward full-score practice; it does not score your
 playing or turn imported MIDI into printed notation.
 

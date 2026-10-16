@@ -1,3 +1,4 @@
+import {StudyPlayer} from './study_player.js';
 import {compileScore,compareBeat,addBeat} from './score_model.js';
 import {ScoreEngraver} from './engraving.js';
 import {noteName} from './core.js';
@@ -19,10 +20,11 @@ try {
     $('notation-position').value=index; $('notation-previous').disabled=index===0; $('notation-next').disabled=index===score.moments.length-1;
     engraver.highlight(index);
   }
+  const player=new StudyPlayer(score,show);
   $('notation-position').max=score.moments.length-1; $('notation-position').disabled=false;
-  $('notation-position').addEventListener('input',event=>show(+event.target.value));
-  $('notation-previous').addEventListener('click',()=>show(index-1)); $('notation-next').addEventListener('click',()=>show(index+1));
-  engraver.onSelect=note=>show(score.moments.findIndex(moment=>compareBeat(moment.at,note.start)===0));
+  $('notation-position').addEventListener('input',event=>player.seek(+event.target.value));
+  $('notation-previous').addEventListener('click',()=>player.seek(index-1)); $('notation-next').addEventListener('click',()=>player.seek(index+1));
+  engraver.onSelect=note=>player.seek(score.moments.findIndex(moment=>compareBeat(moment.at,note.start)===0));
   let resize;
   window.addEventListener('resize',()=>{clearTimeout(resize); resize=setTimeout(()=>{engraver.draw(score); show(index);},100);});
   show(0);

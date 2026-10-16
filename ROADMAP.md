@@ -56,7 +56,9 @@ without requiring imported music. Random pitch practice remains available.
   beats, durations, independent voices/staves, measures/rests, pickups, key/meter and tempo maps.
 - [x] Validate explicit note-to-note ties, separate repeated attacks from continuing
   tied spans, and build an event timeline. Preserve MIDI inspections separately.
-- [ ] Connect authored expectations to live practice, duration/release judgement and playback.
+- [x] Play the authored study from its tempo map, durations and tie chains, with audio-
+  clock scheduling, visual following, pause/resume, seeking and independent preview sound.
+- [ ] Connect authored expectations to live practice and duration/release judgement.
 - [ ] Represent attacks, releases and continuing held notes separately. Support ties,
   repeated notes, overlaps between hands, sustain pedal and notes crossing barlines.
 - [ ] Extend the delivered fluid attack gate to authored voice/duration expectations:
@@ -446,3 +448,5 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Add an original two-bar polyphonic score-model fixture with held bass, two voices in one hand, cross-bar tie, rest, dots and simple triplets. Full engraving/matcher fixture coverage remains in Stage 2.
 
 - [x] Make the original notation study accessible from Help, with local engine/fonts, both palettes, keyboard/pointer note inspection and source/licence notices. This is a preview, not rhythmic practice.
+
+- [x] Render and play the original two-hand notation study with rests, independent voices, dots, triplets, tempo changes, cross-bar ties and distinct repeated attacks. Authored-score live judgement remains ahead.
