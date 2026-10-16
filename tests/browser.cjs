@@ -396,6 +396,24 @@ const { chromium } = require('playwright');
     assert.equal(await page.locator('html').getAttribute('data-density'),'compact');
     await page.reload(); await page.waitForSelector('.note');
     assert.equal(await page.inputValue('#density'),'compact');
+    await page.setViewportSize({width:1280,height:1000});
+    await page.locator('#connect').click();
+    await page.evaluate(()=>{
+      for (const [id,value] of Object.entries({source:'cadence','harmony-scale':'major','hand-span':12,low:60,high:84,size:3,'min-size':3,length:4,preview:3,'scroll-mode':'note',hand:'right',material:'white',span:'wide',key:'C'})) document.getElementById(id).value=value;
+      document.getElementById('source').dispatchEvent(new Event('change'));
+    });
+    assert.equal(await page.locator('#material').isDisabled(),true);
+    assert.equal(await page.locator('#harmony-scale').isDisabled(),false);
+    const cadencePcs=[[0,4,7],[0,5,9],[2,7,11],[0,4,7]];
+    for (let step=0;step<4;step++) {
+      const notes=await page.locator('.key.target').evaluateAll(keys=>keys.map(key=>+key.dataset.pitch));
+      assert.deepEqual([...new Set(notes.map(n=>n%12))].sort((a,b)=>a-b),cadencePcs[step]);
+      for (const n of notes) await send([0x90,n,90]); await page.waitForTimeout(160);
+      for (const n of notes) await send([0x80,n,0]); await page.waitForTimeout(300);
+    }
+    await page.screenshot({path:'test-results/harmonic-cadence.png',fullPage:true});
+    await page.reload(); await page.waitForSelector('.note');
+    assert.equal(await page.inputValue('#source'),'cadence');
     assert.deepEqual(errors, []);
     await page.close();
 

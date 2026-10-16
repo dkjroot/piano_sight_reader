@@ -1,9 +1,10 @@
-import {WHITE, KEYS, keyAlterations, spell, noteName, staffStep, makePhrase, chordName, match, Performance} from './core.js';
+import {WHITE, KEYS, keyAlterations, spell, noteName, staffStep, chordName, match, Performance} from './core.js';
 import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
+import {makePracticePhrase as makePhrase} from './harmony.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
-const controls = ['hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'material', 'span', 'low', 'high', 'key'];
+const controls = ['hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
 for (const id of ['size','min-size']) $(id).replaceChildren(...Array.from({length:10}, (_, i) => new Option(String(i+1), String(i+1))));
 $('key').replaceChildren(...KEYS.map(key => new Option(key.label, key.id)));
 let target = [], completed = 0, solved = false, settleTimer, nextTimer, access, selectedInput, learning;
@@ -29,6 +30,9 @@ function persist() { try { localStorage.setItem(storageKey, JSON.stringify(setti
 function syncMode() {
   const continuous = settings().endAction === 'new';
   $('length').disabled = continuous;
+  const harmonic=$('source').value !== 'random';
+  $('harmony-scale').disabled=!harmonic; $('hand-span').disabled=!harmonic;
+  $('material').disabled=harmonic;
   $('practice-title').textContent = continuous ? 'Practice' : 'Phrase';
   $('count-label').textContent = continuous ? 'targets completed' : 'repetitions completed';
 }
@@ -258,7 +262,7 @@ function advancePhrase() {
   if (settings().endAction === 'new' && phraseIndex >= 24) {
     const prune = phraseIndex-7;
     streamOffset += prune;
-    phrase = phrase.slice(prune).concat(makePhrase({...settings(),length:prune}));
+    phrase = phrase.slice(prune).concat(makePhrase({...settings(),length:prune,sequenceOffset:streamOffset+phrase.length-prune}));
     phraseIndex -= prune; target = phrase[phraseIndex];
   }
   drawStaff(); scrollToCurrent();
@@ -314,7 +318,7 @@ for (const id of controls) $(id).addEventListener('change', () => {
     if (id === 'min-size') $('size').value = $('min-size').value;
     else $('min-size').value = $('size').value;
   }
-  rangeLabels(); persist(); drawKeyboard(); newTarget();
+  syncMode(); rangeLabels(); persist(); drawKeyboard(); newTarget();
 });
 for (const id of ['low', 'high']) $(id).addEventListener('input', rangeLabels);
 for (const input of document.querySelectorAll('[name="end-action"]')) input.addEventListener('change', () => {persist(); syncMode(); completed=0; $('count').textContent='0'; newTarget();});

@@ -1,3 +1,4 @@
+import {makePracticePhrase, harmonicPitchClasses} from '../static/harmony.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {KEYS, keyAlterations, spellInKey, spell, spellChord, noteName, staffStep, candidates, makeTarget, makePhrase, chordName, match, Performance} from '../static/core.js';
@@ -183,4 +184,32 @@ test('compact staff layout removes whitespace without shrinking written interval
   assert.ok(compact.height < normal.height);
   assert.equal(compact.yFor(notes[0])-compact.yFor(notes[1]),normal.yFor(notes[0])-normal.yFor(notes[1]));
   assert.ok(notes.every(note=>compact.yFor(note)-32>0 && compact.yFor(note)+15<compact.height));
+});
+
+test('harmonic cadence keeps exact major and relative-minor triads across buffer offsets', () => {
+  const settings={...defaults,hand:'right',span:'wide',low:60,high:84,size:3,'min-size':3,length:4,source:'cadence',key:'C','hand-span':12};
+  const pcs=chord=>[...new Set(chord.map(n=>n.midi%12))].sort((a,b)=>a-b);
+  const major=makePracticePhrase(settings,()=>.2);
+  assert.deepEqual(major.map(pcs),[[0,4,7],[0,5,9],[2,7,11],[0,4,7]]);
+  const minor=makePracticePhrase({...settings,'harmony-scale':'minor'},()=>.2);
+  assert.deepEqual(minor.map(pcs),[[0,4,9],[2,5,9],[4,7,11],[0,4,9]]);
+  assert.deepEqual(makePracticePhrase({...settings,sequenceOffset:2,length:2},()=>.2).map(pcs),[[2,7,11],[0,4,7]]);
+  assert.deepEqual(harmonicPitchClasses('G',false,0),[7,11,2]);
+});
+test('harmonic voicings honour physical ranges, hands and span, without blocking random practice', () => {
+  let seed=3; const random=()=>((seed=seed*16807%2147483647)/2147483647);
+  for (const hand of ['left','right','both']) for (const key of ['C','G','Cb','F#']) {
+    const settings={...defaults,hand,key,source:'triads',span:'wide',low:36,high:84,size:6,'min-size':3,length:16,'hand-span':12};
+    for (const chord of makePracticePhrase(settings,random)) {
+      assert.ok(chord.length>=1);
+      assert.ok(chord.every(n=>n.midi>=36 && n.midi<=84));
+      for (const staff of ['treble','bass']) {
+        const notes=chord.filter(n=>n.staff===staff).map(n=>n.midi);
+        assert.ok(notes.length<=5);
+        if (notes.length) assert.ok(notes.at(-1)-notes[0]<=12);
+      }
+    }
+  }
+  assert.deepEqual(makePracticePhrase({...defaults,length:2},()=>.3),makePhrase({...defaults,length:2},()=>.3));
+  assert.deepEqual(makePracticePhrase({...defaults,source:'cadence',low:61,high:61,length:2}),[[],[]]);
 });

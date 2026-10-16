@@ -6,6 +6,10 @@ Flask serves local assets; the browser owns MIDI, notation, keyboard feedback an
 exercise state. `static/core.js` has spelling, target generation, exact matching,
 and per-source/channel held/sustain state. `static/app.js` handles UI, MIDI lifecycle
 and completion timing. Native modules need no build or npm install.
+`static/harmony.js` wraps the random generator with bounded diatonic chord/cadence
+voicings and local nearest-voicing preferences. Continuous refill passes an absolute
+sequence offset so cadences do not restart at buffer boundaries. Each hand has a
+span and five-note cap; all generated pitches still obey the physical/reading range.
 `makePhrase` chooses a per-target chord size within the bounds, then uses the
 same spelling/range generator. Phrases stay in memory, and repeat reuses the
 sequence. Display-only changes never regenerate it. The active target remains

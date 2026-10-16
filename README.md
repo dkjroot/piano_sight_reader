@@ -80,6 +80,12 @@ You can practise without MIDI by using the on-screen keys.
   in from the right. **Look-ahead** controls the maximum number of upcoming
   targets shown; the display fits fewer on smaller screens or for larger chords.
   **None** shows only the current target. Changing look-ahead preserves the phrase.
+- **Exercise** chooses Random pitches, Diatonic chords or Cadence. Harmonic
+  exercises follow the selected key's major or relative natural-minor tonality;
+  Cadence uses I–IV–V–I (i–iv–v–i in natural minor). Set both chord-size bounds to
+  3 for full triads, or allow single chord tones and doublings. Maximum hand span
+  bounds harmonic voicings; smaller targets may be necessary in narrow ranges.
+  Harmonic exercises stay diatonic, so chromatic preference is inactive there.
 - Choose **Key** for the signature on both staves. All 15 standard signatures
   are available, labelled with relative major/minor pairs. **Notes in key** follows
   that signature; chromatic modes add accidentals and naturals as needed. Minor

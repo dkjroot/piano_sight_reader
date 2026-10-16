@@ -20,9 +20,12 @@ exercises independently useful throughout. These are plans, not implemented clai
 
 ## Stage 1 — More musical generated practice
 
-- [ ] Offer random, diatonic/harmonic and deliberately dissonant material as choices.
-- [ ] Generate triads, sevenths, inversions, cadences and short tonal progressions.
-- [ ] Prefer playable hand spans and sensible voicings; bound leaps and voice movement.
+- [x] Offer random pitches and diatonic chords/cadences as choices; random remains unrestricted.
+- [ ] Add explicitly authored dissonant/advanced harmonic vocabularies.
+- [x] Generate diatonic triads, inversions/doublings and major/natural-minor cadences.
+- [ ] Add sevenths and more varied tonal progressions.
+- [x] Bound harmonic hand spans and prefer nearby voicings.
+- [ ] Extend explicit per-hand planning and leap limits to every exercise source.
 - [ ] Add melody, bass, chordal and broken-chord textures, with separate hand difficulty.
 - [ ] Separate difficulty dimensions: range, accidentals, ledger lines, density, leaps,
   independence of hands and rhythm. A single easy/hard label is insufficient internally.
