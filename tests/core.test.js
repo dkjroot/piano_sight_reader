@@ -2,7 +2,7 @@ import {scoreSecondsAt,authoredPlan} from '../static/score_transport.js';
 import {readFileSync} from 'node:fs';
 import {beat,addBeat,multiplyBeat,compareBeat,compileScore} from '../static/score_model.js';
 import {describeExercise} from '../static/exercise.js';
-import {libraryValue,libraryFacets,filterLibrary,randomLibraryPiece} from '../static/library.js';
+import {libraryValue,libraryFacets,filterLibrary,randomLibraryPiece,parseRecentLibrary,rememberLibraryPiece,recentLibraryPieces} from '../static/library.js';
 import {sourceBeats,BeatCursor} from '../static/beats.js';
 import {AcousticSamples,nearestSample} from '../static/samples.js';
 import {suggestPassages} from '../static/sections.js';
@@ -955,4 +955,27 @@ test('library search matches accents, opus spacing and accidentals within select
   assert.equal(randomLibraryPiece(pieces,{query:'op3'},'',()=>0).id,'rachmaninoff-op3-2');
   assert.equal(randomLibraryPiece(pieces,{query:'no such piece'},'',()=>0),null);
   assert.equal(JSON.stringify(pieces),before);
+});
+
+
+test('recent library identities are bounded, ordered, portable and tied to reviewed checksums',()=>{
+  const a={id:'bach-bwv846',sha256:'a'.repeat(64),title:'Prelude'}, b={id:'chopin-op28-7',sha256:'b'.repeat(64),title:'Prelude'};
+  let recent=rememberLibraryPiece([],a); recent=rememberLibraryPiece(recent,b);
+  assert.deepEqual(recent.map(piece=>piece.id),[b.id,a.id]);
+  recent=rememberLibraryPiece(recent,a);
+  assert.deepEqual(recent,[{id:a.id,sha256:a.sha256},{id:b.id,sha256:b.sha256}]);
+  const text=JSON.stringify({version:1,pieces:recent}); assert.deepEqual(parseRecentLibrary(text),recent);
+  assert.deepEqual(recentLibraryPieces([b,a],recent),[a,b]);
+  assert.deepEqual(recentLibraryPieces([{...a,sha256:'c'.repeat(64)}],recent),[],'changed editions cannot silently reuse a saved identity');
+  assert.deepEqual(recentLibraryPieces([],recent),[]);
+  const old=recent; recent=rememberLibraryPiece(recent,{...a,sha256:'c'.repeat(64)});
+  assert.equal(recent[0].sha256,'c'.repeat(64)); assert.equal(old[0].sha256,a.sha256);
+  for(let i=0;i<25;i++) recent=rememberLibraryPiece(recent,{id:'piece-'+i,sha256:'d'.repeat(64)});
+  assert.equal(recent.length,20); assert.equal(recent[0].id,'piece-24'); assert.equal(recent.at(-1).id,'piece-5');
+  assert.deepEqual(rememberLibraryPiece(null,a),[{id:a.id,sha256:a.sha256}]);
+  const bad=[null,{}, {...a,id:'../outside'}, {...a,id:'x'.repeat(81)}, {...a,sha256:'wrong'}, {...a,id:42}];
+  assert.deepEqual(parseRecentLibrary(JSON.stringify({version:1,pieces:[...bad,a,a,b]})),[{id:a.id,sha256:a.sha256},{id:b.id,sha256:b.sha256}]);
+  assert.deepEqual(parseRecentLibrary(JSON.stringify({version:1,pieces:[{...a,path:'private.mid',data:'music'}]})),[{id:a.id,sha256:a.sha256}]);
+  for(const text of ['oops','null','[]','{}','{"version":2,"pieces":[]}', 'x'.repeat(5001),null]) assert.throws(()=>parseRecentLibrary(text));
+  for(const entry of bad) assert.throws(()=>rememberLibraryPiece([],entry));
 });

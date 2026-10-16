@@ -636,3 +636,12 @@ expanded. Facets still intersect and Random piece uses the same search result. I
 updates browse controls only, preserving a compatible selection and active practice.
 No search work runs on MIDI events. Unit and browser regressions cover accents,
 catalogue numbers, empty results, filter intersections and preview isolation.
+
+
+Recent pieces uses a separate versioned local-storage key with up to 20 ID/checksum
+pairs, newest first. Titles come from the current catalogue; missing entries and
+changed checksums are omitted. Only successful bundled preview loads update the list.
+Local imports never enter it. Reopening a recent preview clears browsing constraints
+without activating practice. Clear recent removes just this key. Storage errors fall
+back to an in-memory list with a short status; storage events update other open tabs.
+The parser bounds payload size, strips unknown fields and rejects unsupported versions.

@@ -1,10 +1,11 @@
-import {LIBRARY_FIELDS,libraryFacets,filterLibrary,randomLibraryPiece} from './library.js';
+import {LIBRARY_FIELDS,libraryFacets,filterLibrary,randomLibraryPiece,parseRecentLibrary,rememberLibraryPiece,recentLibraryPieces} from './library.js';
 import {suggestPassages} from './sections.js';
 import {parsePassages,savePassage,passageKey} from './passages.js';
 import {attackGroups,makeOutline} from './outline.js';
 // Local file inspection is separate from the live MIDI event path.
 const $=id=>document.getElementById(id);
 const PASSAGES='piano-sight-reader-passages-v1';
+const RECENT='piano-sight-reader-recent-pieces-v1';
 export class ScorePanel {
   constructor(onPractice=()=>{},getSettings=()=>({low:48,high:84,hand:'right',material:'white',span:'near',size:1,key:'C'})) {
     this.getSettings=getSettings;
@@ -12,6 +13,27 @@ export class ScorePanel {
     try {this.savedPassages=parsePassages(localStorage.getItem(PASSAGES)||'[]');} catch {$('passage-status').textContent='Saved passages are unavailable; this visit still works.';}
     $('score-file').addEventListener('change',()=>{const file=$('score-file').files[0]; if(file) void this.readFile(file);});
     this.library=[]; this.sections=[];
+    this.recent=[]; this.recentInvalid=false;
+    try {this.recent=parseRecentLibrary(localStorage.getItem(RECENT)||'{"version":1,"pieces":[]}');}
+    catch {this.recentInvalid=true; $('recent-status').textContent='Recent pieces could not be read; this visit still works.';}
+    $('recent-piece').addEventListener('change',()=>{
+      const id=$('recent-piece').value;
+      if(!recentLibraryPieces(this.library,this.recent).some(piece=>piece.id===id)) return;
+      for(const field of LIBRARY_FIELDS) $('library-'+field).value='';
+      $('library-search').value=''; this.renderLibrary(); $('library-piece').value=id;
+      $('load-piece').disabled=false; void this.loadPiece();
+    });
+    $('clear-recent').addEventListener('click',()=>{
+      this.recent=[]; this.recentInvalid=false; const saved=this.persistRecent(); this.renderRecent();
+      $('recent-status').textContent=saved ? 'Recent pieces cleared.' : 'Cleared for this visit; browser storage could not update.';
+    });
+    window.addEventListener('storage',event=>{
+      if(event.key!==RECENT && event.key!==null) return;
+      try {this.recent=parseRecentLibrary(event.newValue||'{"version":1,"pieces":[]}'); this.recentInvalid=false; $('recent-status').textContent='';}
+      catch {this.recentInvalid=true; $('recent-status').textContent='Recent pieces could not be read.';}
+      this.renderRecent();
+    });
+
     $('library-search').addEventListener('input',()=>this.renderLibrary());
     for(const field of LIBRARY_FIELDS) $('library-'+field).addEventListener('change',()=>this.renderLibrary());
     $('library-piece').addEventListener('change',()=>{$('load-piece').disabled=!$('library-piece').value;});
@@ -61,7 +83,7 @@ export class ScorePanel {
         select.replaceChildren(new Option('All',''),...libraryFacets(this.library,field).map(value=>new Option(value,value)));
         select.disabled=!this.library.length;
       }
-      $('library-search').disabled=!this.library.length;
+      $('library-search').disabled=!this.library.length; this.renderRecent();
       this.renderLibrary();
     } catch(error) {$('library-status').textContent=error.message;}
   }
@@ -84,7 +106,22 @@ export class ScorePanel {
       $('score-file').value=''; this.useScore(score,piece.title);
       $('library-credit').textContent=`${piece.composer} · ${piece.era} · ${piece.style} · ${piece.contributor} · ${piece.licence}`;
       $('library-source').href=piece.source_page; $('library-source').hidden=false;
+      this.recent=rememberLibraryPiece(this.recent,piece); this.recentInvalid=false;
+      $('recent-status').textContent=this.persistRecent() ? '' : 'Recent pieces are available for this visit only.';
+      this.renderRecent();
     } catch(error) {if(revision===this.revision) $('score-status').textContent='Load failed: '+error.message;}
+  }
+  persistRecent() {
+    try {
+      if(this.recent.length) localStorage.setItem(RECENT,JSON.stringify({version:1,pieces:this.recent}));
+      else localStorage.removeItem(RECENT);
+      return true;
+    } catch {return false;}
+  }
+  renderRecent() {
+    const pieces=recentLibraryPieces(this.library,this.recent);
+    $('recent-piece').replaceChildren(new Option(pieces.length ? 'Choose a recent piece' : 'No recent pieces',''),...pieces.map(piece=>new Option(`${piece.composer} · ${piece.title}`,piece.id)));
+    $('recent-piece').disabled=!pieces.length; $('clear-recent').disabled=!this.recent.length && !this.recentInvalid;
   }
   async readFile(file) {
     const revision=++this.revision; $('score-status').textContent='Reading MIDI…'; this.onPassageChange();

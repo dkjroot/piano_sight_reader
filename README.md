@@ -246,6 +246,11 @@ Difficulty is currently **Unrated** until an editorial review establishes useful
 levels; no exam grades are inferred from MIDI. Browsing filters never replace
 the current practice passage.
 
+**Recent pieces** reopens a bundled piece's preview and clears the browsing filters.
+The list remembers up to 20 opened library pieces in this browser, using only their
+catalogue IDs and checksums. It stores no local MIDI files or paths. **Clear recent**
+removes the list independently of your practice history and saved passages.
+
 **Suggested section** splits a MIDI into manageable attack ranges, using marker
 messages, rest gaps and meter boundaries where available. These are practice
 suggestions, not recovered musical phrase markings. Adjust First/Last attack and

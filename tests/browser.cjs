@@ -967,6 +967,7 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     assert.equal(await page.locator('#practice-score').innerText(),'Start practising this passage');
     assert.equal(await page.locator('#export-score').innerText(),'Download MIDI data (JSON)');
     assert.deepEqual(await page.locator('#library-difficulty option').allTextContents(),['All','Unrated']);
+    assert.equal(await page.locator('#recent-piece').isDisabled(),true,'local MIDI imports must not enter recent bundled pieces');
     await page.selectOption('#library-era','Baroque');
     const baroqueIds=await page.locator('#library-piece option').evaluateAll(options=>options.map(option=>option.value).filter(Boolean));
     assert.ok(baroqueIds.includes('bach-bwv846')); assert.ok(baroqueIds.every(id=>bundledPieces.find(piece=>piece.id===id).era==='Baroque'));
@@ -1036,6 +1037,39 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     assert.equal(await page.inputValue('#library-piece'),'');
     await page.locator('#library-search').fill(''); await page.selectOption('#library-era','');
     assert.equal(await page.locator('#library-piece option').count(),bundledPieces.length+1);
+    const recentKey='piano-sight-reader-recent-pieces-v1';
+    const recentEntries=await page.evaluate(key=>JSON.parse(localStorage.getItem(key)),recentKey);
+    assert.equal(recentEntries.version,1); assert.equal(recentEntries.pieces[0].id,'rachmaninoff-op3-2');
+    assert.ok(recentEntries.pieces.every(piece=>Object.keys(piece).sort().join(',')==='id,sha256'));
+    await page.selectOption('#library-era','Baroque'); await page.locator('#library-search').fill('no matching title');
+    await page.selectOption('#recent-piece','chopin-op28-7');
+    await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('168 attacks'));
+    assert.equal(await page.inputValue('#library-search'),''); assert.equal(await page.inputValue('#library-era'),'');
+    assert.equal(await page.locator('#exercise-summary').innerText(),activeDescription);
+    const otherLibrary=await mainContext.newPage(); await otherLibrary.goto(page.url());
+    await otherLibrary.waitForFunction(()=>!document.getElementById('recent-piece').disabled);
+    assert.equal(await otherLibrary.locator('#recent-piece option').nth(1).getAttribute('value'),'chopin-op28-7','recent preview survives a new visit');
+    await otherLibrary.evaluate(key=>localStorage.setItem(key,'invalid JSON'),recentKey);
+    await page.waitForFunction(()=>document.getElementById('recent-status').textContent.includes('could not be read'));
+    await otherLibrary.reload(); await otherLibrary.waitForFunction(()=>document.getElementById('recent-status').textContent.includes('could not be read'));
+    await otherLibrary.locator('#clear-recent').click();
+    await page.waitForFunction(()=>document.getElementById('recent-piece').disabled);
+    assert.equal(await page.evaluate(key=>localStorage.getItem(key),recentKey),null);
+    assert.equal(await page.locator('#exercise-summary').innerText(),activeDescription);
+    await otherLibrary.evaluate(key=>{
+      const set=Storage.prototype.setItem,remove=Storage.prototype.removeItem;
+      Storage.prototype.setItem=function(name,value){if(name===key) throw new DOMException('Full','QuotaExceededError'); return set.call(this,name,value);};
+      Storage.prototype.removeItem=function(name){if(name===key) throw new DOMException('Blocked','SecurityError'); return remove.call(this,name);};
+    },recentKey);
+    await otherLibrary.selectOption('#library-piece','bach-bwv846'); await otherLibrary.locator('#load-piece').click();
+    await otherLibrary.waitForFunction(()=>document.getElementById('score-status').textContent.includes('549 attacks'));
+    assert.match(await otherLibrary.locator('#recent-status').innerText(),/this visit only/);
+    assert.equal(await otherLibrary.locator('#recent-piece').isDisabled(),false);
+    await otherLibrary.locator('#clear-recent').click();
+    assert.match(await otherLibrary.locator('#recent-status').innerText(),/storage could not update/);
+    assert.equal(await otherLibrary.locator('#recent-piece').isDisabled(),true);
+    await otherLibrary.close(); await page.bringToFront();
+
     assert.ok(requests.every(url=>!url.includes('/api/inspect-midi')),'bundled pieces use pre-ingested local data');
     assert.equal(await page.locator('.settings-stack #live-instrument').count(),1);
     assert.equal(await page.locator('.settings-stack #metronome').count(),1);
