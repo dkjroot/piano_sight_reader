@@ -1078,6 +1078,53 @@ const { chromium } = require('playwright');
     }
     await help.getByRole('link',{name:'MIDI problems',exact:true}).click();
     assert.ok(await help.locator('#midi').evaluate(section=>section.getBoundingClientRect().top<200));
+    await help.setViewportSize({width:1280,height:900});
+    const notationRequests=[];
+    const notationRequest=request=>notationRequests.push(request.url()); mainContext.on('request',notationRequest);
+    const [notation]=await Promise.all([help.waitForEvent('popup'),help.getByRole('link',{name:'Explore the notation study',exact:true}).click()]);
+    notation.on('pageerror',error=>errors.push(error.message));
+    await notation.waitForSelector('[data-score-note]');
+    assert.equal(await notation.locator('[data-score-note]').count(),17);
+    assert.equal(await notation.locator('.vf-stavetie').count(),1);
+    assert.equal(await notation.locator('.vf-tuplet').count(),1);
+    assert.equal(await notation.locator('.vf-beam').count(),2);
+    assert.equal(await notation.locator('#notation-status').innerText(),'Bar 1 · beat 1');
+    assert.equal(await notation.locator('[data-score-state="starting"]').count(),3);
+    await notation.evaluate(()=>{window.initialNotationSvg=document.querySelector('#engraving-output svg');});
+    await notation.locator('#notation-next').click();
+    assert.equal(await notation.locator('[data-score-state="continuing"]').count(),2);
+    await notation.locator('#notation-position').fill('7'); await notation.locator('#notation-position').dispatchEvent('input');
+    assert.equal(await notation.locator('#notation-status').innerText(),'Bar 2 · beat 1');
+    assert.equal(await notation.locator('[data-score-note="m2-inner-1-note"]').getAttribute('data-score-state'),'continuing');
+    assert.equal(await notation.locator('[data-score-note="m1-inner-2-note"]').getAttribute('data-score-state'),'');
+    assert.equal(await notation.locator('[data-score-note="m2-melody-1-note"]').getAttribute('data-score-state'),'starting');
+    await notation.locator('[data-score-note="m2-melody-2-note"]').click();
+    assert.equal(await notation.locator('#notation-status').innerText(),'Bar 2 · beat 2');
+    const highlightPerformance=await notation.evaluate(()=>{
+      const control=document.getElementById('notation-position'), samples=[];
+      const observer=new MutationObserver(()=>{}); observer.observe(document.getElementById('engraving-output'),{childList:true,subtree:true});
+      for(let i=0;i<200;i++) {const start=performance.now(); control.value=i%(+control.max+1); control.dispatchEvent(new Event('input')); samples.push(performance.now()-start);}
+      const childChanges=observer.takeRecords().length; observer.disconnect(); samples.sort((a,b)=>a-b);
+      return {p50:samples[99],p95:samples[189],max:samples.at(-1),childChanges,sameSvg:window.initialNotationSvg===document.querySelector('#engraving-output svg'),renders:document.getElementById('engraving-output').dataset.renders};
+    });
+    assert.equal(highlightPerformance.sameSvg,true); assert.equal(highlightPerformance.renders,'1'); assert.equal(highlightPerformance.childChanges,0,'highlighting must not rebuild notation');
+    require('node:fs').writeFileSync('test-results/engraving-highlight-performance.json',JSON.stringify({kind:'headless DOM highlight only; hardware/event-to-paint latency not measured',...highlightPerformance},null,2));
+    const end=await notation.locator('#notation-position').getAttribute('max'); await notation.locator('#notation-position').fill(end); await notation.locator('#notation-position').dispatchEvent('input');
+    assert.equal(await notation.locator('#notation-status').innerText(),'End of study'); assert.equal(await notation.locator('[data-score-state="starting"],[data-score-state="continuing"]').count(),0);
+    assert.equal(await notation.locator('#notation-next').isDisabled(),true);
+    for(const theme of ['light','dark']) {
+      if(await notation.locator('html').getAttribute('data-theme')!==theme) await notation.locator('#help-theme').click();
+      assert.equal(await notation.locator('svg [stroke="#000000"],svg [stroke="black"]').count(),0,'stems and barlines must follow the theme');
+      await notation.locator('.engraving-scroll').screenshot({path:`test-results/engraving-${theme}.png`});
+    }
+    await notation.setViewportSize({width:320,height:800});
+    await notation.waitForFunction(()=>+document.getElementById('engraving-output').dataset.renders>1);
+    assert.equal(await notation.locator('.vf-stavetie').count(),2,'a wrapped tie needs an ending and opening arc');
+    assert.equal(await notation.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await notation.screenshot({path:'test-results/engraving-mobile.png',fullPage:true});
+    assert.ok(notationRequests.every(url=>url.startsWith(new URL(page.url()).origin)),'notation must load without CDN or remote font requests'); mainContext.off('request',notationRequest);
+    assert.deepEqual(errors,[]);
+    await Promise.all([notation.waitForEvent('close'),notation.getByRole('button',{name:'Close notation study'}).click()]);
     assert.equal(await help.getByRole('link',{name:'Open practice',exact:true}).count(),0);
     await Promise.all([help.waitForEvent('close'),help.getByRole('button',{name:'Close help',exact:true}).click()]);
     assert.equal(page.isClosed(),false);

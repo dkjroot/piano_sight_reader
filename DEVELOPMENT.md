@@ -535,3 +535,43 @@ static/studies/independent-voices.json is an original two-bar regression study u
 the project's GPL terms: moving melody and held inner voice in one hand, held bass,
 a cross-bar tie, a rest, a dotted eighth/sixteenth pair and triplets. The model is
 not yet a new practice mode; current MIDI/generated behavior is unchanged.
+
+
+## Offline engraving evaluation
+
+/notation-study, linked from Help, renders the original authored fixture through
+ScoreEngraver and the pinned VexFlow 5.0.0 Bravura production bundle. The main app
+still uses its tested outline renderer and does not load VexFlow. Code MIT and font
+SIL OFL 1.1 notices, upstream source commit, npm archive integrity and per-file
+SHA-256 hashes are retained in static/vendor/vexflow-5.0.0. Normal use needs no npm,
+CDN, remote fonts, frontend build or additional Python package.
+
+The adapter aligns independent voices by exact musical time, renders simple/dotted
+values, voice rests, opposing stems, nearby accidental columns, eighth/sixteenth
+beams, simple tuplets and explicit ties. Wrapping a tie splits it into two system
+arcs. It currently accepts two fixed staves, up to eight measures / 128 events;
+per-event cross-staff placements are rejected by this adapter, not silently moved.
+Complex accidentals/unisons, nested/mixed tuplets, cross-staff engraving, changing
+clefs and full-score pagination need separate fixtures/evaluation before adoption.
+
+Notehead SVG elements retain authored IDs. Position highlighting updates only
+changed attributes/classes on existing nodes, including the current written segment
+of a continuing tie; it does not rerun engraving or infer a performance. Pointer
+hit rectangles are disabled inside the preview so actual noteheads can be selected.
+Engine hardcoded black fills/strokes are normalized to currentColor once after
+layout, so both palettes retain readable stems and barlines. Keyboard activation
+and text summaries identify voices and note states independently of colour.
+
+Browser checks cover note/beam/tuplet/tie counts, current tied segment, repeated
+attacks, pointer selection, stable SVG identity through 200 position changes,
+wrapped ties, theme contrast, narrow-screen overflow and local-only asset requests.
+Headless DOM highlight timings are written to ignored test-results only. Those are
+not MIDI hardware latency or event-to-paint measurements. This evaluation supports
+using VexFlow behind an adapter for authored scores; the original renderer stays
+until the voice-aware practice/transport contract is ready.
+
+Primary API/source references:
+- https://vexflow.github.io/vexflow-docs/api/5.0.0/classes/VexFlow.html
+- https://vexflow.github.io/vexflow-examples/demos/interactivity/svg-interaction/
+- https://github.com/vexflow/vexflow/tree/0ca6f889545c33cce851b420c24945f6eb685aeb
+Full code/font notices and acquisition metadata are beside the bundled engine.

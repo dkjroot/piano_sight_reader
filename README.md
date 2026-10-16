@@ -201,6 +201,14 @@ note's median against that exercise's baseline. Key, range, mode, source passage
 spelling remain distinct. These are practice clues with visible evidence counts,
 not diagnoses of finger/hand ability or conclusions from sparse samples.
 
+## Notation study preview
+
+Choose **Explore the notation study** in Help to view an original two-bar example
+with independent voices, rests, dotted rhythm, triplets and a cross-bar tie. Use
+the position controls or select a note to inspect new attacks and continuing notes.
+This offline preview is a step toward full-score practice; it does not score your
+playing or turn imported MIDI into printed notation.
+
 ## Active exercise
 
 The heading above the stave names the active exercise. Its description lists the

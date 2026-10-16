@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notation study · Piano Sight Reader</title>
+  <script>try { document.documentElement.dataset.theme=localStorage.getItem('piano-sight-reader-theme')==='light' ? 'light' : 'dark'; } catch {}</script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body><main class="help-page notation-page">
+  <header><h1>Independent voices</h1><div class="help-actions"><button id="help-theme" class="quiet">Light mode</button><button id="help-close" class="quiet" aria-label="Close notation study" title="Close">×</button></div></header>
+  <p>Notation study · original two-bar example. Inspect new attacks, continuing notes and releases. This preview does not judge your playing.</p>
+  <div class="notation-controls"><button id="notation-previous" class="quiet" disabled>Previous position</button><button id="notation-next" class="quiet" disabled>Next position</button><label>Position <input id="notation-position" type="range" min="0" max="0" value="0" disabled></label></div>
+  <p id="notation-status" role="status">Loading notation…</p>
+  <p id="notation-detail"></p>
+  <div class="engraving-scroll"><div id="engraving-output" class="engraving-output"></div></div>
+  <p class="small">Two upper voices, held bass, dotted rhythm, triplets, a rest and a tie across the barline. Select a note to inspect its starting position.</p>
+  {% include "_support.html" %}
+  <details><summary>Notation credits</summary><p>VexFlow 5.0.0 (MIT) with Bravura and Academico fonts (SIL OFL 1.1). All assets load locally. <a href="/static/vendor/vexflow-5.0.0/NOTICES.md">Full notices and sources</a>.</p></details>
+</main>
+<script src="{{ url_for('static', filename='vendor/vexflow-5.0.0/vexflow-bravura.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='help.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='notation_study.js') }}"></script>
+</body></html>

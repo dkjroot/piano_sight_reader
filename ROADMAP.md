@@ -64,8 +64,11 @@ without requiring imported music. Random pitch practice remains available.
 - [ ] Engrave multiple attacks per bar, note values, beams, rests, dots, tuplets, ties,
   changing signatures, courtesy/cancellation accidentals, cross-staff/voice collisions,
   pickups and phrase boundaries. Preserve authored enharmonic spelling.
-- [ ] Evaluate a score engraving engine against these examples before extending the
-  current SVG renderer into a complete engraving system. Keep the MIDI path lightweight.
+- [x] Evaluate an offline engraving engine against the original two-bar polyphonic
+  study: VexFlow renders voices, rests, dots, beams, triplets and cross-bar/system ties.
+  Highlight existing SVG nodes without rerunning layout; keep it off the live MIDI path.
+- [ ] Extend engraving fixtures to cross-staff/unison collisions, complex accidentals,
+  nested/mixed tuplets, changing clefs and full-score pagination before broad adoption.
 - [ ] Define loop entry/exit: tied notes at a cut, pedal state, pickups and re-articulation.
 
 Exit: a small authored two-hand passage renders and plays correctly with ties, rests,
@@ -441,3 +444,5 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Require fresh physical presses for every generated or imported target pitch, including shared changing-chord notes; ignore duplicate held note-ons for practice credit.
 
 - [x] Add an original two-bar polyphonic score-model fixture with held bass, two voices in one hand, cross-bar tie, rest, dots and simple triplets. Full engraving/matcher fixture coverage remains in Stage 2.
+
+- [x] Make the original notation study accessible from Help, with local engine/fonts, both palettes, keyboard/pointer note inspection and source/licence notices. This is a preview, not rhythmic practice.

@@ -18,6 +18,11 @@ def help_page():
     return render_template("help.html")
 
 
+@app.get("/notation-study")
+def notation_study():
+    return render_template("notation_study.html")
+
+
 @app.post("/api/inspect-midi")
 def inspect_local_midi():
     try:

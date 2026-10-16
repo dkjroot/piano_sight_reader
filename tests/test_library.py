@@ -53,3 +53,20 @@ class AcousticAssetTests(unittest.TestCase):
             self.assertEqual(sha256(data).hexdigest(), sample['sha256'])
         self.assertIn('Alexander Holm', (directory / 'NOTICES.md').read_text(encoding='utf-8'))
         self.assertIn('Attribution 3.0', (directory / 'CC-BY-3.0.txt').read_text(encoding='utf-8'))
+
+
+class NotationAssetTests(unittest.TestCase):
+    def test_offline_engine_matches_pinned_assets_and_font_notices(self):
+        from hashlib import sha256
+        directory = ROOT.parent / 'vendor' / 'vexflow-5.0.0'
+        manifest = json.loads((directory / 'manifest.json').read_text(encoding='utf-8'))
+        self.assertEqual(manifest['version'], '5.0.0')
+        self.assertEqual(manifest['source_commit'], '0ca6f889545c33cce851b420c24945f6eb685aeb')
+        self.assertTrue(manifest['package_integrity'].startswith('sha512-'))
+        for entry in manifest['files']:
+            data = (directory / entry['file']).read_bytes()
+            self.assertEqual(len(data), entry['bytes'])
+            self.assertEqual(sha256(data).hexdigest(), entry['sha256'])
+        self.assertIn('Permission is hereby granted', (directory / 'LICENSE-MIT.txt').read_text(encoding='utf-8'))
+        for font in ('bravura', 'academico'):
+            self.assertIn('SIL OPEN FONT LICENSE', (directory / (font+'-OFL.txt')).read_text(encoding='utf-8'))
