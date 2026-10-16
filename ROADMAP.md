@@ -52,8 +52,11 @@ without requiring imported music. Random pitch practice remains available.
 
 ## Stage 2 — A real score and performance model
 
-- [ ] Introduce an immutable source-score model with stable event IDs, rational beat
-  positions, durations, voices, staves, measures, rests, key/time signatures and tempo maps.
+- [x] Introduce an immutable authored score model with stable event IDs, exact rational
+  beats, durations, independent voices/staves, measures/rests, pickups, key/meter and tempo maps.
+- [x] Validate explicit note-to-note ties, separate repeated attacks from continuing
+  tied spans, and build an event timeline. Preserve MIDI inspections separately.
+- [ ] Connect authored expectations to live practice, duration/release judgement and playback.
 - [ ] Represent attacks, releases and continuing held notes separately. Support ties,
   repeated notes, overlaps between hands, sustain pedal and notes crossing barlines.
 - [ ] Extend the delivered fluid attack gate to authored voice/duration expectations:
@@ -436,3 +439,5 @@ depend on catalogue downloads, audio setup or an account.
 - [x] Make both Hear buttons temporary instrument auditions; live preview preserves Sound my playing and held voices. Use Target consistently in visible sound labels.
 
 - [x] Require fresh physical presses for every generated or imported target pitch, including shared changing-chord notes; ignore duplicate held note-ons for practice credit.
+
+- [x] Add an original two-bar polyphonic score-model fixture with held bass, two voices in one hand, cross-bar tie, rest, dots and simple triplets. Full engraving/matcher fixture coverage remains in Stage 2.

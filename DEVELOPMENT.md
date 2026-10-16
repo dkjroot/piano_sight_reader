@@ -509,3 +509,29 @@ that advance only after no input source physically holds that pitch. FlowGate us
 press baselines for matching/notation credit. Sustain does not block a released-key
 re-press; duplicate note-ons and overlapping source ownership cannot fabricate it.
 Retiring non-target notes from the previous chord retain their bounded legato grace.
+
+
+## Authored score foundation
+
+score_model.js is separate from raw MIDI inspections and current attack outlines.
+compileScore validates and clones a version-1 authored source, returning deeply
+frozen measures, events, written note segments, tied sounding spans, tempo changes
+and a sweep-line timeline of attacks/continuations/releases/voice rests. Beat arrays
+[numerator, denominator] use exact BigInt intermediate arithmetic and normalized
+safe integers; source objects are never modified. Quarter-note beats are the unit.
+
+The schema has stable IDs, one to four treble/bass staves, up to sixteen independent
+voices, optional authored hands/stems, per-event staff placement, key/meter changes,
+explicit pickup lengths and note/rest events. Values w/h/q/8/16/32 accept up to two
+dots and complete uniform simple tuplets. Every voice fills each measure with notes
+or explicit rests; overlaps, gaps, dangling/branching ties and contradictory pitches
+are rejected. Ties link particular same-pitch, adjacent segments in one voice and
+do not generate a second attack. Identical pitches in different voices retain IDs.
+Bounds: 1 MB source, 256 measures, 4,096 events and ten notes per chord. Nested/mixed
+value tuplets, per-note cross-staff chords, grace notes, clef changes and performance
+judgement are future work, not inferred from MIDI. Staff is not a detected hand.
+
+static/studies/independent-voices.json is an original two-bar regression study under
+the project's GPL terms: moving melody and held inner voice in one hand, held bass,
+a cross-bar tie, a rest, a dotted eighth/sixteenth pair and triplets. The model is
+not yet a new practice mode; current MIDI/generated behavior is unchanged.

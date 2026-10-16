@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+import {beat,addBeat,multiplyBeat,compareBeat,compileScore} from '../static/score_model.js';
 import {describeExercise} from '../static/exercise.js';
 import {libraryValue,libraryFacets,filterLibrary} from '../static/library.js';
 import {sourceBeats,BeatCursor} from '../static/beats.js';
@@ -806,4 +808,72 @@ test('duplicate note-ons and another still-held source cannot substitute for a p
   assert.equal(gate.evaluate(p.held,p.attacks).ready,false,'a second owner still physically holds the pitch');
   p.sustain('a',true); p.noteOff('a',60); p.noteOff('b',60); p.noteOn('a',60);
   assert.equal(gate.evaluate(p.held,p.attacks).ready,true,'pedal may stay down across a physical re-press');
+});
+
+const authoredStudy=()=>JSON.parse(readFileSync(new URL('../static/studies/independent-voices.json',import.meta.url),'utf8'));
+test('score beats remain exact across dots, tuplets, comparisons and invalid arithmetic',()=>{
+  assert.deepEqual(beat([6,9]),[2,3]); assert.deepEqual(beat([0,8]),[0,1]);
+  assert.deepEqual(addBeat([1,3],[2,3]),[1,1]); assert.deepEqual(multiplyBeat([3,4],[2,3]),[1,2]);
+  assert.deepEqual(addBeat([-1,2],[1,3]),[-1,6]);
+  assert.equal(compareBeat([1,3],[2,6]),0); assert.equal(compareBeat([1,3],[1,2]),-1); assert.equal(compareBeat([1,1],[1,2]),1);
+  for(const value of [null,[1,0],[1,-2],[1.2,2],['1',2],[1],[Infinity,2]]) assert.throws(()=>beat(value));
+  assert.throws(()=>addBeat([Number.MAX_SAFE_INTEGER,1],[1,1]),/exact integer/);
+});
+test('authored score keeps independent voices, exact rhythms and explicit tie attacks immutable',()=>{
+  const input=authoredStudy(), before=JSON.stringify(input), score=compileScore(input);
+  assert.equal(JSON.stringify(input),before); assert.deepEqual(score.duration,[8,1]);
+  assert.equal(score.events.length,18); assert.equal(score.notes.length,17); assert.equal(score.sounds.length,16);
+  assert.deepEqual(score.events.find(event=>event.id==='m1-melody-3').duration,[3,4]);
+  assert.deepEqual(score.events.find(event=>event.id==='m1-triplet-2').start,[10,3]);
+  const tie=score.sounds.find(note=>note.id==='m1-inner-2-note');
+  assert.deepEqual(tie.segments,['m1-inner-2-note','m2-inner-1-note']); assert.deepEqual(tie.start,[2,1]); assert.deepEqual(tie.end,[6,1]);
+  const bar=score.moments.find(moment=>compareBeat(moment.at,[4,1])===0);
+  assert.deepEqual(bar.continuing,['m1-inner-2-note']); assert.ok(!bar.attacks.includes('m2-inner-1-note'));
+  assert.ok(bar.attacks.includes('m2-melody-1-note')); assert.ok(bar.releases.includes('m1-bass-1-note'));
+  assert.ok(score.moments.find(moment=>compareBeat(moment.at,[5,1])===0).attacks.includes('m2-melody-2-note'),'a repeated E is a new event, not a tie');
+  assert.deepEqual(score.moments.find(moment=>compareBeat(moment.at,[6,1])===0).rests,['m2-melody-3']);
+  assert.deepEqual(score.moments.at(-1).continuing,[]); assert.equal(score.moments.at(-1).releases.length,3);
+  assert.equal(Object.isFrozen(score.source.measures[0].events[0].notes[0]),true);
+  assert.throws(()=>{score.notes[0].midi=1;},TypeError); assert.throws(()=>score.moments[0].attacks.push('fake'),TypeError);
+});
+test('authored pickups, changing meter/key, enharmonic octaves and cross-staff voices remain explicit',()=>{
+  const source=authoredStudy();
+  source.measures[0].events[0].staff='lower';
+  delete source.voices[0].hand;
+  let score=compileScore(source); assert.equal(score.notes[0].staffId,'lower'); assert.equal(score.voices[0].hand,undefined);
+  const single={version:1,id:'pickup-score',title:'Pickup',staves:[{id:'staff',clef:'treble'}],voices:[{id:'voice',staff:'staff'}],measures:[
+    {id:'pickup',length:[1,1],events:[{id:'pickup-event',voice:'voice',kind:'note',at:[0,1],value:'q',notes:[{id:'bsharp',letter:'B',accidental:1,octave:3}]}]},
+    {id:'three-four',meter:[3,4],key:'Gb',events:[{id:'bar-event',voice:'voice',kind:'note',at:[0,1],value:'h',dots:1,notes:[{id:'cflat',letter:'C',accidental:-1,octave:4}]}]}
+  ]};
+  score=compileScore(single);
+  assert.deepEqual(score.duration,[4,1]); assert.equal(score.notes[0].midi,60); assert.equal(score.notes[0].octave,3);
+  assert.equal(score.notes[1].midi,59); assert.equal(score.measures[1].key,'Gb'); assert.deepEqual(score.tempos,[{at:[0,1],bpm:120}]);
+  single.measures[1].events[0].value='q'; single.measures[1].events[0].dots=2; single.measures[1].length=[7,4];
+  assert.deepEqual(compileScore(single).events[1].duration,[7,4]);
+});
+test('authored score rejects gaps, overlaps, malformed pitches, tuplets and unsafe ties',()=>{
+  const variants=[
+    source=>{source.version=2;}, source=>{source.title='';}, source=>{source.staves[0].clef='unknown';},
+    source=>{source.voices[0].staff='absent';}, source=>{source.voices[0].hand='detected';}, source=>{source.voices[0].stem='sideways';},
+    source=>{source.measures[0].meter=[4,3];}, source=>{source.measures[0].key='H';}, source=>{source.measures[0].length=[0,1];},
+    source=>{source.measures[0].events[0].at=[1,2];}, source=>{source.measures[0].events[0].at=[-1,1];},
+    source=>{source.measures[0].events[0].voice='missing';}, source=>{source.measures[0].events[0].kind='unknown';},
+    source=>{source.measures[0].events[0].id=source.id;}, source=>{source.measures[0].events[0].value='128';},
+    source=>{source.measures[0].events[0].dots=3;}, source=>{source.measures[0].events[0].notes=[];},
+    source=>{source.measures[0].events[0].notes[0].letter='H';}, source=>{source.measures[0].events[0].notes[0].octave=20;},
+    source=>{source.measures[0].events[0].notes[0].midi=1;}, source=>{source.measures[0].events[0].notes[0].staff='lower';},
+    source=>{source.measures[0].events[0].notes.push({...source.measures[0].events[0].notes[0],id:'duplicate-pitch'});},
+    source=>{source.measures[0].events[6].tuplet.group='incomplete-tuplet';}, source=>{source.measures[0].events[4].tuplet.actual=0;},
+    source=>{source.measures[1].events[2].notes=[{id:'rest-pitch',letter:'C',accidental:0,octave:4}];},
+    source=>{source.ties.push({...source.ties[0]});}, source=>{source.ties[0].to='missing';}, source=>{source.ties[0].to='m2-melody-1-note';},
+    source=>{source.tempos[0].at=[1,1];}, source=>{source.tempos[1].bpm=0;}, source=>{source.tempos[1].at=[0,1];}
+  ];
+  variants.forEach((change,index)=>{const source=authoredStudy(); change(source); assert.throws(()=>compileScore(source),undefined,`malformed fixture ${index}`);});
+  assert.throws(()=>compileScore(null));
+});
+test('unisons in different authored voices stay independent rather than losing event identity',()=>{
+  const source=authoredStudy(), bass=source.measures[0].events.find(event=>event.voice==='bass');
+  Object.assign(bass.notes[0],{letter:'E',octave:4}); const score=compileScore(source);
+  assert.equal(score.sounds.filter(note=>note.midi===64 && compareBeat(note.start,[0,1])===0).length,2);
+  assert.ok(score.moments[0].attacks.includes('m1-inner-1-note')); assert.ok(score.moments[0].attacks.includes('m1-bass-1-note'));
 });
