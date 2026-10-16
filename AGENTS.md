@@ -34,8 +34,9 @@ Web MIDI without a front-end build step.
   fresh articulation. Preserve the current scrolling policy pending real scores.
 - Repeat/Continuous are the automatic modes; do not restore redundant manual
   Repeat phrase/New phrase buttons. Optional note-by-note versus page-by-page
-  scrolling is on the backlog and must be independent of practice progression.
-- Keep the active target leftmost beside the clefs, future targets to its right.
+  scrolling must remain independent of practice progression.
+- In note-by-note view keep the active target leftmost beside the clefs; page view
+  keeps the displayed group still until its last target is completed.
   Look-ahead is remembered and limited by readable viewport capacity. Changing
   look-ahead/viewport must not regenerate the sequence or reset progress.
 - Show a feasible chord name only after correct playing and an exact match to a

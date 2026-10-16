@@ -1,9 +1,9 @@
 import {WHITE, KEYS, keyAlterations, spell, noteName, staffStep, makePhrase, chordName, match, Performance} from './core.js';
-import {staffLayout, accidentalLayout} from './notation.js';
+import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
-const controls = ['hand', 'size', 'min-size', 'length', 'preview', 'material', 'span', 'low', 'high', 'key'];
+const controls = ['hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'material', 'span', 'low', 'high', 'key'];
 for (const id of ['size','min-size']) $(id).replaceChildren(...Array.from({length:10}, (_, i) => new Option(String(i+1), String(i+1))));
 $('key').replaceChildren(...KEYS.map(key => new Option(key.label, key.id)));
 let target = [], completed = 0, solved = false, settleTimer, nextTimer, access, selectedInput, learning;
@@ -40,6 +40,7 @@ function rangeLabels() {
 function applyTheme(dark) {
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   $('theme-toggle').setAttribute('aria-pressed', String(dark));
+  $('theme-toggle').textContent = dark ? 'Light mode' : 'Dark mode';
 }
 applyTheme(document.documentElement.dataset.theme === 'dark');
 $('theme-toggle').addEventListener('click', () => {
@@ -77,10 +78,9 @@ function drawStaff() {
   const capacity = Math.max(1, Math.floor((width-firstX-100)/stride)+1);
   const columns = Math.min(capacity, settings().preview+1);
   let systems = '';
-  for (let start = phraseIndex; start < Math.min(phrase.length,phraseIndex+columns); start += columns) {
-  const chunk = settings().endAction === 'repeat'
-    ? Array.from({length:columns},(_,local) => phrase[(start+local)%phrase.length])
-    : phrase.slice(start, start+columns);
+  const indices = readingWindow({index:phraseIndex,length:phrase.length,capacity,preview:settings().preview,mode:settings()['scroll-mode'],repeat:settings().endAction === 'repeat',offset:streamOffset});
+  for (const start of indices.length ? [indices[0]] : []) {
+  const chunk = indices.map(index => phrase[index%phrase.length]);
   const centre = local => firstX+local*stride;
   const allNotes = chunk.flatMap((chord,local) => chord.map(note => ({...note, phraseStep:start+local})));
   const treble = allNotes.filter(n => n.staff === 'treble');
@@ -91,7 +91,7 @@ function drawStaff() {
   let svg = `<svg class="phrase-system" data-start="${start}" data-end="${start+chunk.length-1}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Phrase steps ${start+1} to ${start+chunk.length}"><title>Phrase on grand staff</title>`;
   for (let local = 0; local < chunk.length; local++) {
     const step = start+local, x = centre(local);
-    svg += `<text class="step-number" x="${x}" y="24" text-anchor="middle">${settings().endAction === 'new' ? streamOffset+step+1 : step%phrase.length+1}</text>`;
+    svg += `<text class="step-number" x="${x}" y="24" text-anchor="middle">${settings().endAction === 'new' ? streamOffset+step+1 : step%phrase.length+1}${step < phraseIndex ? ' ✓' : ''}</text>`;
     if (step === phraseIndex) svg += `<path class="phrase-pointer" data-step="${step}" d="M${x-7} 32h14l-7 9z"/>`;
     // Each untimed target is its own measure, so an accidental cannot silently
     // carry into the next chord while the viewport moves.
@@ -240,10 +240,11 @@ function advancePhrase() {
     return;
   }
   phraseIndex++; target = phrase[phraseIndex]; solved = false;
-  if (settings().endAction === 'new' && phraseIndex >= 16) {
-    streamOffset += phraseIndex;
-    phrase = phrase.slice(phraseIndex).concat(makePhrase({...settings(),length:16}));
-    phraseIndex = 0; target = phrase[0];
+  if (settings().endAction === 'new' && phraseIndex >= 24) {
+    const prune = phraseIndex-7;
+    streamOffset += prune;
+    phrase = phrase.slice(prune).concat(makePhrase({...settings(),length:prune}));
+    phraseIndex -= prune; target = phrase[phraseIndex];
   }
   drawStaff(); scrollToCurrent();
   update();
@@ -292,7 +293,7 @@ function update() {
 }
 
 for (const id of controls) $(id).addEventListener('change', () => {
-  if (id === 'preview') {persist(); drawStaff(); update(); return;}
+  if (['preview','scroll-mode'].includes(id)) {persist(); drawStaff(); update(); return;}
   if (+$('low').value > +$('high').value) $(id === 'low' ? 'high' : 'low').value = $(id).value;
   if (+$('min-size').value > +$('size').value) {
     if (id === 'min-size') $('size').value = $('min-size').value;

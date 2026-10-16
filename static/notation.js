@@ -29,3 +29,12 @@ export function staffLayout(target) {
   const height = Math.max(bassBottom + margin, ...bass.map(n => bassY(n) + margin));
   return {trebleBottom, bassBottom, height, yFor: n => n.staff === 'bass' ? bassY(n) : trebleY(n)};
 }
+
+// Pure viewport policy: changing display never changes the musical sequence.
+export function readingWindow({index, length, capacity, preview, mode = 'note', repeat = true, offset = 0}) {
+  if (!length) return [];
+  const count = Math.max(1, Math.min(capacity, preview+1));
+  const start = mode === 'page' ? Math.max(0,index-((offset+index)%count)) : index;
+  const end = mode === 'note' && repeat ? start+count : Math.min(length,start+count);
+  return Array.from({length:Math.max(0,end-start)}, (_,i) => start+i);
+}

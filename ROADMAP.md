@@ -327,7 +327,7 @@ against an uninterrupted clock. Each mode has explicit, testable recovery rules.
 
 ## Visual backlog
 
-- [ ] Offer a remembered scrolling policy independently of Repeat/Continuous:
+- [x] Offer a remembered scrolling policy independently of Repeat/Continuous:
   **note by note** keeps the active target at the left beside the clefs; **page
   by page** keeps the displayed group still, moves the active pointer through
   it, and replaces the whole page only after its last target is completed.
@@ -357,7 +357,7 @@ against an uninterrupted clock. Each mode has explicit, testable recovery rules.
   two-clef score flag, gently rippling, anchored at the left and fading toward the right,
   with “Piano Sight Reader” superimposed. Keep it restrained, legible and compatible with
   both palettes; export local assets and check rights/provenance of any references.
-- [ ] Theme button should name its destination: **Light mode** when dark is active,
+- [x] Theme button should name its destination: **Light mode** when dark is active,
   **Dark mode** when light is active. Include an accessible state/name contract.
 - [ ] Preserve strong feedback contrast, non-colour symbols, optional keyboard inversion,
   uncluttered copy and the classical score character through future visual work.

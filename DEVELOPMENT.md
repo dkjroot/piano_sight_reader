@@ -9,7 +9,8 @@ and completion timing. Native modules need no build or npm install.
 `makePhrase` chooses a per-target chord size within the bounds, then uses the
 same spelling/range generator. Phrases stay in memory, and repeat reuses the
 sequence. Display-only changes never regenerate it. The active target remains
-leftmost after the signature, followed by a bounded look-ahead window. Completion
+leftmost after the signature in note view. In page view the pointer advances within
+a stationary window. Both use the pure readingWindow policy and bounded look-ahead. Completion
 requires a stable correct set and physical release, then automatically loops or
 advances according to the remembered mode. Repeat previews wrapped opening events
 with virtual step IDs beyond the end and a double barline at the loop boundary;

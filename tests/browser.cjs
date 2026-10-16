@@ -35,6 +35,7 @@ const { chromium } = require('playwright');
     await page.locator('#show-targets').check();
     assert.notEqual(await marker(), 'none');
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
+    assert.equal(await page.locator('#theme-toggle').innerText(),'Light mode');
     await page.locator('#theme-toggle').click();
     assert.equal(await page.locator('.note').first().getAttribute('rx'), '7.5');
     assert.equal(await page.locator('.note').first().getAttribute('ry'), '4.5');
@@ -342,14 +343,14 @@ const { chromium } = require('playwright');
     assert.equal(await page.locator('#repeat, #skip').count(),0);
     assert.equal(await page.locator('.phrase-boundary').count(),0);
     await page.locator('#connect').click();
-    for (let step=1; step<=17; step++) {
+    for (let step=1; step<=29; step++) {
       assert.equal(await page.locator('#phrase-position').innerText(),String(step));
       const note = +(await page.locator('.key.target').getAttribute('data-pitch'));
       await send([0x90,note,90]); await page.waitForTimeout(160);
       await send([0x80,note,0]); await page.waitForTimeout(300);
     }
-    assert.equal(await page.locator('#phrase-position').innerText(),'18');
-    assert.equal(await page.locator('#count').innerText(),'17');
+    assert.equal(await page.locator('#phrase-position').innerText(),'30');
+    assert.equal(await page.locator('#count').innerText(),'29');
     await page.reload(); await page.waitForSelector('.note');
     assert.equal(await page.locator('#end-new').isChecked(),true);
     assert.equal(await page.locator('#length').isDisabled(),true);
@@ -357,6 +358,26 @@ const { chromium } = require('playwright');
     assert.equal(await page.locator('#length').isDisabled(),false);
     assert.equal(await page.inputValue('#length'),'2');
     assert.equal(await page.locator('#phrase-position').innerText(),'1 / 2');
+    await page.locator('#connect').click();
+    await page.evaluate(() => {
+      for (const [id,value] of Object.entries({low:60,high:72,size:1,'min-size':1,length:8,preview:3,'scroll-mode':'page',hand:'right',material:'white',key:'C'})) document.getElementById(id).value=value;
+      document.getElementById('length').dispatchEvent(new Event('change'));
+    });
+    const pageGeometry = await page.locator('.note').evaluateAll(notes=>notes.map(n=>[n.dataset.step,n.getAttribute('cx')]));
+    for (let step=0; step<4; step++) {
+      const pitch=+(await page.locator('.key.target').getAttribute('data-pitch'));
+      await send([0x90,pitch,90]); await page.waitForTimeout(160);
+      await send([0x80,pitch,0]); await page.waitForTimeout(300);
+      if (step<3) assert.deepEqual(await page.locator('.note').evaluateAll(notes=>notes.map(n=>[n.dataset.step,n.getAttribute('cx')])),pageGeometry);
+    }
+    assert.equal(await page.locator('.phrase-system').getAttribute('data-start'),'4');
+    const current=await page.locator('.key.target').getAttribute('data-pitch');
+    await page.selectOption('#scroll-mode','note');
+    assert.equal(await page.locator('.key.target').getAttribute('data-pitch'),current);
+    assert.equal(await page.locator('.phrase-pointer').getAttribute('data-step'),'4');
+    await page.selectOption('#scroll-mode','page');
+    await page.reload(); await page.waitForSelector('.note');
+    assert.equal(await page.inputValue('#scroll-mode'),'page');
     assert.deepEqual(errors, []);
     await page.close();
 

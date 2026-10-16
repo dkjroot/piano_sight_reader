@@ -70,7 +70,10 @@ You can practise without MIDI by using the on-screen keys.
   per chord** (1–10). For a mix of single notes and small chords, use minimum 1
   and maximum 3. Equal bounds give a fixed chord size, where the range allows it.
   Phrase length is disabled in Continuous; your repeat length is retained.
-- The current target stays beside the clefs. Correct answers move the next one
+- **Scrolling** offers **Note by note** (active target stays beside the clefs) or
+  **Page by page** (pointer moves through a stationary group, then the next page appears).
+  Changing scrolling preserves the phrase and progress.
+- The current target stays beside the clefs in note-by-note view. Correct answers move the next one
   in from the right. **Look-ahead** controls the maximum number of upcoming
   targets shown; the display fits fewer on smaller screens or for larger chords.
   **None** shows only the current target. Changing look-ahead preserves the phrase.

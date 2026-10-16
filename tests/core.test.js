@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {KEYS, keyAlterations, spellInKey, spell, spellChord, noteName, staffStep, candidates, makeTarget, makePhrase, chordName, match, Performance} from '../static/core.js';
-import {staffLayout, accidentalLayout} from '../static/notation.js';
+import {staffLayout, accidentalLayout, readingWindow} from '../static/notation.js';
 
 const defaults = {low: 48, high: 84, hand: 'right', material: 'white', span: 'near', size: 1};
 test('phrases have bounded lengths and varied chord sizes within minimum/maximum', () => {
@@ -164,4 +164,15 @@ test('irrelevant MIDI traffic and unchanged notes do not trigger UI work', () =>
   for (const data of [[0xfe], [0xf8], [0xe0, 64, 64], [0xb0, 7, 100], [0xd0, 40]]) assert.equal(p.midi('piano', data), false);
   assert.equal(p.midi('piano', [0x90, 60, 100]), true);
   assert.equal(p.midi('piano', [0x90, 60, 100]), false);
+});
+
+test('reading windows page without changing targets and retain partial final pages', () => {
+  const base={index:5,length:8,capacity:4,preview:3};
+  assert.deepEqual(readingWindow(base),[5,6,7,8]);
+  assert.deepEqual(readingWindow({...base,mode:'page'}),[4,5,6,7]);
+  assert.deepEqual(readingWindow({...base,length:6,mode:'page'}),[4,5]);
+  assert.deepEqual(readingWindow({...base,index:7,preview:0,mode:'page'}),[7]);
+  assert.deepEqual(readingWindow({...base,index:7,offset:17,length:32,mode:'page',repeat:false}),[7,8,9,10]);
+  assert.deepEqual(readingWindow({...base,index:0,length:0}),[]);
+  assert.deepEqual(readingWindow({...base,index:0,length:0,repeat:false}),[]);
 });
