@@ -7,6 +7,10 @@ Web MIDI without a front-end build step.
 
 ## Public repository requirements
 
+- Work in the user's current checkout and branch by default. Do not create or
+  use a separate worktree unless the user explicitly requests one. Preserve
+  concurrent edits made in external editors such as Visual Studio Code.
+
 - Keep README.md human-facing: setup, run instructions, usage and troubleshooting.
   Keep architecture, tests, to-do lists and plans in development files.
 - Keep requirements.txt and setup/run instructions current with every change.
