@@ -337,18 +337,18 @@ against an uninterrupted clock. Each mode has explicit, testable recovery rules.
 - [ ] Keep the single-page interface, with settings visible on the page and more
   settings reachable by scrolling below the playing area rather than moving them
   into separate screens or hidden settings dialogs.
-- [ ] Fit the staff and on-screen keyboard together in a typical 1080p desktop
+- [x] Fit the staff and on-screen keyboard together in a typical 1080p desktop
   browser viewport without page scrolling. Budget for title/tab/address/bookmark
   bars and the OS taskbar; use actual CSS viewport height, not screen resolution.
 - [ ] Recover roughly 100 px from the top area as a starting experiment: reduce
   masthead height, padding and gaps, and combine compact status/control rows.
   Measure the result rather than treating 100 px or 10 percent as a fixed rule.
-- [ ] Offer a remembered compact/density setting or collapsible masthead/status
+- [x] Offer a remembered compact/density setting or collapsible masthead/status
   area, so users can scale the playing surface to their window and preference.
   Keep essential MIDI status and controls accessible, with an obvious restore action.
 - [ ] Preserve notehead readability, generous ledger-line space and colour-blind
   feedback. Do not solve vertical fit simply by shrinking all notation or keys.
-- [ ] Add viewport regression cases for 1920x1080 screens with reduced browser
+- [x] Add viewport regression cases for 1920x1080 screens with reduced browser
   content heights (for example 1920x900 and 1536x800), laptop-sized windows,
   mobile layouts, zoom and dense/extreme-ledger targets. Verify staff/keyboard
   bounds, readable controls and access to every setting below. Allow internal

@@ -78,7 +78,8 @@ Web MIDI without a front-end build step.
   extend below the playing area. Prioritise simultaneous staff/keyboard visibility
   on typical 1080p browser viewports, allowing space for browser chrome. Future
   compact/collapsible header options must preserve readable notation, ledger-line
-  room, feedback contrast and usable controls. This layout work is on the backlog.
+  room, feedback contrast and usable controls. Automatic density should fit the
+  staff and keyboard on common desktop viewports with browser chrome.
 
 See DEVELOPMENT.md for architecture, checks, limitations and future direction.
 See ROADMAP.md for staged long-term work; do not implement backlog entries merely

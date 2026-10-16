@@ -176,3 +176,11 @@ test('reading windows page without changing targets and retain partial final pag
   assert.deepEqual(readingWindow({...base,index:0,length:0}),[]);
   assert.deepEqual(readingWindow({...base,index:0,length:0,repeat:false}),[]);
 });
+
+test('compact staff layout removes whitespace without shrinking written intervals or clipping extremes', () => {
+  const notes=['treble','bass'].flatMap(staff=>[0,60,127].map(midi=>({...spell(midi),staff})));
+  const normal=staffLayout(notes), compact=staffLayout(notes,{compact:true});
+  assert.ok(compact.height < normal.height);
+  assert.equal(compact.yFor(notes[0])-compact.yFor(notes[1]),normal.yFor(notes[0])-normal.yFor(notes[1]));
+  assert.ok(notes.every(note=>compact.yFor(note)-32>0 && compact.yFor(note)+15<compact.height));
+});

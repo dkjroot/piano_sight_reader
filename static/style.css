@@ -103,3 +103,28 @@ input { accent-color:var(--green); }
 .range-buttons { display:flex; gap:8px; flex-wrap:wrap; margin-top:18px; }
 .end-ornament { text-align:center; color:var(--accent); font:30px Georgia, serif; margin:12px 0 0; }
 @media(max-width:650px) { main { padding:20px 16px 6px; margin:0; border:0; } header { align-items:center; gap:10px; padding-bottom:18px; } .title-block { gap:10px; } .lyre { width:38px; height:65px; } h1 { font-size:36px; } .subtitle { font-size:17px; } .header-actions { gap:7px; max-width:126px; } .header-actions button { font-size:12px; padding:8px 10px; } .settings-grid { grid-template-columns:1fr; gap:0; } .settings + .settings { border-left:0; border-top:1px solid var(--line); padding-left:0; } .practice { padding:12px 0; } .keyboard-card { padding:18px 0 8px; } #staff svg { min-height:170px; } .feedback h2 { font-size:21px; } .connection label { width:100%; } .connection select { flex:1; } }
+
+/* Fit the playing surface on browser viewports reduced by desktop chrome.
+   Compactness removes whitespace; ledger positions and notehead sizes stay intact. */
+:root[data-density=compact] main { margin:8px auto; padding:10px 28px 8px; }
+:root[data-density=compact] header { padding-bottom:8px; margin-bottom:8px; }
+:root[data-density=compact] h1 { font-size:34px; margin-bottom:0; }
+:root[data-density=compact] .subtitle { font-size:17px; }
+:root[data-density=compact] .lyre { width:46px; height:60px; }
+:root[data-density=compact] .connection { gap:8px; margin-bottom:6px; font-size:11px; }
+:root[data-density=compact] .connection select { padding:5px; }
+:root[data-density=compact] #midi-activity { flex-basis:auto; }
+:root[data-density=compact] .practice { padding:5px 0 9px; }
+:root[data-density=compact] .practice-top h2 { font-size:20px; }
+:root[data-density=compact] #staff { max-height:min(390px,46vh); }
+:root[data-density=compact] .feedback { min-height:28px; }
+:root[data-density=compact] .feedback h2 { font-size:18px; }
+:root[data-density=compact] .feedback p { margin:4px 0; }
+:root[data-density=compact] .practice-actions { padding-top:6px; }
+:root[data-density=compact] .phrase-end { padding-top:7px; }
+:root[data-density=compact] .keyboard-card { padding:10px 0 6px; }
+:root[data-density=compact] .keyboard-heading { margin-bottom:7px; }
+:root[data-density=compact] .legend { margin-bottom:7px; }
+:root[data-density=compact] #keyboard { height:122px; }
+:root[data-density=compact] .key.white { height:118px; }
+:root[data-density=compact] .key.black { height:76px; }

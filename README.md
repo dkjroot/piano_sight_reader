@@ -70,6 +70,9 @@ You can practise without MIDI by using the on-screen keys.
   per chord** (1–10). For a mix of single notes and small chords, use minimum 1
   and maximum 3. Equal bounds give a fixed chord size, where the range allows it.
   Phrase length is disabled in Continuous; your repeat length is retained.
+- **Layout** defaults to Automatic, using compact spacing on shorter desktop
+  windows. Choose Comfortable or Compact explicitly; the choice is remembered.
+  Compact removes whitespace while retaining note sizes and ledger-line room.
 - **Scrolling** offers **Note by note** (active target stays beside the clefs) or
   **Page by page** (pointer moves through a stationary group, then the next page appears).
   Changing scrolling preserves the phrase and progress.

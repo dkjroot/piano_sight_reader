@@ -378,6 +378,24 @@ const { chromium } = require('playwright');
     await page.selectOption('#scroll-mode','page');
     await page.reload(); await page.waitForSelector('.note');
     assert.equal(await page.inputValue('#scroll-mode'),'page');
+    const densityTarget=await page.locator('.key.target').getAttribute('data-pitch');
+    for (const [width,height] of [[1920,900],[1536,800],[1280,720]]) {
+      await page.setViewportSize({width,height});
+      await page.evaluate(()=>window.scrollTo(0,0));
+      await page.waitForFunction(()=>document.documentElement.dataset.density === 'compact');
+      assert.equal(await page.locator('html').getAttribute('data-density'),'compact');
+      const keyboard=await page.locator('#keyboard').boundingBox();
+      assert.ok(keyboard.y >= 0 && keyboard.y+keyboard.height <= height-8,JSON.stringify({width,height,keyboard}));
+      assert.equal(await page.locator('.key.target').getAttribute('data-pitch'),densityTarget);
+      await page.screenshot({path:`test-results/compact-${width}x${height}.png`,fullPage:true});
+    }
+    await page.selectOption('#density','comfortable');
+    assert.equal(await page.locator('html').getAttribute('data-density'),'comfortable');
+    await page.selectOption('#density','compact');
+    await page.setViewportSize({width:1920,height:1200});
+    assert.equal(await page.locator('html').getAttribute('data-density'),'compact');
+    await page.reload(); await page.waitForSelector('.note');
+    assert.equal(await page.inputValue('#density'),'compact');
     assert.deepEqual(errors, []);
     await page.close();
 

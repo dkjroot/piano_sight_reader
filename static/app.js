@@ -37,6 +37,21 @@ function rangeLabels() {
   for (const id of ['low', 'high']) $(`${id}-label`).textContent = `${noteName(spell(+$(id).value))} · MIDI ${$(id).value}`;
 }
 
+function applyDensity() {
+  const compact = $('density').value === 'compact' || ($('density').value === 'auto' && matchMedia('(min-width:900px) and (max-height:950px)').matches);
+  document.documentElement.dataset.density = compact ? 'compact' : 'comfortable';
+}
+try {
+  const density = localStorage.getItem('piano-sight-reader-density');
+  if (['auto','compact','comfortable'].includes(density)) $('density').value=density;
+} catch { /* Storage is optional. */ }
+applyDensity();
+$('density').addEventListener('change', () => {
+  applyDensity();
+  try {localStorage.setItem('piano-sight-reader-density',$('density').value);} catch { /* Session still works. */ }
+  drawStaff(); scrollToCurrent(); update();
+});
+
 function applyTheme(dark) {
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   $('theme-toggle').setAttribute('aria-pressed', String(dark));
@@ -85,7 +100,7 @@ function drawStaff() {
   const allNotes = chunk.flatMap((chord,local) => chord.map(note => ({...note, phraseStep:start+local})));
   const treble = allNotes.filter(n => n.staff === 'treble');
   const bass = allNotes.filter(n => n.staff === 'bass');
-  const {trebleBottom, bassBottom, height, yFor} = staffLayout(allNotes);
+  const {trebleBottom, bassBottom, height, yFor} = staffLayout(allNotes, {compact:document.documentElement.dataset.density === 'compact'});
   const trebleY = yFor, bassY = yFor;
   const alterations = keyAlterations(settings().key);
   let svg = `<svg class="phrase-system" data-start="${start}" data-end="${start+chunk.length-1}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Phrase steps ${start+1} to ${start+chunk.length}"><title>Phrase on grand staff</title>`;
@@ -374,5 +389,5 @@ $('connect').addEventListener('click', async () => {
 });
 window.addEventListener('blur', () => { performance.clear(); update(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden) { performance.clear(); update(); } });
-window.addEventListener('resize', () => {drawStaff(); scrollToCurrent(); update();});
+window.addEventListener('resize', () => {applyDensity(); drawStaff(); scrollToCurrent(); update();});
 rangeLabels(); drawKeyboard(); newTarget();
