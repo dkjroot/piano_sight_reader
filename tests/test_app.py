@@ -15,6 +15,9 @@ class ServerTests(unittest.TestCase):
             self.assertEqual(help_page.status_code, 200)
             self.assertIn(b'Start practising this passage', help_page.data)
             self.assertIn(b'Download MIDI data (JSON)', help_page.data)
+            self.assertIn(b'aria-label="Close help"', help_page.data)
+            self.assertNotIn(b'Open practice', help_page.data)
+            self.assertNotIn(b'If you opened this guide', help_page.data)
             self.assertNotIn(b'src="/static/app.js"', help_page.data)
             self.assertEqual(client.get('/health').json, {'status': 'ok'})
 

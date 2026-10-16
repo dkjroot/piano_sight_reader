@@ -9,7 +9,7 @@
 </head>
 <body>
 <main class="help-page">
-  <header><h1>Piano Sight Reader · Help</h1><button id="help-theme" class="quiet">Light mode</button></header>
+  <header><h1>Piano Sight Reader · Help</h1><div class="help-actions"><button id="help-theme" class="quiet">Light mode</button><button id="help-close" class="quiet" aria-label="Close help" title="Close help">×</button></div></header>
   <nav aria-label="Help topics"><a href="#start">Start</a> · <a href="#pieces">Pieces</a> · <a href="#playing">Playing</a> · <a href="#sound">Sound</a> · <a href="#progress">Progress</a> · <a href="#midi">MIDI problems</a></nav>
   <section id="start"><h2>Start practising</h2>
     <ol><li>Connect your keyboard, choose <strong>Connect MIDI</strong>, allow access, and select its input.</li>
@@ -52,7 +52,6 @@
     <p>Settings remain below the playing surface. If the keyboard is off-screen, choose a smaller display-height preset or Automatic and adjust the key width.</p>
   </section>
   {% include "_support.html" %}
-  <p><a href="/">Open practice</a> · If you opened this guide from practice, close this tab to return to your existing session.</p>
 </main>
 <script type="module" src="{{ url_for('static', filename='help.js') }}"></script>
 </body>

@@ -1025,7 +1025,8 @@ const { chromium } = require('playwright');
     const [topGuide]=await Promise.all([page.waitForEvent('popup'),topHelp.click()]);
     await topGuide.waitForURL('**/help');
     assert.equal(await topGuide.getByRole('heading',{level:1}).innerText(),'Piano Sight Reader · Help');
-    await topGuide.close();
+    await Promise.all([topGuide.waitForEvent('close'),topGuide.getByRole('button',{name:'Close help',exact:true}).click()]);
+    assert.equal(page.isClosed(),false);
     const guide=page.getByRole('link',{name:'Help & guide'});
     const [help]=await Promise.all([page.waitForEvent('popup'),guide.click()]);
     await help.waitForURL('**/help'); await help.waitForSelector('#help-theme');
@@ -1042,11 +1043,17 @@ const { chromium } = require('playwright');
     for(const width of [1280,320]) {
       await help.setViewportSize({width,height:800});
       assert.equal(await help.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Help fits narrow screens');
+      const heading=await help.locator('header h1').boundingBox(), close=await help.locator('#help-close').boundingBox();
+      assert.ok(close.x>=heading.x+heading.width,'Close stays to the right of the heading');
+      assert.ok(Math.abs(close.y-heading.y)<5,'Close stays in the top-right corner');
       await help.screenshot({path:`test-results/help-${width}.png`,fullPage:true});
     }
     await help.getByRole('link',{name:'MIDI problems',exact:true}).click();
     assert.ok(await help.locator('#midi').evaluate(section=>section.getBoundingClientRect().top<200));
-    await help.close();
+    assert.equal(await help.getByRole('link',{name:'Open practice',exact:true}).count(),0);
+    await Promise.all([help.waitForEvent('close'),help.getByRole('button',{name:'Close help',exact:true}).click()]);
+    assert.equal(page.isClosed(),false);
+    assert.equal(await page.locator('#exercise-summary').innerText(),activeDescription);
     await mainContext.close();
 
     for (const mode of ['unsupported', 'denied']) {

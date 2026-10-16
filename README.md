@@ -210,7 +210,8 @@ preview does not change this description until you start practising it.
 Choose **Help** beside **Connect MIDI** at the top (a **?** on narrow screens), or
 **Help & guide** beside Music library, for the local help page. Either link opens in
 a separate tab, with a quick start, piece/passage instructions, repeated-note
-behavior, sound controls, progress and MIDI troubleshooting.
+behavior, sound controls, progress and MIDI troubleshooting. Use the **×** in
+the top-right corner to close the guide and return to your existing practice tab.
 
 ## Music library
 

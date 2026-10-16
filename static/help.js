@@ -11,3 +11,5 @@ button.addEventListener('click',()=>{
   label();
 });
 label();
+
+document.getElementById('help-close').addEventListener('click',()=>window.close());

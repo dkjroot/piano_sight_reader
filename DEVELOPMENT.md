@@ -487,3 +487,7 @@ chords light only their accepted pitches; repeated loop entries reset credit.
 Generated changing chords retain their legitimate shared-hold behavior. Both initial
 SVG rendering and in-place notehead/accidental/tick updates use the same credit set.
 The physical on-screen keyboard continues to describe actual held keys separately.
+
+The Help header has an accessible Close help × button calling window.close();
+the former Open practice/footer explanation is removed. Browser regressions
+close real guide tabs opened from both entry points and preserve the practice tab.

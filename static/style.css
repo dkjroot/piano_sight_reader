@@ -358,3 +358,8 @@ h1 .subtitle { display:block; letter-spacing:0; }
 .practice-top { gap:12px; }
 .practice-top h2 { min-width:0; }
 .practice-status { flex:none; }
+
+.help-page header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; }
+.help-actions { display:flex; align-items:center; gap:8px; }
+#help-close { width:36px; height:36px; padding:0; font-size:26px; line-height:1; }
+@media(max-width:650px) { .help-actions { flex-direction:column-reverse; align-items:flex-end; } }

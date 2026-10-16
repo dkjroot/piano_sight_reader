@@ -430,3 +430,5 @@ depend on catalogue downloads, audio setup or an account.
 
 - [x] Show an active exercise heading and filters above the stave, preserving the active piece identity while browsing previews.
 - [x] Keep written-note ticks, notehead and accidental colours tied to accepted attacks for the current target; repeated held notes do not mark the next column.
+
+- [x] Close the Help tab with a top-right ×; remove the redundant return link and footer explanation.
