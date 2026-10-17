@@ -15,7 +15,7 @@ below so that completed foundations and remaining work are visible separately.
 | Area | Delivered | Still ahead |
 | --- | --- | --- |
 | Generated practice | Random/diatonic/advanced harmony, five textures, per-hand constraints and attack patterns | Timed rhythm, sustained independent voices and hand crossing |
-| Real music | Local MIDI import, eight offline editions, key detection, filtering, passage loops and bookmarks | Notation-preserving import, voices, rests, ties and duration judgement |
+| Real music | Local MIDI import, eight offline editions, filtering, passages and bounded derived notation/duration study | Notation-preserving import, richer transcription and expressive score support |
 | Finding pieces | Composer/era/style/difficulty filters; reviewed source credits | More repertoire and reviewed difficulty levels |
 | Progress | Response times, accuracy, bests, optional history, graphs and reading patterns | Session runs, rhythm scores, targeted drills and profiles |
 | Sound | Independent synth/sample paths, MIDI/authored playback, metronome and count-in | Accompaniment during practice, latency calibration and scored modes |
@@ -86,8 +86,8 @@ Infeasible settings report an unavailable target rather than relaxing hard limit
 Exit: a small authored two-hand passage renders and plays correctly with ties, rests,
 different durations and more than one event per measure. No rhythm game is needed yet.
 
-Stage 2's authored-passage milestone is delivered through **Explore the notation
-study** in Help. Patient practice has independent attacks/holds/releases, explicit
+Stage 2's passage milestone is delivered through **Passage study** in the main
+workspace navigation. Patient practice has independent attacks/holds/releases, explicit
 finger/pedal continuity, correction waits and re-articulated loop cuts. A second
 original ten-bar fixture exercises changing clefs/signatures, cross-staff beams,
 unisons, mixed/nested tuplets, 3:2 / 4:3, pickups and paginated ties. This milestone
@@ -487,3 +487,19 @@ depend on catalogue downloads, audio setup or an account.
 
 - [x] Document user-run music discovery in README and Help; support keyboard alternatives,
   MIDI archives and explicit CC BY-SA 4.0 opt-in without automatic asset imports.
+
+## Unified workspace and MIDI study follow-up
+
+- [x] Switch Pitch practice / Passage study in the primary navigation on one page,
+  sharing MIDI, keyboard, audio, layout/Scale, range and relevant reading aids.
+- [x] Hierarchical settings show source-specific controls while preserving values;
+  MIDI passage filters and source playback remain available in either view.
+- [x] Derive bounded 1/32-grid passage notation from committed local MIDI, retaining
+  source ticks/IDs/hash, attacks, known releases, silence, tempo/meter/key markers
+  and source-channel pedal sound. Split one source note with ties; never infer ties
+  between separate attacks. Spelling and voice lanes are explicitly derived.
+- [x] Reject missing releases, collapsed repetitions and exceeded limits without
+  changing the inspection. Preserve the original phrase/study through view switches.
+
+This advances MIDI-derived rhythmic study; notation-preserving edition import,
+expressive transcription, ornaments and scored modes remain distinct roadmap work.

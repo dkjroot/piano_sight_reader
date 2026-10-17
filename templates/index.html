@@ -9,7 +9,7 @@
 </head>
 <body>
 <main>
-  <header class="score-banner"><div class="title-block"><div><h1>Piano Sight Reader</h1></div></div><div class="header-actions"><button id="theme-toggle" class="quiet" aria-pressed="true">Dark mode</button><button id="connect">Connect MIDI</button><a class="header-help" href="/help" target="_blank" rel="noopener noreferrer" aria-label="Help" title="Help and guide"><span class="help-label">Help</span><span class="help-icon" aria-hidden="true">?</span></a></div></header>
+  <header class="score-banner"><div class="title-block"><div><h1>Piano Sight Reader</h1></div></div><div class="header-actions"><button id="theme-toggle" class="quiet" aria-pressed="true">Dark mode</button><button id="connect">Connect MIDI</button><a class="header-help" href="/help" target="_blank" rel="noopener noreferrer" aria-label="Help" title="Help and guide"><span class="help-label">Help</span><span class="help-icon" aria-hidden="true">?</span></a></div><nav class="practice-modes" aria-label="Practice view"><button id="mode-outline" class="quiet" aria-pressed="true">Pitch practice</button><button id="mode-study" class="quiet" aria-pressed="false">Passage study</button></nav></header>
   <section class="connection" aria-label="MIDI connection">
     <span id="midi-status" role="status">MIDI disconnected</span>
     <label>Input <select id="inputs" disabled><option>No MIDI input connected</option></select></label>
@@ -19,7 +19,7 @@
 
   <div id="playing-layout">
   <section class="practice card" id="staff-panel" aria-label="Practice">
-    <div class="practice-top layout-toolbar"><button class="quiet layout-move" aria-label="Move staff" title="Drag to move staff; arrow keys move, Shift for larger steps">⠿</button><h2><span id="practice-title">Phrase</span> <span id="phrase-position"></span></h2><div class="staff-scale"><label for="staff-scale">Scale</label><input id="staff-scale" type="range" min="40" max="160" step="5" value="100"><output id="staff-scale-value" for="staff-scale">100%</output></div><div class="practice-status"><span><strong id="count">0</strong> <span id="count-label">repetitions completed</span></span><button id="pause-practice" class="quiet" aria-pressed="false" aria-label="Pause practice">Pause</button></div></div>
+    <div class="practice-top layout-toolbar"><button class="quiet layout-move" aria-label="Move staff" title="Drag to move staff; arrow keys move, Shift for larger steps">⠿</button><h2><span id="practice-title">Phrase</span> <span id="phrase-position"></span></h2><div class="staff-scale"><label for="staff-scale">Scale</label><input id="staff-scale" type="range" min="40" max="160" step="5" value="100"><output id="staff-scale-value" for="staff-scale">100%</output></div><div class="practice-status"><span id="outline-count"><strong id="count">0</strong> <span id="count-label">repetitions completed</span></span><button id="pause-practice" class="quiet" aria-pressed="false" aria-label="Pause practice">Pause</button></div></div>
     <p id="exercise-summary" class="exercise-summary" aria-label="Active exercise settings"></p>
     <div id="staff" aria-label="Grand staff"></div>
     <div class="feedback"><h2 id="feedback" role="status" aria-live="polite"></h2><span id="chord-name" role="status"></span><p id="detail"></p></div>
@@ -35,8 +35,20 @@
   </div>
 
   <section class="settings-grid">
-    <div class="card settings"><h2>Practice setup</h2>
+        <div class="card settings" id="study-settings" hidden><h2>Passage study</h2>
+      <label>Source <select id="study-source"><option value="loaded" disabled>Loaded MIDI passage</option><option value="independent-voices" selected>Independent voices · original study</option><option value="notation-cases">Notation and continuity · original study</option></select></label>
+      <div class="range-buttons"><button id="study-start">Practise passage</button><button id="study-stop" class="quiet">Stop study</button><button id="study-play" class="quiet">Play study</button><button id="study-audio-pause" class="quiet" disabled>Pause playback</button></div>
+      <label>Position <input id="study-position" type="range" min="0" max="0" value="0"></label>
+      <label>Speed <select id="study-speed"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.5">150%</option><option value="2">200%</option></select></label>
+      <label>Continuity <select id="study-continuity"><option value="fingers">Finger held</option><option value="pedal">Pedal supported</option></select></label>
+      <label class="check"><input id="study-loop" type="checkbox"> Loop passage</label>
+      <label>Entry beat <select id="study-entry"></select></label><label>Exit beat <select id="study-exit"></select></label>
+      <div id="study-filter-slot"></div>
+      <p id="study-source-status" class="small" role="status"></p>
+    </div>
+    <div class="card settings" id="outline-settings"><h2>Practice setup</h2>
     <div class="practice-actions"><label class="check"><input id="reveal" type="checkbox"> Show note names</label><span id="note-names" hidden></span></div>
+    <div id="outline-filter-slot"></div>
     <fieldset class="phrase-end"><legend>Mode</legend><label class="check"><input id="end-repeat" type="radio" name="end-action" value="repeat" checked> Repeat phrase</label><label class="check"><input id="end-new" type="radio" name="end-action" value="new"> Continuous</label></fieldset>
 
       <label>Exercise <select id="source"><option value="random">Random pitches</option><option value="triads">Diatonic chords</option><option value="cadence">Cadence</option><option value="advanced">Advanced harmony</option><option id="source-midi" value="midi" disabled>Local MIDI outline</option></select></label>
@@ -55,8 +67,6 @@
       <label>Key <select id="key"><option value="C">C major / A minor</option></select></label>
       <label>Staff / hand <select id="hand"><option value="right">Treble · right hand</option><option value="left">Bass · left hand</option><option value="both">Both hands</option></select></label>
       <label>Phrase length <select id="length"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="6">6</option><option value="8">8</option><option value="12">12</option><option value="16">16</option><option value="24">24</option><option value="32">32</option></select></label>
-      <label>Layout <select id="density"><option value="auto">Automatic</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">1440p</option><option value="2160">2160p</option><option value="custom">Custom</option></select></label>
-      <label>Keyboard key size <select id="key-size"><option value="auto">Automatic</option><option value="36">Large · 36 px</option><option value="28">Medium · 28 px</option><option value="20">Small · 20 px</option></select></label>
       <label>Advancement <select id="progression"><option value="flow">Fluid</option><option value="release">Release between targets</option></select></label>
       <label>Scrolling <select id="scroll-mode"><option value="note">Note by note</option><option value="page">Page by page</option></select></label>
       <label>Look-ahead <select id="preview"><option value="0">None</option><option value="1">1 upcoming</option><option value="2">2 upcoming</option><option value="3" selected>3 upcoming</option><option value="4">4 upcoming</option><option value="7">7 upcoming</option></select></label>
@@ -66,6 +76,10 @@
       <label>Reading range <select id="span"><option value="near">Near middle C</option><option value="wide">Wider staff range</option><option value="full">All available notes</option></select></label>
     </div>
     <div class="settings-stack">
+    <div class="card settings"><h2>Workspace</h2>
+      <label>Layout <select id="density"><option value="auto">Automatic</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">1440p</option><option value="2160">2160p</option><option value="custom">Custom</option></select></label>
+      <label>Keyboard key size <select id="key-size"><option value="auto">Automatic</option><option value="36">Large · 36 px</option><option value="28">Medium · 28 px</option><option value="20">Small · 20 px</option></select></label>
+    </div>
     <div class="card settings"><h2>Physical keyboard range</h2>
       <p class="small">Set the notes your instrument can play. MIDI middle C is C4 (60).</p>
       <label>Lowest <output id="low-label"></output><input id="low" type="range" min="21" max="108" value="48"></label>
@@ -117,11 +131,13 @@
     <div class="range-buttons"><button id="save-passage" class="quiet" disabled>Save passage</button><button id="delete-passage" class="quiet" disabled>Delete saved passage</button></div>
     <label>Saved passages <select id="saved-passages" disabled><option value="">Choose a saved passage</option></select></label>
     <p id="passage-status" class="small" role="status"></p>
+    <div id="source-preview-controls">
     <div class="range-buttons"><button id="play-source" class="quiet" disabled>Play source passage</button><button id="pause-source" class="quiet" disabled>Pause</button><button id="stop-source" class="quiet" disabled>Stop playback</button></div>
     <label class="check"><input id="source-clicks" type="checkbox"> Click with source playback</label>
     <label>Source count-in <select id="source-countin"><option value="0">None</option><option value="1">1 bar</option><option value="2">2 bars</option></select></label>
     <label>Playback speed <select id="source-speed"><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option></select></label>
     <p id="source-playback-status" class="small" role="status"></p>
+    </div>
     <p id="outline-status" class="small" role="status"></p><p id="score-playing" class="small" role="status"></p>
   </section>
   <section class="progress-panel" aria-label="Practice progress">

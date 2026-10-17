@@ -567,9 +567,9 @@ connected to patient authored practice; current MIDI/generated outline behavior 
 
 ## Offline engraving evaluation
 
-/notation-study, linked from Help, renders the original authored fixture through
-ScoreEngraver and the pinned VexFlow 5.0.0 Bravura production bundle. The main app
-still uses its tested outline renderer and does not load VexFlow. Code MIT and font
+Passage study in the main navigation renders authored and derived MIDI scores
+through ScoreEngraver and the pinned VexFlow 5.0.0 Bravura production bundle.
+Pitch practice retains its tested outline renderer; VexFlow loads only on study entry. Code MIT and font
 SIL OFL 1.1 notices, upstream source commit, npm archive integrity and per-file
 SHA-256 hashes are retained in static/vendor/vexflow-5.0.0. Normal use needs no npm,
 CDN, remote fonts, frontend build or additional Python package.
@@ -602,8 +602,8 @@ attacks, pointer selection, stable SVG identity through 200 position changes,
 wrapped ties, theme contrast, narrow-screen overflow and local-only asset requests.
 Headless DOM highlight timings are written to ignored test-results only. Those are
 not MIDI hardware latency or event-to-paint measurements. This evaluation supports
-using VexFlow behind an adapter for authored scores; the original renderer stays
-until the voice-aware practice/transport contract is ready.
+using VexFlow behind the shared score adapter; pitch exercises retain their outline
+renderer independently of duration-aware study matching.
 
 Primary API/source references:
 - https://vexflow.github.io/vexflow-docs/api/5.0.0/classes/VexFlow.html
@@ -622,74 +622,78 @@ PlaybackCursor handles look-ahead, pause/resume hold chase and overdue-event ski
 using the same contract as source MIDI. Binary audio seconds use numerical tolerances;
 the underlying score beats/durations remain exact and unchanged.
 
-StudyPlayer drives /notation-study with Play/Pause/Stop, selectable piano/organ/
-acoustic sound, volume and speed. Defaults copy current Target instrument/volume;
-preview changes are session-only and never rewrite main practice preferences.
-Selecting a score position stops audio and sets the next entry point; continuing
-sounds are deliberately re-articulated on playback entry. The visual cursor follows
-audio time without rerunning engraving or feeding a performance matcher. Background,
-blur, stop and configuration changes silence scheduled voices. Async acoustic loads
-are revision guarded, so Stop cannot cause delayed playback after decoding finishes.
+## Unified pitch and passage workspace
 
-Tests cover tempo integration, triplets, tie versus repeat attacks, range clipping,
-voice selection, speed scaling, held-note chase, polyphony limits, UI pause/background/
-resume/stop, seeking, unsupported Web Audio, cancelled sample loading, no main-setting
-writes and real OfflineAudioContext rendering with clean voice/node termination.
-Authored damper events extend sounding playback spans independently of notated
-release. A clipped playback entry chases pedal resonance; every exit clips sound.
-Controllers 66/67 remain preserved optional metadata, unassessed and unsynthesised.
-This proves local authored notation-to-sound, not original-score recovery from MIDI
-or measured hardware latency.
+The main app owns one Performance instance, one MIDI lifecycle, one keyboard,
+SoundPanel, layout editor and playing-panel DOM. Top navigation switches Pitch
+practice / Passage study in place. score_workspace.js adapts the immutable score
+model, ScorePractice, ScoreEngraver and PlaybackCursor to these shared surfaces.
+The old standalone controllers were removed; /notation-study redirects to
+/?view=study, with a template shim for already-running Flask preview processes.
+VexFlow loads lazily once when study notation is needed, never on MIDI events.
 
+Switching pauses untimed measurement with a workspace reason and preserves the
+outline phrase/index/count, active MIDI source and selected study. Return rebases
+physical press credit; the shared MIDI input retains source/channel ownership.
+Study backgrounding keeps physical ownership without judging inactive events;
+resume requires clear keys/pedal and fresh articulations, including cut ties.
+Disconnection pauses and clears ownership through the existing port revisions.
+There is no separate study input, audio engine, keyboard range or layout state.
+Common Scale, preset/Custom geometry, key size, targets, note names, themes, sound
+and MIDI passage preview remain available. Source playback and score preview
+mutually cancel, including in-flight sample loading. Live audio remains independent.
 
-## Stage 2 patient authored practice
+Settings are hierarchical. Generated exercise controls belong to Pitch practice;
+advanced/cadence/hand-specific controls are hidden when irrelevant. Study controls
+follow its selected source. The same key/staff/density/material/range filter DOM
+moves into the loaded-MIDI study branch, preserving values/listeners. Original
+examples keep their authored notation. Presentation and physical/audio controls
+remain shared. Hidden study settings never start MIDI or audio by themselves.
 
-score_practice.js is a pure deterministic matcher with an injected monotonic clock;
-study_practice.js connects it to explicit Web MIDI access and pointer/keyboard keys
-on /notation-study. Input uses the existing Performance ownership/press-serial
-model. The main attack-outline controller, FlowGate, history and imported data
-are unchanged. No network, storage, parsing or engraving runs on MIDI events.
-Written glyphs, ticks and directions update in place; held-key feedback is immediate.
-The score/DOM mappings are precomputed and idle paint work is skipped.
+midi_study.js derives a bounded immutable study from the committed active MIDI
+passage and the existing literal eligibility/density filters. It never modifies
+raw inspection, bookmarks, source hashes, tick/events/controllers or imported files.
+Quantization is explicitly a 1/32 grid (1/8 quarter beat). Every retained source
+note-on keeps IDs, original start/end ticks, track/channel and its own attack. A
+known note span is split across written values/bars with ties; distinct source
+attacks are never inferred as a tie. Source notes with unknown releases fail.
+Same-pitch repetitions in different source ticks that round into one grid cell
+fail rather than merge. Short known notes occupy a minimum grid cell as a declared
+notation approximation, with their original release retained.
 
-At a boundary, new sound IDs require fresh physical press serials. Tied IDs keep
-credit across written segments. Only ended notes retire; other voices continue.
-Simultaneous unisons retain all IDs but share an observable press. A repeated
-unison against a continuing voice requires one fresh press, with an explicit
-ambiguity allowance for its necessary release; MIDI cannot prove separate fingers.
-Continuity defaults to physical holds; the explicit pedal policy additionally
-accepts notes sustained by their owning source/channel. Pedal never creates
-attack credit. Original values are preserved; threshold 64 is the only live damper
-interpretation. No half-pedal, sostenuto, soft-pedal or velocity scoring is claimed.
+The derivation uses source tempo/key/meter markers where present, 4/4 only as an
+explicit default when absent, and preserves cut position within source measures.
+Spelling follows the selected key/preferences; voice lanes are interval-coloured
+by selected staff and are not recovered hands or counterpoint. Independent rests
+fill lanes, including omitted material; bar boundaries and source meter changes
+split durations. Source-channel damper/panic determines a separate playbackEnd;
+physical/notated releases remain independent. compileScore validates that optional
+playback release against the score bounds; authoredPlan uses it for sound only.
+Continuous controller values remain in source inspection, without half-pedal scoring.
+Bounds: 512 selected source attacks, 1,024 retained notes, 16 notation lanes, 256
+measures and the model's 4,096-event / 1 MB bounds. Dense/unrepresentable selections
+report unavailable and preserve inspection; they do not relax eligibility or invent
+source facts. Derivation and engraving happen on explicit source/settings changes.
 
-A correct boundary starts the exact next inter-boundary duration, converted through
-the tempo map at the clock boundary. Rests/hold-only positions advance using that
-clock without fictitious attacks. Short holds and unwanted keys freeze remaining
-time; a correction reanchors it. Releases and overdue physical overholds are shown
-as release requests; wait mode assigns no early/late onset or late-release penalties.
-Early-release and extra incidents are bounded by current-state fault IDs and shown
-for the current attempt only, separate from untimed response statistics.
-There is no accompaniment/metronome during patient practice; independent preview
-playback is stopped on entry and cannot feed the matcher.
+ScorePractice remains a deterministic patient clock. Starting/continuing/ending
+sound IDs have separate expectations. New attacks require physical press serials;
+explicit tied chains keep their credit. A single press can represent coincident
+unisons but cannot prove fingers; a repeat against a held unison requires a fresh
+press, with an ambiguity allowance for the necessary release. Finger-held and
+pedal-supported policies remain explicit. Corrections freeze remaining score time
+and re-anchor it; rest/hold-only intervals run without fictitious attacks. There
+are no early/late onset penalties, accompaniment re-anchoring, velocity/half-pedal
+scores or automatic progress-history claims. Loop entry/exit uses inclusive entry,
+exclusive exit; reset keys and pedal then re-articulate active notes. Resume
+restarts the current boundary duration. Seeking changes inspection/preview only.
 
-Practice loops use inclusive entry/exclusive exit moment indices. Exit excludes new
-attacks and retires all active notes, including cut ties. Entry/wrap demand released
-keys and pedal, then new attacks for all active notes. Pickups retain their exact
-length; no inferred count-in or pedal chase enters live matching. Background practice retains physical MIDI ownership without judging hidden
-events; unplug clears ownership safely. Resume restarts the current boundary's
-duration and asks for fresh active notes. The main outline page ignores MIDI while
-hidden or unfocused so playing a study cannot advance it. Seeking is silent
-inspection; entry/exit selectors choose the next practice cut. Preview playback retains its independent seek/chase
-policy. MIDI access/open revisions reject stale callbacks and late opens; access is
-requested only by Connect MIDI. Study keyboard range is independently remembered,
-initially copied from main range; inversion shares the remembered keyboard option.
-
-Tests in score_practice.test.js and score_practice.browser.cjs cover spread chords,
-missing/wrong notes, interrupted holds, corrected continuing voices, explicit ties,
-repeats/duplicate-ons/multiple owners, finger/pedal differences, all-rest intervals,
-unisons, loop cuts, pause/reentry, native-like disconnect/replacement, engraving
-alignment, complex spellings, both palettes, responsive pages and no live re-layout.
-Hardware latency, physical devices and human musical review remain separate checks.
+Original two-/ten-bar fixtures retain engine checks for unisons, cross-staff
+beams, dots, tuplets, signature/clef changes and paginated ties. Pure tests exercise
+MIDI source preservation, cuts, rests, ties vs repeats, grid collisions, channel
+pedal, filtering and unavailable cases. Browser checks exercise same-page switching,
+shared node/MIDI/audio/layout identity, source selection, loaded passage engraving,
+independent duration feedback, preserved outline state and responsive controls.
+Hardware input-to-paint latency, USB devices and human musical review remain separate.
 
 Random piece samples the intersected local library filters, excluding the current
 selection when there is an alternative. A pure helper accepts an injected RNG for

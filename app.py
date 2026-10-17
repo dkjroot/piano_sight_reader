@@ -1,7 +1,7 @@
 """Local piano practice. Live MIDI stays in the browser; file inspection stays on this computer."""
 import argparse
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from score_import import inspect_midi, ScoreError, MAX_BYTES
 
 app = Flask(__name__)
@@ -20,7 +20,8 @@ def help_page():
 
 @app.get("/notation-study")
 def notation_study():
-    return render_template("notation_study.html")
+    study = 'notation-cases' if request.args.get('study') == 'notation-cases' else 'independent-voices'
+    return redirect('/?view=study&study=' + study)
 
 
 @app.post("/api/inspect-midi")

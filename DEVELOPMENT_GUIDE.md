@@ -43,7 +43,7 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 | Source MIDI playback, scheduling, beat/count-in map | `static/playback.js`, `transport.js`, `beats.js` |
 | Attempt measurements, opt-in history and graphs | `static/metrics.js`, `progress.js` |
 | Authored rational-beat model, tied/pedal playback and patient matching | `static/score_model.js`, `score_transport.js`, `score_practice.js` |
-| Authored study engraving/playback/practice at `/notation-study` | `static/engraving.js`, `notation_study.js`, `study_player.js`, `study_practice.js` |
+| Shared passage-study controller and MIDI notation derivation | `static/score_workspace.js`, `midi_study.js`, `engraving.js` |
 | UI, help and shared support panel | `templates/`, `static/style.css`, `static/help.js` |
 | Reviewed catalogue, provenance, source files and inspections | `static/library/`, `tools/build_library.py`, `tools/discover_scores.py` |
 
@@ -100,7 +100,7 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
   can estimate a missing one. Conflicting/uncertain evidence keeps the chosen key.
   Preview loading leaves it alone. Later MIDI key changes are reported, but the entire
   outline still uses one signature. Private files are not identified online.
-- A separate immutable authored score model supports exact beats, voices, rests,
+- The immutable score model supports exact beats, voices, rests,
   meter/tempo/key maps and explicit ties. The original two-bar study engraves and
   plays through bundled VexFlow 5.0.0. Patient study practice now matches attacks,
   continuing ties and releases, timing independent holds/rests with correction waits.
@@ -108,6 +108,11 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
   changing signatures/clefs, pickups and paginated ties. Finger/pedal continuity and
   explicit loop cuts are separate policies. Notation-preserving import, ornaments,
   expressive traversal and scored timed modes remain roadmap work.
+  Passage study now lives in the main workspace beside Pitch practice, sharing
+  MIDI, keyboard, layout/Scale, sound and applicable source filters. Loaded MIDI
+  passages can derive 1/32-grid notation with source IDs/ticks and independent
+  durations/rests/ties; this is distinct from notation-preserving edition import.
+  Old study links redirect to the main page. No second input/audio/layout app remains.
 - Music redistribution needs explicit edition/MIDI permission, source links, hashes,
   notices and licence text. Seven editions carry public-domain dedications; Rachmaninoff
   retains CC BY-SA 4.0. Samples and VexFlow retain their own notices. Discovery only
@@ -151,3 +156,9 @@ loop cuts, MIDI lifecycle/focus isolation and the ten-bar engraving fixture.
 The pure authored matcher has measured 100% unit line/branch coverage; this does
 not measure browser-controller coverage, device latency or human playability.
 Runtime dependencies and setup commands are unchanged.
+
+Unified-workspace follow-up, 17 October 2026: 105 JavaScript tests pass, including
+the final source-panic/tie regression; 21 Python tests and the full Edge browser
+suite pass. Mode switching, hierarchical/shared filters, imported MIDI notation,
+layout/Scale, playback cancellation and both palettes have browser checks. Unit
+coverage is separate from browser/controller and physical-device coverage.

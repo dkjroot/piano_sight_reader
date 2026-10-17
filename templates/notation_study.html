@@ -1,30 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Notation study · Piano Sight Reader</title>
-  <script>try { document.documentElement.dataset.theme=localStorage.getItem('piano-sight-reader-theme')==='light' ? 'light' : 'dark'; } catch {}</script>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body><main class="help-page notation-page">
-  <header><h1 id="study-title">Independent voices</h1><div class="help-actions"><button id="help-theme" class="quiet">Light mode</button><button id="help-close" class="quiet" aria-label="Close notation study" title="Close">×</button></div></header>
-  <div class="notation-controls"><button id="study-practise">Practise passage</button><button id="study-practice-pause" class="quiet" disabled>Pause practice</button><button id="study-practice-stop" class="quiet" disabled>Stop practice</button><button id="study-play" disabled>Play study</button><button id="study-pause" class="quiet" disabled>Pause</button><button id="study-stop" class="quiet" disabled>Stop</button></div>
-  <p id="study-audio-status" role="status"></p>
-  <p id="study-practice-status" role="status"></p>
-  <p id="notation-status" role="status">Loading notation…</p>
-  <p id="notation-detail"></p>
-  <div class="engraving-scroll"><div id="engraving-output" class="engraving-output"></div></div>
-  <div class="study-keyboard-scroll"><div id="study-keyboard" aria-label="Study piano keyboard"></div></div>
-  <label>Study <select id="study-example"><option value="independent-voices">Independent voices · two bars</option><option value="notation-cases">Notation and continuity · ten bars</option></select></label>
-  <div class="notation-controls"><label>Entry beat <select id="study-loop-start" aria-label="Loop entry beat"></select></label><label>Exit beat <select id="study-loop-end" aria-label="Loop exit beat"></select></label><button id="study-midi-connect" class="quiet">Connect MIDI</button><label>Input <select id="study-midi-input"><option value="">No MIDI input</option></select></label><span id="study-midi-status" role="status"></span></div>
-  <div class="notation-controls"><label>Continuity <select id="study-continuity"><option value="fingers">Finger held</option><option value="pedal">Pedal supported</option></select></label><label><input id="study-loop" type="checkbox">Loop passage</label></div>
-  <div class="notation-controls"><button id="notation-previous" class="quiet" disabled>Previous position</button><button id="notation-next" class="quiet" disabled>Next position</button><label>Position <input id="notation-position" type="range" min="0" max="0" value="0" disabled></label></div>
-  <div class="notation-sound"><label>Target instrument <select id="study-instrument"><option value="piano">Piano synth</option><option value="acoustic">Acoustic grand piano</option><option value="organ">Organ synth</option></select></label><label>Volume <input id="study-volume" type="range" min="0" max="100" value="25"></label><label>Speed <select id="study-speed"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.5">150%</option><option value="2">200%</option></select></label></div>
-  <div class="notation-controls"><label>Lowest key <input id="study-low" type="number" min="0" max="127" value="48"></label><label>Highest key <input id="study-high" type="number" min="0" max="127" value="84"></label><label><input id="study-inverted" type="checkbox">Invert keyboard colours</label></div>
-  {% include "_support.html" %}
-  <details><summary>Notation credits</summary><p>VexFlow 5.0.0 (MIT) with Bravura and Academico fonts (SIL OFL 1.1). All assets load locally. <a href="/static/vendor/vexflow-5.0.0/NOTICES.md">Full notices and sources</a>.</p></details>
-</main>
-<script src="{{ url_for('static', filename='vendor/vexflow-5.0.0/vexflow-bravura.js') }}"></script>
-<script type="module" src="{{ url_for('static', filename='help.js') }}"></script>
-<script type="module" src="{{ url_for('static', filename='notation_study.js') }}"></script>
+<html lang="en"><head><meta charset="utf-8"><title>Passage study</title></head>
+<body><p><a href="/?view=study">Open Passage study in the practice workspace</a></p>
+<script>location.replace('/?view=study'+(new URLSearchParams(location.search).get('study')==='notation-cases'?'&study=notation-cases':''));</script>
 </body></html>

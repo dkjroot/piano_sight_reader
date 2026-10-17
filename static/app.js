@@ -13,15 +13,21 @@ import {makeOutline} from './outline.js';
 import {layoutPreset,staffViewport} from './layout.js';
 import {SourcePlayer} from './playback.js';
 import {keyboardGeometry,keyboardKeyWidth} from './keyboard.js';
+import {ScoreWorkspace} from './score_workspace.js';
+import {midiStudy} from './midi_study.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
 const flowGate=new FlowGate();
+let workspace='outline', authored=null, workspaceRevision=0, outlineSettingsDirty=false;
 const progress = new ProgressPanel();
 let activePiece=null;
 const scorePanel = new ScorePanel((score,bounds,filename,keyInfo)=>{
   if(keyInfo?.keyId) $('key').value=keyInfo.keyId;
   activePiece={score,bounds,filename}; $('source-midi').disabled=false; $('source').value='midi'; $('end-repeat').checked=true;
+  $('study-source').querySelector('[value="loaded"]').disabled=false;
+  $('study-source').value='loaded';
+  if(workspace==='study') {persist(); syncMode(); newTarget(); scorePanel.practiceStarted(); sourcePlayer.stop(); $('study-source').value='loaded'; void loadStudy(); return;}
   completed=0; $('count').textContent='0'; persist(); syncMode(); newTarget(); scorePanel.practiceStarted();
 },()=>settings());
 const controls = [...planningControls, 'advanced-kind', 'progression', 'hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-kind', 'cadence-shape', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
@@ -32,12 +38,12 @@ let phrase = [], phraseIndex = 0, waitingForRelease = false;
 let streamOffset = 0;
 let waitingForGenerated=false;
 const generatedStream=new GeneratedStream(()=>{
-  if(waitingForGenerated && generatedStream.queue.length && !practicePaused) {waitingForGenerated=false;advancePhrase();}
+  if(workspace==='outline' && waitingForGenerated && generatedStream.queue.length && !practicePaused) {waitingForGenerated=false;advancePhrase();}
   else if(waitingForGenerated) update();
 });
 let inputRevision = 0;
 let practicePaused=false, resumeRelease=false;
-const sound=new SoundPanel(()=>target,()=>new Set([...performance.held,...performance.sustained]),()=>performance.attacks);
+const sound=new SoundPanel(()=>workspace==='study'?authored?.target??[]:target,()=>new Set([...performance.held,...performance.sustained]),()=>performance.attacks);
 const sourcePlayer=new SourcePlayer(sound,scorePanel);
 const SETTLE_MS = 120;
 const storageKey = 'piano-sight-reader-v1';
@@ -72,7 +78,16 @@ function syncMode() {
   const labels=cadenceLabels($('harmony-scale').value==='minor',$('harmony-kind').value==='sevenths');
   [...$('cadence-shape').options].forEach((option,i)=>option.textContent=labels[i]);
   $('material').disabled=harmonic;
+  document.querySelector('.phrase-end').hidden=imported;
   $('count-label').textContent = continuous ? 'targets completed' : 'repetitions completed';
+  for(const id of ['advanced-kind','cadence-shape','harmony-scale','harmony-kind','attack-pattern','length','min-size','texture','hand-span','left-density','left-leap','right-density','right-leap','ledger-limit','material']) {
+    $(id).closest('label').hidden=$(id).disabled;
+  }
+  // Preserve a source's saved settings while showing only its applicable branch.
+  if(!imported) {
+    $('left-density').closest('label').hidden=$('left-leap').closest('label').hidden=$('hand').value==='right';
+    $('right-density').closest('label').hidden=$('right-leap').closest('label').hidden=$('hand').value==='left';
+  }
 }
 syncMode();
 function rangeLabels() {
@@ -138,6 +153,7 @@ $('show-targets').addEventListener('change', () => {
 });
 
 function drawStaff() {
+  if(workspace==='study') {authored?.draw(); fitPlayingArea(); return;}
   const scale=layoutEditor?.active?layoutEditor.state.scale:1;
   const available=($('staff').clientWidth || 740)/scale;
   const width = Math.max(660,layoutEditor?.active?available:Math.min(1040,available));
@@ -258,9 +274,11 @@ function drawKeyboard() {
     key.append(stateMark);
     key.addEventListener('pointerdown', event => {
       event.preventDefault(); key.setPointerCapture(event.pointerId);
+      authored?.beforeInput();
       progress.resume('midi'); performance.noteOn(`pointer:${event.pointerId}`, pitch); update();
     });
     for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) key.addEventListener(type, event => {
+      authored?.beforeInput();
       performance.clear(`pointer:${event.pointerId}`); update();
     });
     // Keyboard navigation can audition one key at a time.
@@ -268,6 +286,7 @@ function drawKeyboard() {
       if ([' ', 'Enter'].includes(event.key)) {
         event.preventDefault();
         if(event.repeat || performance.sources.get('computer')?.held.has(pitch)) return;
+        authored?.beforeInput();
         progress.resume('midi'); performance.noteOn('computer', pitch); update();
       }
     });
@@ -280,10 +299,10 @@ function drawKeyboard() {
   $('keyboard').dataset.units=geometry.units; fitKeyboard();
   paintKeys();
 }
-function paintKeys(hints = []) {
+function paintKeys(hints = [],expected=target) {
   const held = performance.held, sustained = performance.sustained;
-  const pitches = new Set(target.map(n => n.midi));
-  const retiring=$('progression').value==='flow' ? flowGate.retiring||new Map() : new Map();
+  const pitches = new Set(expected.map(n => n.midi));
+  const retiring=workspace==='outline' && $('progression').value==='flow' ? flowGate.retiring||new Map() : new Map();
   const directions = new Map(hints.map(hint => [hint.played, hint.direction]));
   for (const key of $('keyboard').children) {
     const n = +key.dataset.pitch;
@@ -298,6 +317,7 @@ function paintKeys(hints = []) {
   $('pedal').textContent = performance.pedal ? 'Sustain on' : 'Sustain off';
 }
 function newTarget() {
+  outlineSettingsDirty=false;
   waitingForGenerated=false;generatedStream.reset();
   const description=describeExercise(settings(),activePiece);
   $('practice-title').textContent=description.title; $('exercise-summary').textContent=description.description;
@@ -345,6 +365,7 @@ function advancePhrase() {
   update();
 }
 $('pause-practice').addEventListener('click',()=>{
+  if(workspace==='study') {authored?.togglePause(); return;}
   practicePaused=!practicePaused;
   $('pause-practice').textContent=practicePaused ? 'Resume' : 'Pause';
   $('pause-practice').setAttribute('aria-pressed',String(practicePaused));
@@ -363,6 +384,7 @@ $('pause-practice').addEventListener('click',()=>{
 function update() {
   clearTimeout(settleTimer); clearTimeout(nextTimer);
   sound.sync();
+  if(workspace==='study') {const result=authored?.update(); paintKeys(result?.hints??[],result?.target??[]); $('note-names').textContent=(result?.target??[]).map(noteName).join(' · '); return;}
   const held = performance.held, flow=$('progression').value==='flow';
   const result = flow ? flowGate.evaluate(held,performance.attacks) : match(target, held);
   const accepted=flow ? result.accepted : held;
@@ -422,6 +444,7 @@ function update() {
 }
 
 for (const id of controls) $(id).addEventListener('change', () => {
+  if(workspace==='study') {if(+$('low').value>+$('high').value) $(id==='low'?'high':'low').value=$(id).value; rangeLabels(); persist(); if(['low','high'].includes(id)) drawKeyboard(); if(['hand','key','material','span','size','low','high'].includes(id)) {outlineSettingsDirty=true; if($('study-source').value==='loaded') void loadStudy(); else update();} else update(); return;}
   if (['preview','scroll-mode'].includes(id)) {persist(); drawStaff(); update(); return;}
   if (+$('low').value > +$('high').value) $(id === 'low' ? 'high' : 'low').value = $(id).value;
   if (+$('min-size').value > +$('size').value) {
@@ -440,7 +463,7 @@ for (const endpoint of ['low', 'high']) $(`learn-${endpoint}`).addEventListener(
   $('range-status').textContent = learning ? `Play your ${endpoint === 'low' ? 'lowest' : 'highest'} physical key now. Click again to cancel.` : 'Learning cancelled.';
 });
 function onMidi(event, inputId) {
-  if(document.hidden || !document.hasFocus()) return;
+  if(document.hidden || !document.hasFocus()) {if(workspace==='study') performance.midi(inputId,event.data); return;}
   const [status, note, velocity] = event.data;
   if ((status & 0xf0) === 0x90 && velocity > 0) $('midi-activity').textContent = `Last MIDI note: ${noteName(spell(note))} · MIDI ${note} · channel ${(status & 15)+1}`;
   if (learning && (status & 0xf0) === 0x90 && velocity > 0) {
@@ -450,10 +473,12 @@ function onMidi(event, inputId) {
     learning = null; progress.resume('learning'); persist(); rangeLabels(); drawKeyboard(); newTarget();
     return;
   }
+  authored?.beforeInput();
   if (performance.midi(inputId, event.data)) update();
   else if((status & 0xf0)===0x90 && velocity>0) sound.sync();
 }
 async function selectInput(id, reopen = false) {
+  if(workspace==='study') authored?.pause();
   const revision = ++inputRevision;
   progress.pause('midi');
   const previous = selectedInput;
@@ -506,9 +531,15 @@ $('connect').addEventListener('click', async () => {
     $('midi-status').textContent = error.name === 'NotAllowedError' ? 'MIDI permission was denied. Allow MIDI in your browser’s site settings, then reconnect.' : `MIDI could not start (${error.name}). Reconnect your keyboard and try again.`;
   } finally { $('connect').disabled = false; }
 });
-window.addEventListener('blur', () => {sound.panic(); progress.pause(); performance.clear(); update();});
+function backgroundPractice() {
+  sound.panic(); progress.pause(); authored?.pause();
+  if(workspace==='study') {for(const id of [...performance.sources.keys()]) if(id==='computer' || id.startsWith('pointer:')) performance.clear(id);}
+  else performance.clear();
+  update();
+}
+window.addEventListener('blur', backgroundPractice);
 window.addEventListener('focus', () => {progress.resume(); update();});
-document.addEventListener('visibilitychange', () => {if (document.hidden) {sound.panic(); progress.pause(); performance.clear(); update();} else if (document.hasFocus()) {progress.resume(); update();}});
+document.addEventListener('visibilitychange', () => {if (document.hidden) backgroundPractice(); else if (document.hasFocus()) {progress.resume(); update();}});
 window.addEventListener('resize', () => {applyDensity(); fitKeyboard(); drawStaff(); scrollToCurrent(); update();});
 rangeLabels(); drawKeyboard(); newTarget();
 
@@ -516,3 +547,73 @@ layoutEditor=new LayoutEditor({workspace:$('playing-layout'),panels:{staff:$('st
   applyDensity();fitKeyboard();drawStaff();scrollToCurrent();
 }});
 layoutEditor.restore();
+
+authored=new ScoreWorkspace(performance,sound,update,()=>layoutEditor?.active?layoutEditor.state.scale:layout.preset==='720'?.75:1);
+const stopReference=sound.onReferenceStop, configureReference=sound.onConfigure;
+sound.onReferenceStop=()=>{stopReference(); authored.stopPlayback(); if(workspace==='study') update();};
+sound.onConfigure=()=>{configureReference(); if(workspace==='study') update();};
+async function loadStudy() {
+  const revision=++workspaceRevision; authored.cancelLoad(); authored.stop(); $('study-source-status').textContent='Loading study…';
+  $('study-start').disabled=true; $('study-play').disabled=true; $('study-position').disabled=true;
+  try {
+    const source=$('study-source').value;
+    if(source==='loaded') {
+      if(!activePiece) throw new Error('Load a MIDI passage in Music library, then choose Start practising this passage.');
+      const score=midiStudy(activePiece.score,settings(),activePiece.bounds,activePiece.filename);
+      if(revision===workspaceRevision) await authored.setScore(score);
+    } else await authored.loadExample(source);
+    if(revision!==workspaceRevision) return;
+    authored.sourceKey=studyKey();
+    $('study-start').disabled=false; $('study-position').disabled=false;
+    $('study-source-status').textContent=source==='loaded'?'Derived from the active MIDI passage. Source ticks and note IDs are preserved.':'Original authored example';
+    if(workspace==='study') {drawStaff(); update();}
+  } catch(error) {if(revision===workspaceRevision) {$('study-source-status').textContent=error.message; $('feedback').textContent=error.message;}}
+}
+function studyKey() {return $('study-source').value==='loaded'?'loaded:'+activePiece?.score.sha256+JSON.stringify([activePiece?.bounds,...['low','high','hand','key','material','span','size'].map(id=>$(id).value)]):$('study-source').value;}
+async function switchWorkspace(mode) {
+  if(workspace===mode) return;
+  workspace=mode; clearTimeout(settleTimer); clearTimeout(nextTimer); sourcePlayer.stop(); sound.stopClock();
+  document.documentElement.dataset.workspace=mode;
+  $('mode-outline').setAttribute('aria-pressed',String(mode==='outline')); $('mode-study').setAttribute('aria-pressed',String(mode==='study'));
+  $('outline-settings').hidden=mode!=='outline'; $('study-settings').hidden=mode!=='study'; $('outline-count').hidden=mode!=='outline';
+  syncSettingsTree();
+  document.querySelector('.progress-panel').hidden=mode!=='outline';
+  $('staff').scrollTop=0; $('staff').scrollLeft=0;
+  if(mode==='study') {
+    progress.pause('workspace'); authored.enter();
+    if(!authored.score || authored.sourceKey!==studyKey()) {
+      await loadStudy();
+    } else {drawStaff(); update();}
+  } else {
+    authored.leave(); progress.resume('workspace'); flowGate.start(target,target,performance.held,performance.attacks);
+    resumeRelease=$('progression').value==='release' && !solved && performance.held.size>0;
+    $('pause-practice').disabled=false; $('pause-practice').textContent=practicePaused?'Resume':'Pause'; $('pause-practice').setAttribute('aria-label',practicePaused?'Resume practice':'Pause practice');
+    const description=describeExercise(settings(),activePiece); $('practice-title').textContent=description.title; $('exercise-summary').textContent=description.description;
+    if(outlineSettingsDirty) newTarget();
+    else if(waitingForGenerated && generatedStream.queue.length && !practicePaused) advancePhrase();
+    else {drawStaff(); update();}
+  }
+  fitPlayingArea();
+}
+$('mode-outline').addEventListener('click',()=>void switchWorkspace('outline'));
+$('mode-study').addEventListener('click',()=>void switchWorkspace('study'));
+$('study-source').addEventListener('change',()=>{syncSettingsTree(); void loadStudy();});
+function syncSettingsTree() {
+  const loaded=workspace==='study' && $('study-source').value==='loaded';
+  const filters=$('pitch-filters');
+  $(workspace==='study'?'study-filter-slot':'outline-filter-slot').append(filters);
+  filters.hidden=workspace==='study' && !loaded;
+  if(workspace==='outline') syncMode();
+  else if(loaded) {$('material').disabled=false; $('material').closest('label').hidden=false;}
+  // Source playback remains available while studying notation, using the same
+  // sound engine. Starting either preview stops the other scheduler.
+  $('source-preview-controls').hidden=false;
+}
+$('play-source').addEventListener('click',()=>{authored.pause(); if(workspace==='study') update();});
+const filters=document.createElement('div'); filters.id='pitch-filters';
+for(const id of ['key','hand','size','material','span']) filters.append($(id).closest('label'));
+$('outline-filter-slot').append(filters);
+document.querySelector('.settings-stack .settings').append(document.querySelector('.practice-actions'));
+syncSettingsTree();
+const view=new URLSearchParams(location.search);
+if(view.get('view')==='study') {if(view.get('study')==='notation-cases') $('study-source').value='notation-cases'; void switchWorkspace('study');}

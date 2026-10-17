@@ -120,6 +120,7 @@ export function compileScore(input) {
     requireValue(compareBeat(actual,expected)===0 && group.every((event,i)=>event.voiceId===first.voiceId && event.measureId===first.measureId && JSON.stringify(event.tuplets.slice(0,depth+1))===JSON.stringify(first.tuplets.slice(0,depth+1)) && (!i || compareBeat(group[i-1].end,event.start)===0)),'Tuplets must fill their declared unit and ratio contiguously in one voice and measure.');
   }
   const noteById=new Map(notes.map(note=>[note.id,note])), incoming=new Map(), outgoing=new Map();
+  for(const note of notes) if(note.playbackEnd!==undefined) requireValue(compareBeat(beat(note.playbackEnd),note.start)>=0 && compareBeat(note.playbackEnd,position)<=0,'Invalid independent playback release.');
   requireValue(source.ties===undefined || Array.isArray(source.ties),'Invalid tie list.');
   for(const tie of source.ties??[]) {
     const from=noteById.get(tie.from), to=noteById.get(tie.to);

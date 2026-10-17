@@ -24,6 +24,7 @@ export function authoredPlan(score,{speed=1,start=[0,1],end=score.duration,voice
   const seconds=timing(score), origin=seconds(start), selected=voices ? new Set(voices) : null;
   const damper=(score.pedals??[]).filter(event=>event.controller===64);
   const soundingEnd=note=>{
+    if(note.playbackEnd) return note.playbackEnd;
     const down=damper.filter(event=>compareBeat(event.at,note.end)<=0).at(-1)?.value>=64;
     return down ? damper.find(event=>compareBeat(event.at,note.end)>0 && event.value<64)?.at??score.duration : note.end;
   };

@@ -239,48 +239,64 @@ note's median against that exercise's baseline. Key, range, mode, source passage
 spelling remain distinct. These are practice clues with visible evidence counts,
 not diagnoses of finger/hand ability or conclusions from sparse samples.
 
-## Notated passage practice
+## Pitch practice and passage study
 
-Choose **Explore the notation study** in Help. Select the original two-bar
-**Independent voices** passage or the ten-bar **Notation and continuity** studies,
-which add pickups, changing signatures/clefs, cross-staff notes and nested/mixed
-tuplets. These load entirely offline.
-**Play study** follows the written timing and tempo changes; **Pause**, **Resume study**
-and **Stop** control playback. Select a note or use Position to start from that point.
-The study has its own instrument, volume and speed controls, initially using your
-Target sound choices; changes here do not alter practice settings. Tied notes sound
-once across the barline, while repeated melody notes receive separate attacks.
-The position controls also inspect new attacks and continuing notes silently.
-Choose **Connect MIDI**, select an input, then **Practise passage** to play the
-written notes. The on-screen keys also work with a pointer or Space/Enter. Set
-Lowest key / Highest key to fit your instrument; keyboard inversion is independent
-of the theme. Ticks show accepted notes, crosses show extras and arrows suggest
-only unambiguous pitch corrections. The patterned ≈ state means pedal resonance.
+Use **Pitch practice** and **Passage study** in the top navigation to switch views
+in the same workspace. Both use the same MIDI connection, on-screen keyboard,
+layout presets, Custom panel positions, staff Scale, keyboard size, themes, target
+markers, note names and sound controls. Switching preserves the current pitch
+phrase and the selected study position; returning to a running study requires
+fresh articulation. Settings show the controls relevant to the selected source.
 
-Practice waits for the exact new attacks and keeps other voices held. Ties continue
-without another attack; repeated notes need a fresh release/press. Once correct,
-the remaining written duration runs at the selected Speed. A short hold or extra
-note freezes that clock until corrected; a voice rest never requires another voice
-to stop. Short holds and extra-note incidents are shown for this attempt. There is
-no early/late onset score or game-point calculation.
+For a MIDI study, load a library piece or local MIDI, choose tracks and passage
+endpoints, then **Start practising this passage**. Choose **Passage study**: its
+Source is now **Loaded MIDI passage**. Key, staff, range, pitch material and density
+filters remain available in that branch. Browsing another preview does not replace
+active practice. Source playback remains available to hear the MIDI timing and
+pedal; **Play study** previews the derived notation with the shared Target sound.
+Starting either preview stops the other. Live sound remains independent.
 
-**Finger held** requires physical continuity. **Pedal supported** also accepts a
-previously played note sustained by its own input/channel's damper pedal. The pedal
-never supplies a new attack. Playback follows authored damper marks, retaining their
-0–127 values; practice uses the normal on/off threshold of 64, with no half-pedal,
-sostenuto, soft-pedal or velocity assessment. Coincident unisons share one observable
-physical press; a repeat against a held unison requires one new press. MIDI cannot
-identify the fingers or prove independent holds of the same piano key.
+MIDI study notation is a local derivation, not a recovery of a printed edition.
+It preserves every retained source attack and its note IDs, original ticks,
+track/channel and source hash, while retaining the raw inspection unchanged.
+Written timing is rounded to a 1/32-note grid; spelling and independent voice lanes
+are derived. A source note spanning a bar is split with explicit ties referring
+back to that one attack; separate source attacks are never converted into shared
+holds. Meter/key/tempo changes are used where supplied. Without meter metadata,
+4/4 is a notation default. Damper resonance follows the source channel independently
+of notated finger duration. Pedal values/controllers remain in the original data.
 
-Choose Entry beat and Exit beat to practise a cut (quarter-note beats counted from
-zero); the exit excludes new attacks at that boundary. Enable **Loop passage** to
-repeat it automatically. Each entry, loop wrap or resume clears keys/pedal first,
-then asks for fresh attacks of every active note, including a cut tie. No sound or
-pedal state carries across a loop. Pickups retain their actual written length.
-**Pause practice** / **Resume practice** restarts the current position's duration;
-backgrounding or disconnecting pauses safely. **Stop practice** leaves inspection
-available. Preview playback and practice run separately. Imported MIDI remains an
-untimed outline rather than recovered printed notation.
+The study currently accepts up to 512 selected attacks, 1,024 retained notes,
+16 simultaneous notation lanes and 256 measures, within the model's event limit.
+Unknown source note releases and repeated attacks collapsing into the same grid
+cell report an unavailable study rather than fabricating durations or merging
+attacks. For dense passages, shorten the selection or reduce density. Files and
+derivations stay in memory; nothing is uploaded or bundled.
+
+The Source selector also offers the original **Independent voices** two-bar study
+and **Notation and continuity** ten-bar study. Bar 1 of Independent voices includes
+4/4, dotted rhythm and triplets; the inner G ties across the barline, and bar 2 has
+a melody rest. The longer study adds nested/mixed tuplets, cross-staff beams,
+changing signatures/clefs and paginated ties. Existing `/notation-study` links
+forward into this same workspace.
+
+Choose **Practise passage** to begin duration-aware patient practice. New attacks
+must be physically pressed; tied voices continue. Correct states start the next
+written duration at the selected Speed. Short holds or extra keys freeze remaining
+time until corrected. A voice rest leaves other voices active. Ticks, crosses,
+directions and patterned ≈ sustain states work on the shared playing surface.
+
+**Finger held** requires physical continuity. **Pedal supported** also accepts
+previously attacked notes sustained by their own input/channel; a pedal never
+supplies an attack. Coincident unisons share one observable press; a repeat against
+a held unison needs one new press. MIDI cannot identify fingers. There is no onset
+score, half-pedal, sostenuto, soft-pedal or velocity assessment.
+
+Entry beat and Exit beat select a study cut in quarter-note beats counted from
+zero, excluding new attacks at the exit. **Loop passage** repeats after releasing
+keys and pedal; entry and resume require fresh attacks of all active notes,
+including cut ties. Resume restarts the current position's duration. **Pause**
+uses the shared playing toolbar. Backgrounding and unplugging pause safely.
 
 ## Active exercise
 
