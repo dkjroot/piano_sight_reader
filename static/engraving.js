@@ -81,6 +81,9 @@ export class ScoreEngraver {
       for(const staff of score.staves) {
         const voices=score.voices.filter(voice=>voice.staff===staff.id).map(voice=>byVoice.get(voice.id).voice);
         const stave=system.addStave({voices});
+        // VexFlow defaults ledger lines to fixed #444, nearly invisible on our
+        // dark paper. Keep them in the same theme ink as the written notes.
+        stave.setDefaultLedgerLineStyle({strokeStyle:'currentColor',lineWidth:2});
         staveById.set(staff.id,stave);
         const previous=score.measures[offset+index-1];
         if(index%columns===0 || measure.clefs[staff.id]!==previous?.clefs[staff.id]) stave.addClef(measure.clefs[staff.id]);

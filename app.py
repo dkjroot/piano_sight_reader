@@ -48,7 +48,7 @@ def import_local_musicxml():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {"status": "ok"}, 200, {"X-Piano-Sight-Reader": "1"}
 
 
 if __name__ == "__main__":

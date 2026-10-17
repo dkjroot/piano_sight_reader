@@ -112,8 +112,8 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
   continuing ties and releases, timing independent holds/rests with correction waits.
   A ten-bar original fixture covers cross-staff beams/unisons, mixed/nested tuplets,
   changing signatures/clefs, pickups and paginated ties. Finger/pedal continuity and
-  explicit loop cuts are separate policies. Notation-preserving import, ornaments,
-  expressive traversal and scored timed modes remain roadmap work.
+  explicit loop cuts are separate policies. The MusicXML subset and verified La Candeur excerpt are delivered; broader
+  notation-preserving import, ornaments, traversal and scored timed modes remain.
   Passage study now lives in the main workspace beside Pitch practice, sharing
   MIDI, keyboard, layout/Scale, sound and applicable source filters. Loaded MIDI
   passages can derive 1/32-grid notation with source IDs/ticks and independent
@@ -126,7 +126,8 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 
 ## Run and verify economically
 
-From the actual checkout in PowerShell:
+For normal Windows use, double-click start.cmd; launch.py prepares/checks the
+private environment and serves on 8767. Manual checks from the checkout in PowerShell:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
@@ -259,3 +260,32 @@ final narrow MusicXML file-control layout. Importer Python line coverage is
 all twelve MIDI editions and the written excerpt. No USB/audio-latency claims.
 Preview server on 8767 was restarted for the new endpoint and left running;
 health and a real MusicXML POST (44 written notes) both succeed.
+
+MVP completion pass: VexFlow's stave ledger default is fixed #444. Set
+setDefaultLedgerLineStyle({strokeStyle:'currentColor',lineWidth:2}) on every stave;
+ledger strokes must remain theme ink for dark/light and every note state. Tests
+include treble C4 contrast and actual MIDI-60 matching, plus native SVG C4.
+
+launch.py (stdlib bootstrap) checks exact requirements against .venv metadata,
+creates/installs only when needed, then spawns the local app and opens a browser
+after readiness. start.cmd discovers existing venv Python, py or python on Windows.
+Default launcher port is 8767; manual app.py default remains 8766. /health keeps
+its JSON contract and adds X-Piano-Sight-Reader: 1 for local app identification.
+Repeated starts reuse a ready app; foreign occupied ports are reported without
+termination. Ctrl+C/timeout cleans up only the owned subprocess. No global install,
+file persistence, music download or frontend build is added. Restart after code
+updates; existing running processes are deliberately not replaced by the launcher.
+
+MVP audit fixtures live in tests/mvp.browser.cjs: both-theme middle C, all original
+study sources, empty-filter recovery, representative short Chopin/Bach/Rachmaninoff
+passages, source options and refresh. Existing suites cover imported MusicXML,
+stale replies, transport, preview isolation and custom layouts. Real hardware
+latency/full-size-piano validation is deferred by user request, not an MVP gate.
+
+MVP finishing verification, 17 October 2026: 127 JavaScript tests, 38 Python
+tests, full Chrome/Edge browser suites and diff checks pass. Launcher Python line
+coverage is 91 percent, independent of browser/device coverage. Real Windows
+smoke checks cover isolated startup on 8779, start.cmd duplicate reuse, Ctrl+C
+cleanup and reuse of the refreshed preview server on 8767. Both-theme middle-C
+and representative passage screenshots are saved in ignored test-results/.
+Preview 8767 is left running. Hardware latency remains deferred as agreed.

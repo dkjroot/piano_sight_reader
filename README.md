@@ -1,13 +1,33 @@
 # Piano sight reader
 
-A local piano sight-reading practice app with a grand staff, an on-screen
-keyboard, and live USB MIDI feedback. Start with single white notes and build up
-to chords on both staves, at your own pace. Free software under the [GNU GPL](LICENSE).
+A local piano practice workspace with generated pitch exercises, MIDI passage
+practice and written-duration studies, a grand staff, an on-screen keyboard and
+live USB MIDI feedback. Practise at your own pace with optional local sound.
+Free software under the [GNU GPL](LICENSE).
 
 ## Install and run
 
 You need **Python 3.10 or newer** and a browser. For USB MIDI, use Chrome or Edge.
-Download or clone this repository, open a terminal in its folder, then run:
+Download or clone this repository. On **Windows**, double-click **start.cmd**.
+It creates the private `.venv` environment if needed, installs missing or changed
+versions from `requirements.txt`, starts the server and opens your default browser
+at **http://127.0.0.1:8767**. The first setup may need internet access for Python
+packages; it does not download music. Use Chrome or Edge for USB MIDI.
+Keep the launcher window open and press Ctrl+C there to stop the server.
+Starting it again reuses this app if it is already running on that port.
+
+On **macOS / Linux**, run `python3 launch.py` from the project folder. The same
+launcher options apply. On any platform, `python launch.py --no-browser` prints
+the address without opening a browser; `--port 8768` chooses another port.
+The launcher reports incomplete environments, install failures and occupied ports;
+it never stops an unrelated server or resets your settings/music.
+
+Settings and history belong to the browser and local address/port. Keep using the
+same port to keep your existing preferences. The launcher uses 8767, while the
+manual server command below defaults to 8766. After updating the app, stop its
+old server before restarting so Python changes take effect.
+
+For manual setup, open a terminal in the project folder and run:
 
 **Windows (PowerShell)**
 
@@ -29,12 +49,19 @@ Open **http://127.0.0.1:8766** in your browser. Keep the terminal running; press
 Ctrl+C to stop. The server is accessible only on your computer. If port 8766 is
 already in use, add `--port 8767` to the last command and open that port instead.
 
-To start again later, run the last command from the project folder. After updating
-the app, repeat the dependency installation command before starting it.
+For subsequent manual starts, run the last command from the project folder. After
+updating the app, repeat the dependency installation command before starting it;
+the launcher checks those versions automatically.
 
 There is no front-end build step or Node.js requirement to use the app.
 Nothing you play is uploaded; MIDI and practice run locally in your browser.
 Use your instrument’s sound or enable the local acoustic piano, piano synth or organ.
+
+The current MVP covers generated untimed practice, selected MIDI attack outlines,
+and patient passage study with written durations, rests and ties. MIDI-derived
+notation uses a bounded 1/32 grid and inferred spelling/voice lanes; it is not a
+recovered printed score. MusicXML has the supported subset described below.
+Rhythmic scoring, continuous timed performance and game modes remain future work.
 
 ## Connect your piano
 
@@ -526,6 +553,11 @@ remain planned.
 
 ## Troubleshooting
 
+- **Launcher reports an occupied port:** close the old app server if it is yours,
+  or run `start.cmd --port 8768` / `python3 launch.py --port 8768`.
+- **Launcher setup failed:** check internet access for dependency installation;
+  retry or use the manual commands above. An incomplete `.venv` is reported
+  explicitly; rename that folder before rebuilding it.
 - **Python is missing:** install Python 3.10+ from [python.org](https://www.python.org/downloads/),
   then reopen your terminal. On Windows, ensure the Python launcher is installed.
 - **MIDI unavailable:** open the local URL above in Chrome or Edge. Web MIDI needs

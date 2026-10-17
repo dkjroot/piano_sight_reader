@@ -15,11 +15,30 @@ below so that completed foundations and remaining work are visible separately.
 | Area | Delivered | Still ahead |
 | --- | --- | --- |
 | Generated practice | Random/diatonic/advanced harmony, five textures, per-hand constraints and attack patterns | Timed rhythm, sustained independent voices and hand crossing |
-| Real music | Local MIDI import, eight offline editions, filtering, passages and bounded derived notation/duration study | Notation-preserving import, richer transcription and expressive score support |
+| Real music | Local MIDI import, twelve offline editions, bounded derived notation, MusicXML subset and verified written excerpt | Broader MusicXML, richer transcription and expressive score support |
 | Finding pieces | Composer/era/style/difficulty filters; reviewed source credits | More repertoire and reviewed difficulty levels |
 | Progress | Response times, accuracy, bests, optional history, graphs and reading patterns | Session runs, rhythm scores, targeted drills and profiles |
 | Sound | Independent synth/sample paths, MIDI/authored playback, metronome and count-in | Accompaniment during practice, latency calibration and scored modes |
-| Interface | Themes, contrast, layout, page scrolling, paginated authored engraving, Help | Further usability/hardware validation and imported-score integration |
+| Interface | Themes, contrast, layout, page scrolling, paginated authored engraving, Help | Continued usability/hardware validation and broader imported-score integration |
+
+## MVP finishing pass
+
+Current scope: generated untimed exercises, selected MIDI outlines and patient
+passage study. Guitar-Hero-style timed performance, scoring and gamification are
+future work, not MVP release conditions.
+
+- [x] Fix dark-theme ledger visibility: the engraving engine's fixed #444 ledger
+  style now uses theme ink; middle C has explicit contrast and MIDI-pitch checks.
+- [x] Review simple, independent-voice and dense passages with browser fixtures
+  and rendered images; include Chopin, Bach, Rachmaninoff and original studies.
+- [x] Audit source/view/filter/transport recovery, failed imports, empty filters,
+  refresh with local files absent and narrow/wide layouts. Preserve existing sources.
+- [x] Add a Windows double-click launcher and cross-platform Python entry point:
+  private environment setup, pinned dependency checks, ready-before-browser,
+  existing-app reuse, occupied-port diagnostics and owned-server cleanup.
+- [x] Align overview, startup, Help and supported-format documentation with the MVP.
+- [ ] Hardware latency and full-size-piano checks remain deferred at the user's
+  request; they do not block this MVP finishing pass and are not claimed verified.
 
 ## Working foundation
 

@@ -884,3 +884,32 @@ against the independent edition MIDI and cover playback, patient corrections,
 entry into ties and filtering. This proves a narrow real passage, not general
 full-edition or full-symbol import. Early-release counting on re-entry now keeps
 synthetic re-articulation distinct from real coincident attacks in another voice.
+
+## MVP finishing pass
+
+The notation engine's default ledger stroke #444 was barely distinguishable from
+dark paper. ScoreEngraver now explicitly sets every stave's default ledger style
+to currentColor at the existing 2px width. This follows theme ink without replacing
+vendor files, modifying glyph positions or adding input-event work. Browser checks
+assert the horizontal middle-C ledger stroke, contrast >=7:1 in both themes and
+physical pitch acceptance at MIDI 60. Native SVG pitch-practice ledger checks are
+separate. Representative dense, arpeggiated and chordal passages retain scrollable
+notation and the shared keyboard/transport workspace. Not every MIDI reduction is
+a publication-quality engraving; source spelling/voices remain derived.
+
+launch.py is a dependency-free bootstrap. It uses a project-local environment,
+checks exact installed metadata versions, runs pip only for missing/changed pins,
+uses list-valued subprocess arguments, opens the browser after identified health,
+reuses an existing identified app and rejects foreign occupied ports. The child
+server remains foreground; Ctrl+C and startup timeout terminate only that child.
+The /health JSON is unchanged; an identity header distinguishes this app from a
+foreign service. Tests mock installation/timeouts and real smoke checks cover
+start, duplicate launch through start.cmd and Ctrl+C cleanup on an isolated port.
+The default launcher port 8767 preserves the current preview origin/preferences;
+manual app.py retains 8766. Runtime requirements remain Flask/mido only.
+
+The MVP audit adds every built-in study with empty-filter recovery, both-theme
+ledger checks, short Chopin/Bach/Rachmaninoff notation and refresh without local
+files. Together with existing import/transport/lifecycle suites this bounds the
+current feature set. Hardware latency is explicitly deferred; future scored and
+gamified modes remain outside this finishing pass.
