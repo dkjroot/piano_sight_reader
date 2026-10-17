@@ -342,6 +342,23 @@ In Passage study, **Tempo → Score tempo** follows written changes; **Steady te
 uses the opening quarter-note tempo throughout. Both apply to listening and patient
 practice, alongside Speed. Tempo marks remain visible in either setting.
 
+In Passage study, **Source → La Candeur · verified bars 1–4** opens a written
+pitch/rhythm excerpt from the reviewed Mutopia edition. It preserves the moving
+melody and the bass chord tied across bars 3–4. Expression, fingering and repeats
+are outside this excerpt. Select both hands and widen the note/range filters to
+see every voice.
+
+**Import MusicXML** loads a local UTF-8 `.musicxml`/`.xml` file into the same study
+workspace. The current subset supports one two-staff piano part, written pitches,
+voices/chords, whole through 32nd notes with up to two dots, rests and ties. Files
+must be uncompressed, no larger than 256 KB, and exported without a DOCTYPE.
+Unsupported tuplets, grace notes and repeats are rejected with a diagnostic.
+Expression annotations remain in the original XML with a warning when they cannot
+yet be rendered or judged. A failed import leaves the current study intact.
+Files stay on this computer, in memory for this visit; imports are not saved to
+browser storage or added to the shared library. Use Source to switch back to a
+built-in study or the loaded MIDI passage.
+
 ## Active exercise
 
 The heading above the stave names the active exercise. Its description lists the
@@ -359,20 +376,25 @@ the top-right corner to close the guide and return to your existing practice tab
 
 ## Music library
 
-The **Music library** has eight editions ready to load offline: Bach, Chopin,
-Beethoven, Haydn, Handel, Schumann, Clementi and Rachmaninoff. Filter by composer,
+The **Music library** has twelve editions ready to load offline, including Bach, Chopin,
+Beethoven, Haydn, Handel, Schumann, Clementi, Rachmaninoff, Burgmüller, Satie and Joplin. Filter by composer,
 era, style or difficulty. Search by title, composer or opus number (accents and
 opus spacing are optional), then select a piece and choose **Load piece**, or choose
 **Random piece** for a selection within those filters. Adjust the preview if needed,
 then **Start practising this passage**. Your range, hand and pitch filters still apply.
 Edition credits are linked beside the selection and recorded in
-[the music notices](static/library/NOTICES.md). Seven editions have explicit Mutopia
+[the music notices](static/library/NOTICES.md). Eleven editions have explicit Mutopia
 public-domain dedications; Rachmaninoff's Prelude retains its **CC BY-SA 4.0** licence,
 attribution and share-alike terms. These music licences are separate from the
 application's GPL licence. Only editions with reviewed redistribution terms are bundled.
 Difficulty is currently **Unrated** until an editorial review establishes useful
 levels; no exam grades are inferred from MIDI. Browsing filters never replace
 the current practice passage.
+
+New choices include **La Candeur, Op. 100 No. 1** (melody over sustained chords),
+**Arabesque, Op. 100 No. 2** (quicker passagework), **Gymnopédie No. 1** (slow melody
+and wide bass-to-chord moves), and **The Entertainer** (syncopation and ragtime leaps).
+These descriptions indicate reading demands, rather than formal difficulty grades.
 
 **Recent pieces** reopens a bundled piece's preview and clears the browsing filters.
 The list remembers up to 20 opened library pieces in this browser, using only their
@@ -461,7 +483,7 @@ MIDI tempo/meter changes and Playback speed, with the metronome’s Click volume
 **Source count-in** adds one or two bars before a fresh start. Pause/resume continues
 without another count-in. Starting aligned playback stops the standalone click;
 starting the standalone metronome stops aligned playback. Source clicks use the
-MIDI time-signature denominator as the pulse (six eighth-note pulses in 6/8), with
+MIDI time-signature groups as the pulse (two dotted-quarter pulses in 6/8), with
 an accent at the MIDI bar boundary. Missing meter defaults to 4/4. Printed pickups
 and compound-beat grouping are not recovered from MIDI.
 

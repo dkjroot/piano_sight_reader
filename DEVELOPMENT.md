@@ -709,8 +709,9 @@ filters/results and single-piece pools are covered; there is no online request.
 
 ## Reviewed repertoire and discovery policy
 
-The offline catalogue now contains eight editions: the original Bach and Chopin,
-plus Beethoven, Haydn, Handel, Schumann, Clementi and Rachmaninoff. Seven are explicitly
+The offline catalogue now contains twelve editions: Bach, Chopin, Beethoven,
+Haydn, Handel, Schumann, Clementi, Rachmaninoff, two Burgmüller études, Satie and
+Joplin. Eleven are explicitly
 public-domain-dedicated by Mutopia contributors. Rachmaninoff Op. 3 No. 2 retains
 CC BY-SA 4.0 for its MIDI and inspection, full legal text and contributor attribution.
 No asset is relicensed by the application GPL. Music notices describe unchanged MIDI
@@ -850,3 +851,36 @@ Exact rational notation remains unchanged; seconds enter only at the clock bound
 into a later passage; speed scales both policies. The remembered Passage study
 Tempo selector controls both playback and practice. Engraved marks always represent
 the source map. No rubato, fermata or velocity judgement is implied.
+
+## Stage 3 notation-preserving import
+
+musicxml_import.py provides bounded score-partwise MusicXML import independently
+of MIDI inspection. It accepts UTF-8 up to 256 KB, one two-staff piano part, up to
+256 measures and 4096 notes/gap events. Fractions retain divisions exactly.
+Backup/forward coordinate voices; chord markers share the preceding event only
+with matching voice/staff/type/dots. Written pitch/alter/octave are independent
+of MIDI, and voice identity is independent of staff or unobservable hand.
+Empty lane intervals become explicit derived-silence rests. Ties must close in
+range and join adjacent same-spelled notes; model compilation validates pitch,
+continuity and IDs again before display. No MIDI recovery or quantization is used.
+
+Unsupported structural features are rejected; expression notations are retained
+in source_xml and disclosed as unrendered/unjudged. Source hashes and measure
+numbers survive, and imports never enter storage/library. The importer rejects
+DTD/entity declarations and foreign namespaces before consuming any external
+resource; XML parsing has no network/filesystem access. API errors do not replace
+the active score. Import/source revisions discard stale asynchronous responses.
+Full-score tuplets, MXL, multiple parts, ornaments and expression/traversal remain
+explicitly outside this first subset. Runtime requirements are unchanged.
+
+The reviewed La Candeur bars 1–4 MusicXML is a manual pitch/rhythm transcription
+from the bundled unchanged Mutopia LilyPond, not a MIDI-derived score. The first
+four vOne/vThree bars establish eighth-note melody, whole-note triads and the
+three explicit bass ties from bar 3 to 4. The silent vTwo lane is omitted.
+Tempo 152 follows the edition's MIDI block. Expression/fingering/repeats are
+excluded and disclosed. Catalogue hashes pin source/excerpt; compile_notation
+reproduces the generated score offline. Unit checks compare attack/release tuples
+against the independent edition MIDI and cover playback, patient corrections,
+entry into ties and filtering. This proves a narrow real passage, not general
+full-edition or full-symbol import. Early-release counting on re-entry now keeps
+synthetic re-articulation distinct from real coincident attacks in another voice.

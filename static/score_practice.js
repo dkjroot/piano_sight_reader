@@ -29,6 +29,7 @@ export class ScorePractice {
     if(this.reenter) for(const id of continuing) attacks.add(id);
     const active=[...new Set([...attacks,...continuing])], expected=new Set(active.map(id=>this.notes.get(id).midi));
     const attackPitches=new Set([...attacks].map(id=>this.notes.get(id).midi));
+    const coincidentAttacks=new Set(point.attacks.map(id=>this.notes.get(id).midi));
     const missing=[],early=[];
     for(const id of active) {
       const note=this.notes.get(id), pitch=note.midi, fresh=serial(input,pitch)>(this.baseline.get(pitch)??0);
@@ -37,7 +38,7 @@ export class ScorePractice {
         if(!this.credits.has(id)) missing.push(id);
       }
       const credit=this.credits.get(id);
-      if(credit!==undefined && (!sounding.has(pitch) || (!attackPitches.has(pitch) && serial(input,pitch)!==credit)) && !(continuing.has(id) && attackPitches.has(pitch))) early.push(id);
+      if(credit!==undefined && (!sounding.has(pitch) || (!attackPitches.has(pitch) && serial(input,pitch)!==credit)) && !(continuing.has(id) && coincidentAttacks.has(pitch))) early.push(id);
       // A single physical attack can represent coincident unisons, but cannot
       // prove hand/finger identity. A repeat against a hold needs one new attack.
       if(credit!==undefined && held.has(pitch) && fresh) this.credits.set(id,serial(input,pitch));

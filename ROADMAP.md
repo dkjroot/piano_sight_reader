@@ -225,15 +225,23 @@ everything to a sequence of chords that require all fingers to lift together.
   Check composition and edition/transcription rights separately; unclear assets stay out.
 - [x] Rebuild accepted MIDI inspections offline and reject changed hashes or incomplete
   credits. Local files do not enter the shared library automatically.
-- [ ] Import notation-preserving formats such as MusicXML with original spelling,
-  voices, durations and ties. MIDI alone is performance data, not printed notation.
+- [x] Import a bounded score-partwise MusicXML subset with written spelling, two
+  piano staves, voices, chords, ordinary/dotted durations, rests and explicit ties.
+  Keep original XML/hash and unsupported-annotation diagnostics; invalid imports
+  preserve the active study. MIDI remains separate performance data.
+- [ ] Extend MusicXML beyond the first subset: compressed MXL, multiple parts,
+  tuplets, grace/ornaments and traversal; render the retained expression annotations.
 - [ ] Extend discovery beyond its current source with cached metadata, richer difficulty
   clues and respectful rate limits; rechecking must not silently replace accepted assets.
-- [ ] Prove a verified passage with authored notation/voices end to end before declaring
-  the full score-import milestone complete.
+- [x] Prove La Candeur bars 1–4 from the reviewed Litolff/Bas Wassink edition:
+  written MusicXML -> immutable model -> engraving -> playback -> patient practice,
+  with whole-chord ties, independent melody, filtering and exact MIDI comparison.
+  The excerpt deliberately excludes expression/fingering/repeats; full-edition
+  import remains incomplete until those features are supported.
 
 Exit: one real passage works end to end, with trustworthy provenance and authored
-notation where supplied. Untimed MIDI practice is delivered; this full exit is not.
+notation where supplied. The four-bar pitch/rhythm passage now meets that narrow
+exit. General full-score MusicXML support and discovery extensions remain open.
 
 ## Stage 4 — Progressive outlines of real pieces
 
@@ -529,3 +537,8 @@ expressive transcription, ornaments and scored modes remain distinct roadmap wor
   ordinary incomplete measures; preserve known MIDI fragment phase separately.
 - [x] Exercise the new meter study through playback, patient holds/rests,
   correction waits and source-preserving filtering.
+
+Stage 3 repertoire follow-up, 17 October 2026: added reviewed public-domain-dedicated
+La Candeur, Arabesque (Burgmüller), Gymnopédie No. 1 (Satie) and The Entertainer
+(Joplin). Library now has twelve editions with varied reading demands. Difficulty
+labels remain Unrated pending the separate editorial rubric.

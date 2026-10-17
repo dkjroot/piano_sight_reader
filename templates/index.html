@@ -37,7 +37,9 @@
 
   <section class="settings-grid">
         <div class="card settings" id="study-settings" hidden><h2>Passage study</h2>
-      <label>Source <select id="study-source"><option value="loaded" disabled>Loaded MIDI passage</option><option value="independent-voices" selected>Independent voices · original study</option><option value="notation-cases">Notation and continuity · original study</option><option value="meter-groups">Meter and beat groups · original study</option><option value="tempo-curves">Gradual tempo · original study</option></select></label>
+      <label>Source <select id="study-source"><option value="loaded" disabled>Loaded MIDI passage</option><option value="imported" disabled>Imported MusicXML</option><option value="burgmuller-op100-1-excerpt">La Candeur · verified bars 1–4</option><option value="independent-voices" selected>Independent voices · original study</option><option value="notation-cases">Notation and continuity · original study</option><option value="meter-groups">Meter and beat groups · original study</option><option value="tempo-curves">Gradual tempo · original study</option></select></label>
+      <label>Import MusicXML <input id="study-file" type="file" accept=".musicxml,.xml"></label>
+      <p id="study-import-status" class="small" role="status"></p>
       <label class="check"><input id="study-loop" type="checkbox" checked> Loop passage</label>
       <label>Position <input id="study-position" type="range" min="0" max="0" value="0"></label>
       <label>Speed <select id="study-speed"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.5">150%</option><option value="2">200%</option></select></label>

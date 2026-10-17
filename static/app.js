@@ -15,12 +15,14 @@ import {layoutPreset,staffViewport} from './layout.js';
 import {SourcePlayer} from './playback.js';
 import {keyboardGeometry,keyboardKeyWidth} from './keyboard.js';
 import {ScoreWorkspace} from './score_workspace.js';
-import {passageControls} from './passage_filters.js';
+import {compileScore} from './score_model.js';
+import {filterStudy,passageControls} from './passage_filters.js';
 import {midiStudy} from './midi_study.js';
 
 const $ = id => document.getElementById(id);
 const performance = new Performance();
 const flowGate=new FlowGate();
+let importedStudy=null, importRevision=0;
 let workspace='outline', authored=null, workspaceRevision=0, outlineSettingsDirty=false;
 const progress = new ProgressPanel();
 let activePiece=null;
@@ -577,15 +579,18 @@ async function loadStudy() {
       if(!activePiece) throw new Error('Load a MIDI passage in Music library, then choose Start practising this passage.');
       const score=midiStudy(activePiece.score,settings(),activePiece.bounds,activePiece.filename);
       if(revision===workspaceRevision) await authored.setScore(score);
+    } else if(source==='imported') {
+      if(!importedStudy) throw new Error('Choose a MusicXML file first.');
+      await authored.setScore(filterStudy(importedStudy,settings()));
     } else await authored.loadExample(source,settings());
     if(revision!==workspaceRevision) return;
     authored.sourceKey=studyKey();
     $('study-start').disabled=false; $('study-position').disabled=false;
-    $('study-source-status').textContent=source==='loaded'?'Derived from the active MIDI passage. Source ticks and note IDs are preserved.':'Original authored example';
+    $('study-source-status').textContent=source==='loaded'?'Derived from the active MIDI passage. Source ticks and note IDs are preserved.':source==='imported'?'Imported MusicXML · '+(importedStudy.source.provenance.warnings.join(' ')||'Written pitches, voices, durations and ties retained.'):source==='burgmuller-op100-1-excerpt'?'Burgmüller · Bas Wassink / Mutopia · Public Domain dedication · pitch/rhythm excerpt, bars 1–4':'Original authored example';
     if(workspace==='study') {drawStaff(); update();}
   } catch(error) {if(revision===workspaceRevision) {authored.score=null; authored.engraver=null; $('staff').replaceChildren(); $('pause-practice').disabled=true; $('study-source-status').textContent=error.message; $('feedback').textContent=error.message; update();}}
 }
-function studyKey() {return $('study-source').value==='loaded'?'loaded:'+activePiece?.score.sha256+JSON.stringify([activePiece?.bounds,...['low','high',...passageControls].map(id=>$(id).value)]):$('study-source').value+JSON.stringify(['low','high',...passageControls].map(id=>$(id).value));}
+function studyKey() {return $('study-source').value==='loaded'?'loaded:'+activePiece?.score.sha256+JSON.stringify([activePiece?.bounds,...['low','high',...passageControls].map(id=>$(id).value)]):($('study-source').value==='imported'?'imported:'+importedStudy?.source.provenance.sha256:$('study-source').value)+JSON.stringify(['low','high',...passageControls].map(id=>$(id).value));}
 async function switchWorkspace(mode) {
   if(workspace===mode) return;
   workspace=mode; clearTimeout(settleTimer); clearTimeout(nextTimer); sourcePlayer.stop(); sound.stopClock();
@@ -615,7 +620,21 @@ async function switchWorkspace(mode) {
 }
 $('mode-outline').addEventListener('click',()=>void switchWorkspace('outline'));
 $('mode-study').addEventListener('click',()=>void switchWorkspace('study'));
-$('study-source').addEventListener('change',()=>{syncSettingsTree(); void loadStudy();});
+$('study-file').addEventListener('change',async()=>{
+  const file=$('study-file').files[0]; if(!file) return;
+  const revision=++importRevision, sourceRevision=workspaceRevision; $('study-import-status').textContent='Reading MusicXML…';
+  try {
+    if(file.size>262144) throw new Error('Choose an uncompressed MusicXML file no larger than 256 KB.');
+    const response=await fetch('/api/import-musicxml',{method:'POST',headers:{'Content-Type':'application/xml'},body:await file.arrayBuffer()});
+    const data=await response.json(); if(!response.ok) throw new Error(data.error||'MusicXML import failed.');
+    const score=compileScore(data); filterStudy(score,settings());
+    if(revision!==importRevision || sourceRevision!==workspaceRevision) return;
+    importedStudy=score; $('study-source').querySelector('[value="imported"]').disabled=false;
+    $('study-source').value='imported'; $('study-import-status').textContent=file.name+' · '+score.notes.length+' notes';
+    syncSettingsTree(); await loadStudy();
+  } catch(error) {if(revision===importRevision) $('study-import-status').textContent=error.message;}
+});
+$('study-source').addEventListener('change',()=>{importRevision++; if($('study-import-status').textContent==='Reading MusicXML…') $('study-import-status').textContent='';syncSettingsTree(); void loadStudy();});
 function syncSettingsTree() {
   const filters=$('pitch-filters');
   $(workspace==='study'?'study-filter-slot':'outline-filter-slot').append(filters);

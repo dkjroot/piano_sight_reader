@@ -43,7 +43,7 @@ export class ScoreWorkspace {
   }
   async loadExample(id,settings) {
     const revision=this.loadRevision=(this.loadRevision??0)+1;
-    const response=await fetch('/static/studies/'+(['notation-cases','meter-groups','tempo-curves'].includes(id)?id:'independent-voices')+'.json');
+    const response=await fetch(id==='burgmuller-op100-1-excerpt'?'/static/library/burgmuller-op100-1-excerpt.json':'/static/studies/'+(['notation-cases','meter-groups','tempo-curves'].includes(id)?id:'independent-voices')+'.json');
     if(!response.ok) throw new Error('The local study could not load.');
     const score=compileScore(await response.json()); if(revision===this.loadRevision) await this.setScore(settings?filterStudy(score,settings):score);
   }

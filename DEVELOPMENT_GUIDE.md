@@ -28,7 +28,7 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 
 | Responsibility | Main files |
 | --- | --- |
-| Loopback server, pages, bounded local MIDI inspection API | `app.py`, `score_import.py` |
+| Loopback server, pages, bounded local MIDI inspection API | `app.py`, `score_import.py`, `musicxml_import.py` |
 | Practice controller, MIDI port lifecycle, persistence and progression | `static/app.js` |
 | Pitch spelling/generation/matching; source/channel ownership and sustain | `static/core.js` |
 | Fresh physical press credit and previous-chord overlap | `static/flow.js` |
@@ -99,7 +99,7 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
   with tempo/speed, pedal, metronome and count-in. Independent piano/organ synthesis
   and acoustic samples. Progress times/accuracy/bests, selective history clearing,
   graphs and reading-pattern breakdowns; saved history is opt-in and bounded.
-- Eight offline editions: Bach, Chopin, Beethoven, Haydn, Handel, Schumann, Clementi,
+- Twelve offline editions (including Burgmüller, Satie and Joplin): Bach, Chopin, Beethoven, Haydn, Handel, Schumann, Clementi,
   Rachmaninoff. Local search, composer/era/style/difficulty filters, random choice and
   recent pieces. Difficulty remains Unrated; do not invent pedagogical ratings.
 - Starting a passage selects its opening MIDI signature; strong pitch-profile evidence
@@ -120,7 +120,7 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
   durations/rests/ties; this is distinct from notation-preserving edition import.
   Old study links redirect to the main page. No second input/audio/layout app remains.
 - Music redistribution needs explicit edition/MIDI permission, source links, hashes,
-  notices and licence text. Seven editions carry public-domain dedications; Rachmaninoff
+  notices and licence text. Eleven editions carry public-domain dedications; Rachmaninoff
   retains CC BY-SA 4.0. Samples and VexFlow retain their own notices. Discovery only
   writes a shortlist; downloads, ingestion and publication are separate reviewed actions.
 
@@ -226,3 +226,36 @@ tests and the full Chrome browser suite pass with unit coverage collected.
 Focused Edge checks cover engraved ramps and persisted teaching tempo. Physical
 MIDI/audio latency and subjective tempo feel remain unmeasured. Preview 8767
 remains running. Runtime dependencies and setup commands are unchanged.
+
+Stage 3 MusicXML: POST /api/import-musicxml converts a bounded UTF-8, uncompressed
+score-partwise subset using Python stdlib XML/Fraction; no runtime dependencies
+added. DTD/entities, multiple parts, tuplets, grace and traversal are rejected.
+Written pitches/voices/staves/chords/dots/rests/ties and bar-boundary key/clef/meter
+changes survive. Original XML/hash and unrendered-annotation warnings stay in the
+in-memory source provenance. Gaps become explicitly labelled derived rests.
+Client compilation/filter validation precedes applying an import; stale replies
+cannot override a newer Source choice. Imported MusicXML is an always-available
+Source after loading, sharing all existing study controls. No file persistence.
+
+La Candeur verified bars 1–4 is a pitch/rhythm excerpt manually transcribed from
+Bas Wassink's public-domain-dedicated Litolff edition (Mutopia 202). LilyPond source,
+MusicXML and generated score are hash-pinned in catalogue metadata; rebuild with
+python tools/build_library.py, fully offline. Source lines vOne/vThree establish
+pitches and the three bass ties between bars 3–4. Tests independently compare
+all 41 sounding attacks/releases with the unchanged edition MIDI. Expression,
+fingering and repeat traversal are deliberately excluded from this excerpt.
+Twelve offline MIDI editions now include La Candeur, Arabesque, Gymnopédie No. 1
+and The Entertainer. Difficulty remains Unrated; reading-demand descriptions
+avoid invented exam grades. See static/library/NOTICES.md for each edition.
+
+Satie MIDI has two reviewed redundant F-sharp releases at tick 13824, retained
+with their warnings. Builder acceptance pins exact reviewed_warnings per edition
+(default empty); any unexpected diagnostic blocks the offline rebuild.
+
+Stage 3 verification, 17 October 2026: 127 JavaScript and 29 Python tests pass.
+Full Chrome and Edge browser suites pass; focused Edge checks also cover the
+final narrow MusicXML file-control layout. Importer Python line coverage is
+98 percent, separately from browser/hardware coverage. Offline rebuild verifies
+all twelve MIDI editions and the written excerpt. No USB/audio-latency claims.
+Preview server on 8767 was restarted for the new endpoint and left running;
+health and a real MusicXML POST (44 written notes) both succeed.

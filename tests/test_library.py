@@ -21,10 +21,20 @@ class LibraryTests(unittest.TestCase):
                 self.assertEqual(entry['difficulty'], 'Unrated')
                 score = compile_piece(ROOT, entry)
                 self.assertEqual(score, json.loads((ROOT / entry['inspection']).read_text(encoding='utf-8')))
-                self.assertEqual(score['warning_count'], 0)
+                self.assertEqual(score['warnings'], entry.get('reviewed_warnings', []))
+                self.assertEqual(score['warning_count'], len(entry.get('reviewed_warnings', [])))
                 for name in [entry['midi'], entry['inspection']] + ([entry['licence_file']] if entry.get('licence_file') else []):
                     with client.get('/static/library/'+name) as response:
                         self.assertEqual(response.status_code, 200)
+
+    def test_reviewed_satie_redundant_releases_remain_visible_and_hash_pinned(self):
+        entries = json.loads((ROOT / 'catalogue.json').read_text(encoding='utf-8'))['pieces']
+        entry = next(piece for piece in entries if piece['id'] == 'satie-gymnopedie-1')
+        score = compile_piece(ROOT, entry)
+        redundant = [event for event in score['events'] if event['tick'] == 13824 and event['track'] == 1 and event['message'].get('note') == 66 and event['message'].get('velocity') == 0]
+        self.assertEqual(len(redundant), 3, 'one real release and two redundant source releases')
+        with self.assertRaises(ValueError):
+            compile_piece(ROOT, {**entry, 'reviewed_warnings': []})
 
     def test_changed_sources_and_incomplete_credits_are_rejected(self):
         entry = json.loads((ROOT / 'catalogue.json').read_text(encoding='utf-8'))['pieces'][0]

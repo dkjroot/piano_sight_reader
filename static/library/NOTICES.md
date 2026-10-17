@@ -4,7 +4,7 @@ The MIDI files and pre-ingested performance data in this directory retain their
 individual music licences, separately from the GPL-3.0 application code. No recording
 is bundled. Sources are editions explicitly shared by the Mutopia Project.
 
-Seven editions carry Mutopia contributor public-domain dedications. Rachmaninoff's
+Eleven editions carry Mutopia contributor public-domain dedications. Rachmaninoff's
 Prelude is CC BY-SA 4.0, with attribution and share-alike terms retained for its MIDI
 and inspection JSON; the full licence is in [CC-BY-SA-4.0.txt](CC-BY-SA-4.0.txt).
 
@@ -58,3 +58,42 @@ individual licence and the source edition disclaimer.
 
 [Mutopia licensing and contributor dedications](https://www.mutopiaproject.org/legal.html).
 Local files chosen by a user never enter this bundled collection automatically.
+
+## Additions reviewed 2026-10-17
+
+The following compositions are historical works by composers who died in 1874,
+1925 and 1917 respectively; each specific Mutopia contributor edition also
+explicitly carries its own Public Domain dedication. The linked edition pages
+supply the original MIDI; [Mutopia's licensing statement](https://www.mutopiaproject.org/legal.html#publicdomain)
+explicitly permits copying, modification and redistribution of those music files.
+The application GPL does not replace these individual music terms.
+
+- **Friedrich Burgmüller: La Candeur, Op. 100 No. 1**. Collection Litolff,
+  19th Century; typesetter Bas Wassink. [Edition 202](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=202).
+  Files: `burgmuller-op100-1.mid`, `burgmuller-op100-1.json` and unchanged
+  `burgmuller-op100-1.ly`. The separately identified `burgmuller-op100-1-excerpt.musicxml`
+  is a manual technical transcription of bars 1–4, first traversal: written
+  pitches/rhythms and ties only. Expression, fingering and repeat structure are
+  omitted, not inferred. The entirely silent second upper voice is omitted.
+  Its `.json` counterpart is produced by the MusicXML importer. No new musical
+  arrangement is made; original edition credit and public-domain dedication remain.
+- **Friedrich Burgmüller: Arabesque, Op. 100 No. 2**. Collection Litolff,
+  19th Century; typesetter Bas Wassink. [Edition 203](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=203).
+  Files: `burgmuller-op100-2.mid`, `burgmuller-op100-2.json`.
+- **Erik Satie: Gymnopédie No. 1**. Dover Edition; typesetter Evin Robertson.
+  [Edition 37](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=37).
+  Files: `satie-gymnopedie-1.mid`, `satie-gymnopedie-1.json`.
+- **Scott Joplin: The Entertainer**. Reproduction of original edition (1902);
+  typesetter Chris Sawer. [Edition 263](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=263).
+  Files: `joplin-entertainer.mid`, `joplin-entertainer.json`.
+
+Exact edition-page metadata hashes, unmodified MIDI hashes, dated permission
+evidence and asset URLs are recorded in catalogue.json. The La Candeur notation
+source and technical excerpt are hash-pinned separately. No assets were accepted
+on the strength of a generic public-domain composition claim alone.
+
+Satie diagnostic review: the unchanged MIDI emits three zero-velocity F-sharp
+releases at tick 13824 on source track index 1/channel 0 after one held note.
+Two redundant releases are reported as unmatched note-offs. The raw events and
+both warnings are retained. Catalogue metadata pins these exact reviewed
+diagnostics; the offline builder rejects any unreviewed warning changes.
