@@ -43,7 +43,7 @@ export class ScoreEngraver {
     const page=document.createElement('div'); page.id=this.container.id+'-page-'+offset; page.className='score-page'; page.dataset.barsPerLine=columns; this.container.append(page);
     const factory=new V.Factory({renderer:{elementId:page.id,width,height}});
     const context=factory.getContext(); context.setFillStyle('currentColor'); context.setStrokeStyle('currentColor');
-    const noteToEvent=new Map(), pedalAnchors=[];
+    const noteToEvent=new Map(), pedalAnchors=[], tempoAnchors=[];
     for(const [index,measure] of measures.entries()) {
       const system=factory.System({x:15+(index%columns)*measureWidth,y:topMargin+Math.floor(index/columns)*rowHeight,width:measureWidth,spaceBetweenStaves:staffDistance/10,formatOptions:{alignRests:true},formatIterations:2});
       const row=Math.floor(index/columns), byVoice=new Map(), tuples=new Map();
@@ -119,6 +119,10 @@ export class ScoreEngraver {
         const anchor=ordered.find(item=>compareBeat(item.event.start,pedal.at)===0)?.node;
         pedalAnchors.push({pedal,anchor,measure,stave:staveById.get(score.staves.at(-1).id)});
       }
+      for(const tempo of score.tempos) if(compareBeat(tempo.at,measure.start)>=0 && compareBeat(tempo.at,measure.end)<0) {
+        const anchor=ordered.find(item=>compareBeat(item.event.start,tempo.at)===0)?.node;
+        tempoAnchors.push({tempo,anchor,measure,stave:staveById.get(score.staves[0].id)});
+      }
     }
     const tieStyles=[];
     for(const tie of score.source.ties??[]) {
@@ -138,6 +142,16 @@ export class ScoreEngraver {
     [...svg.querySelectorAll('.vf-stavetie')].forEach((element,index)=>{element.dataset.scoreVoice=tieStyles[index].voice; element.dataset.tieSide=tieStyles[index].direction<0?'above':'below';});
     svg.dataset.scorePage=String(++this.pageCount);
     svg.dataset.meterGroups=measures.map(measure=>measure.beatGroups.join('+')).join('|');
+    for(const {tempo,anchor,measure,stave} of tempoAnchors) {
+      const text=document.createElementNS('http://www.w3.org/2000/svg','text');
+      const fraction=(tempo.at[0]/tempo.at[1]-measure.start[0]/measure.start[1])/(measure.length[0]/measure.length[1]);
+      text.setAttribute('x',String(anchor?.getAbsoluteX()??(stave.getNoteStartX()+fraction*(stave.getNoteEndX()-stave.getNoteStartX()))));
+      text.setAttribute('y',String(stave.getYForTopText(2))); text.setAttribute('font-size','13');
+      text.dataset.tempoBpm=tempo.bpm; text.dataset.tempoCurve=tempo.curve??'step';
+      const next=score.tempos[score.tempos.indexOf(tempo)+1];
+      text.textContent='♩ = '+tempo.bpm+(tempo.curve==='linear'?(next.bpm>tempo.bpm?' · accel.':next.bpm<tempo.bpm?' · rit.':''):'');
+      svg.append(text);
+    }
     for(const {pedal,anchor,measure,stave} of pedalAnchors) {
       const text=document.createElementNS('http://www.w3.org/2000/svg','text');
       const local=pedal.at[0]/pedal.at[1]-measure.start[0]/measure.start[1], fraction=local/(measure.length[0]/measure.length[1]);

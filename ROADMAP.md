@@ -150,8 +150,9 @@ An ordered list of simultaneous pitch sets is not enough for real piano music.
 
 - [x] Use discrete tempo maps, speed scaling, pause/resume, seeking, entry/exit cuts
   and audio-clock loops for authored playback. Source count-in retains meter phase.
-- [ ] Add gradual tempo changes, rubato practice, fermatas and expressive
-  pause/count-in policies. Keep a steady-tempo teaching option alongside score-faithful
+- [x] Add authored gradual tempo changes with shared analytic playback/patient
+  timing, engraved tempo marks and a remembered steady-tempo teaching option.
+- [ ] Add rubato practice, fermatas and expressive pause/count-in policies. Keep a steady-tempo teaching option alongside score-faithful
   playback; define when expressive timing is accepted, measured or deliberately ignored.
 - [ ] Represent grace notes, acciaccaturas/appoggiaturas, rolled chords, trills, mordents
   and turns as authored symbols with a separate performance expansion/policy. Permit

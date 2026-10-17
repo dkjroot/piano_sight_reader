@@ -21,7 +21,9 @@ export class ScoreWorkspace {
     $('study-position').addEventListener('input',()=>{this.stop(); this.index=+$('study-position').value; this.show(); onChange();});
     $('study-loop').addEventListener('change',()=>{try {localStorage.setItem('piano-sight-reader-study-loop',String($('study-loop').checked));} catch {}});
     try {const saved=localStorage.getItem('piano-sight-reader-study-loop'); if(['true','false'].includes(saved)) $('study-loop').checked=saved==='true';} catch {}
-    for(const id of ['study-speed','study-continuity','study-loop','study-entry','study-exit']) $(id).addEventListener('change',()=>this.stop());
+    try {const tempo=localStorage.getItem('piano-sight-reader-study-tempo'); if(['score','steady'].includes(tempo)) $('study-tempo').value=tempo;} catch {}
+    $('study-tempo').addEventListener('change',()=>{try {localStorage.setItem('piano-sight-reader-study-tempo',$('study-tempo').value);} catch {}});
+    for(const id of ['study-tempo','study-speed','study-continuity','study-loop','study-entry','study-exit']) $(id).addEventListener('change',()=>this.stop());
     try {const bars=localStorage.getItem('piano-sight-reader-study-bars'); if(['auto','1','2','3','4'].includes(bars)) $('study-bars').value=bars;} catch {}
     $('study-bars').addEventListener('change',()=>{try {localStorage.setItem('piano-sight-reader-study-bars',$('study-bars').value);} catch {} this.draw(); this.onChange();});
     this.timer=setInterval(()=>{if(this.active && (this.gate && !['paused','ended','stopped'].includes(this.gate.state) || this.cursor.state==='playing')) this.onChange();},16);
@@ -41,7 +43,7 @@ export class ScoreWorkspace {
   }
   async loadExample(id,settings) {
     const revision=this.loadRevision=(this.loadRevision??0)+1;
-    const response=await fetch('/static/studies/'+(['notation-cases','meter-groups'].includes(id)?id:'independent-voices')+'.json');
+    const response=await fetch('/static/studies/'+(['notation-cases','meter-groups','tempo-curves'].includes(id)?id:'independent-voices')+'.json');
     if(!response.ok) throw new Error('The local study could not load.');
     const score=compileScore(await response.json()); if(revision===this.loadRevision) await this.setScore(settings?filterStudy(score,settings):score);
   }
@@ -59,7 +61,7 @@ export class ScoreWorkspace {
   leave() {this.active=false; this.gate?.pause(); this.stopPlayback();}
   start() {
     if(!this.score) return;
-    try {this.stopPlayback(); this.gate=new ScorePractice(this.score,{speed:+$('study-speed').value,policy:$('study-continuity').value,loop:$('study-loop').checked,start:+$('study-entry').value,end:+$('study-exit').value}); this.gate.begin(this.input,performance.now()/1000); this.onChange();}
+    try {this.stopPlayback(); this.gate=new ScorePractice(this.score,{speed:+$('study-speed').value,tempoMode:$('study-tempo').value,policy:$('study-continuity').value,loop:$('study-loop').checked,start:+$('study-entry').value,end:+$('study-exit').value}); this.gate.begin(this.input,performance.now()/1000); this.onChange();}
     catch(error) {$('feedback').textContent=error.message;}
   }
   rewind(keepPlaying=false) {const playing=this.cursor.state==='playing'; this.stop(); this.index=+$('study-entry').value||0; this.shown=-1; this.show(); this.onChange(); if(keepPlaying && playing) void this.play();}
@@ -133,7 +135,7 @@ export class ScoreWorkspace {
     const position=resume?this.cursor.position:0;
     this.sound.onReferenceStop();
     try {
-      this.plan=authoredPlan(this.score,{speed:+$('study-speed').value,start:this.score.moments[entry].at,end:this.score.moments[exit].at});
+      this.plan=authoredPlan(this.score,{speed:+$('study-speed').value,tempoMode:$('study-tempo').value,start:this.score.moments[entry].at,end:this.score.moments[exit].at});
       this.cursor.play(this.plan,this.sound.engine.context.currentTime,resume?position:this.plan.moments.find(point=>point.index===this.index)?.time??0,{loop:$('study-loop').checked}); this.onChange();
     } catch(error) {$('feedback').textContent=error.message;}
   }

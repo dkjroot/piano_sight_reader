@@ -144,6 +144,7 @@ export function compileScore(input) {
     const at=beat(tempo.at); requireValue(compareBeat(at,ZERO)>=0 && compareBeat(at,position)<0 && Number.isFinite(tempo.bpm) && tempo.bpm>=1 && tempo.bpm<=600,'Invalid tempo event.'); return {...tempo,at};
   }).sort((a,b)=>compareBeat(a.at,b.at));
   requireValue(tempos.length>0 && compareBeat(tempos[0].at,ZERO)===0 && tempos.every((tempo,i)=>!i || compareBeat(tempos[i-1].at,tempo.at)<0),'Tempo map must start at zero with unique beat positions.');
+  for(const [index,tempo] of tempos.entries()) requireValue(tempo.curve===undefined || tempo.curve==='step' || tempo.curve==='linear' && index<tempos.length-1,'Tempo curve must be step or linear to a following tempo.');
   requireValue(source.pedals===undefined || Array.isArray(source.pedals),'Invalid pedal map.');
   const pedals=(source.pedals??[]).map(event=>{
     const at=beat(event.at); requireValue(compareBeat(at,ZERO)>=0 && compareBeat(at,position)<=0 && [64,66,67].includes(event.controller??64) && Number.isInteger(event.value) && event.value>=0 && event.value<=127,'Invalid pedal event.');

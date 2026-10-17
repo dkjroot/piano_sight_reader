@@ -211,3 +211,18 @@ Stage 2 meter/header verification, 17 October 2026: 121 JavaScript tests,
 collected separately from browser/hardware coverage. Focused Edge checks cover
 the meter study, rhythmic alignment and the Rachmaninoff header reproduction.
 Preview server health on 8767 is confirmed; it remains running.
+
+Authored tempo curves: tempo.curve="linear" ramps BPM linearly in score beats
+to the next tempo point (the last point cannot ramp). Missing/step curves keep
+the existing discrete map. score_transport.js integrates 60/BPM analytically,
+shared by audio and patient practice, including cuts/seeks/loops. Remembered
+study-tempo selects score or steady (opening BPM); Speed scales either policy.
+Engraving preserves written quarter-note tempo/accel./rit. marks. The original
+tempo-curves study exposes acceleration, slowing and discrete changes. Rubato,
+fermatas and expressive scoring remain separate roadmap work.
+
+Gradual-tempo verification, 17 October 2026: 125 JavaScript tests, 21 Python
+tests and the full Chrome browser suite pass with unit coverage collected.
+Focused Edge checks cover engraved ramps and persisted teaching tempo. Physical
+MIDI/audio latency and subjective tempo feel remain unmeasured. Preview 8767
+remains running. Runtime dependencies and setup commands are unchanged.

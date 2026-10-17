@@ -4,10 +4,10 @@ const serial=(input,pitch)=>input.attacks.get(pitch)?.pressSerial??0;
 // A patient score clock: musical duration runs only while the current state is
 // correct. Corrections re-anchor remaining time; they never make later notes late.
 export class ScorePractice {
-  constructor(score,{speed=1,policy='fingers',loop=false,start=0,end=score.moments.length-1}={}) {
+  constructor(score,{speed=1,tempoMode='score',policy='fingers',loop=false,start=0,end=score.moments.length-1}={}) {
     if(!['fingers','pedal'].includes(policy)) throw new Error('Unknown continuity policy.');
     if(!Number.isInteger(start) || !Number.isInteger(end) || start<0 || end>=score.moments.length || start>=end) throw new Error('Invalid practice loop.');
-    this.score=score; this.plan=authoredPlan(score,{speed}); this.policy=policy; this.loop=loop; this.start=start; this.end=end;
+    this.score=score; this.plan=authoredPlan(score,{speed,tempoMode}); this.policy=policy; this.loop=loop; this.start=start; this.end=end;
     this.notes=new Map(score.sounds.map(note=>[note.id,note]));
     this.points=score.moments.map((moment,index)=>({...moment,time:this.plan.moments[index].time}));
     const before=this.points[end];

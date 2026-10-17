@@ -337,6 +337,11 @@ and keeps listening if playback is running. Play study restarts after reaching
 the end. Listening follows Entry/Exit and Loop passage too, with loops scheduled
 on audio time. Backgrounding and unplugging pause safely.
 
+The **Gradual tempo · original study** source demonstrates acceleration and slowing.
+In Passage study, **Tempo → Score tempo** follows written changes; **Steady tempo**
+uses the opening quarter-note tempo throughout. Both apply to listening and patient
+practice, alongside Speed. Tempo marks remain visible in either setting.
+
 ## Active exercise
 
 The heading above the stave names the active exercise. Its description lists the

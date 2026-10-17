@@ -838,3 +838,15 @@ voices and rests. Source metronome/count-in uses conventional compound groups;
 ambiguous irregular MIDI retains denominator pulses, with no invented grouping.
 Rest/patient-clock foundations already delivered are separated from remaining
 multi-measure rest glyphs, expressive traversal and scored modes in ROADMAP.
+
+### Authored gradual tempo
+
+Tempo-map entries may use `curve: "linear"` to interpolate quarter-note BPM
+linearly in score-beat distance to the following entry. The last entry must be
+step/unspecified. Integration is analytic (`log1p` for nonzero slopes), so seeks,
+range cuts, loops, patient hold durations and preview audio share a single clock.
+Exact rational notation remains unchanged; seconds enter only at the clock boundary.
+`tempoMode: "steady"` uses the opening score BPM throughout, including when seeking
+into a later passage; speed scales both policies. The remembered Passage study
+Tempo selector controls both playback and practice. Engraved marks always represent
+the source map. No rubato, fermata or velocity judgement is implied.

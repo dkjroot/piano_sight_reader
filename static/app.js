@@ -632,4 +632,4 @@ $('outline-filter-slot').append(filters);
 document.querySelector('.settings-stack .settings').append(document.querySelector('.practice-actions'));
 syncSettingsTree();
 const view=new URLSearchParams(location.search);
-if(view.get('view')==='study') {if(['notation-cases','meter-groups'].includes(view.get('study'))) $('study-source').value=view.get('study'); void switchWorkspace('study');}
+if(view.get('view')==='study') {if(['notation-cases','meter-groups','tempo-curves'].includes(view.get('study'))) $('study-source').value=view.get('study'); void switchWorkspace('study');}
