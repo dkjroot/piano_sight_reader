@@ -33,6 +33,11 @@ module.exports=async function scorePracticeChecks(browser,url) {
     await page.locator('#staff-scale').fill('120'); await page.locator('#staff-scale').dispatchEvent('input');
     assert.equal(await page.locator('#staff-scale-value').innerText(),'120%'); assert.equal(await page.locator('#keyboard [aria-pressed="true"]').count(),3);
     await page.locator('#pause-practice').click(); assert.equal(await page.locator('#feedback').innerText(),'Paused');
+    for(const bars of ['1','2','3','4','auto']) {
+      await page.selectOption('#study-bars',bars);
+      assert.equal(await page.locator('#feedback').innerText(),'Paused','bars per line preserves the practice gate');
+      assert.equal(await page.locator('[data-score-note]').count(),17);
+    }
     for(const p of [72,64,48]) await off(p);
     await page.locator('#mode-outline').click();
     assert.equal(await page.locator('#phrase-position').innerText(),position); assert.equal(await page.locator('#study-settings').isVisible(),false);
@@ -43,7 +48,12 @@ module.exports=async function scorePracticeChecks(browser,url) {
     await page.locator('#mode-study').click(); await page.waitForSelector('[data-score-note]');
     assert.match(await page.locator('#feedback').innerText(),/Play|Paused/,'return preserves the study position with fresh articulation');
     await page.locator('#study-stop').click();
+    assert.equal(await page.locator('#staff-panel #study-play').count(),1);
+    assert.equal(await page.locator('#study-settings #study-play').count(),0);
     await page.selectOption('#study-source','notation-cases'); await page.waitForSelector('[data-score-page="2"]');
+    await page.selectOption('#study-bars','3');
+    assert.equal(await page.locator('.score-page').nth(1).getAttribute('id'),'authored-engraving-page-6','page boundaries preserve complete three-bar rows');
+    await page.selectOption('#study-bars','auto');
     assert.ok(await page.locator('.vf-tuplet').count()>=4); assert.equal(await page.locator('.vf-stavetie').count(),2);
     await page.locator('#mode-outline').click();
     await page.locator('#score-file').setInputFiles('tests/fixtures/polyphony.mid');
@@ -84,6 +94,27 @@ module.exports=async function scorePracticeChecks(browser,url) {
     }
     await page.setViewportSize({width:360,height:800}); await page.waitForTimeout(150);
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await page.setViewportSize({width:1440,height:900});
+    await page.selectOption('#library-piece','rachmaninoff-op3-2'); await page.locator('#load-piece').click();
+    await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('Prelude in C-sharp minor'));
+    await page.selectOption('#suggested-passages','0');
+    await page.waitForFunction(()=>document.getElementById('practice-title').textContent.includes('Prelude in C-sharp minor'));
+    await page.waitForFunction(()=>!document.getElementById('study-start').disabled);
+    await page.selectOption('#study-bars','1');
+    await page.locator('#density').selectOption('custom');
+    await page.locator('#staff-scale').fill('160'); await page.locator('#staff-scale').dispatchEvent('input');
+    for(const height of [180,300,600]) {
+      await page.locator('[aria-label="Resize staff"]').focus();
+      for(let step=0;step<height/40;step++) await page.keyboard.press('Shift+ArrowDown'); await page.waitForTimeout(150);
+      const fit=await page.locator('#staff').evaluate(pane=>({width:pane.clientWidth,scroll:pane.scrollWidth,svg:[...pane.querySelectorAll('svg')].map(svg=>svg.getBoundingClientRect().width)}));
+      assert.ok(fit.scroll<=fit.width+1,JSON.stringify(fit));
+      assert.ok(fit.svg.every(width=>width<=fit.width+1),'engraving fits the space beside the vertical scrollbar');
+    }
+    assert.equal(await page.locator('.score-page').first().getAttribute('data-bars-per-line'),'1');
+    await page.locator('#study-position').fill('2'); await page.locator('#study-position').dispatchEvent('input');
+    await page.selectOption('#study-bars','2'); assert.equal(await page.inputValue('#study-position'),'2','reflow preserves the study position');
+    assert.equal(await page.locator('.score-page').first().getAttribute('data-bars-per-line'),'2');
+    await page.reload(); assert.equal(await page.inputValue('#study-bars'),'2','bars per line is remembered');
     assert.deepEqual(errors,[]);
     await page.goto(url+'/notation-study?study=notation-cases'); await page.waitForSelector('[data-score-page="2"]');
     assert.match(page.url(),/view=study/);

@@ -18,6 +18,8 @@ export class ScoreWorkspace {
     $('study-play').addEventListener('click',()=>void this.play()); $('study-audio-pause').addEventListener('click',()=>{this.pausePlayback(); this.onChange();});
     $('study-position').addEventListener('input',()=>{this.stop(); this.index=+$('study-position').value; this.show(); onChange();});
     for(const id of ['study-speed','study-continuity','study-loop','study-entry','study-exit']) $(id).addEventListener('change',()=>this.stop());
+    try {const bars=localStorage.getItem('piano-sight-reader-study-bars'); if(['auto','1','2','3','4'].includes(bars)) $('study-bars').value=bars;} catch {}
+    $('study-bars').addEventListener('change',()=>{try {localStorage.setItem('piano-sight-reader-study-bars',$('study-bars').value);} catch {} this.draw(); this.onChange();});
     this.timer=setInterval(()=>{if(this.active && (this.gate && !['paused','ended','stopped'].includes(this.gate.state) || this.cursor.state==='playing')) this.onChange();},16);
     window.addEventListener('pagehide',()=>{clearInterval(this.timer); this.leave();});
   }
@@ -42,8 +44,8 @@ export class ScoreWorkspace {
   draw() {
     if(!this.active || !this.score || !globalThis.VexFlow) return;
     $('staff').replaceChildren(); const container=document.createElement('div'); container.id='authored-engraving'; container.className='engraving-output'; $('staff').append(container);
-    const scale=this.getScale(); container.style.width=Math.max(560,$('staff').clientWidth/scale)+'px';
-    this.engraver=new ScoreEngraver(container); this.engraver.draw(this.score);
+    const scale=this.getScale(); container.style.width=Math.max(1,($('staff').clientWidth-2)/scale)+'px';
+    this.engraver=new ScoreEngraver(container); this.engraver.draw(this.score,{barsPerLine:$('study-bars').value});
     for(const svg of container.querySelectorAll('svg')) {svg.style.width=svg.getAttribute('width')*scale+'px'; svg.style.height=svg.getAttribute('height')*scale+'px';}
     container.style.width=''; this.visible=new Set();
     this.engraver.onSelect=note=>{this.stop(); this.index=this.score.moments.findIndex(point=>compareBeat(point.at,note.start)===0); this.show(); this.onChange();};

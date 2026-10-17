@@ -5,12 +5,15 @@ const accidental={[-2]:'bb',[-1]:'b',0:'',1:'#',2:'##'};
 // VexFlow runs only when laying out an authored score, never on the MIDI input path.
 export class ScoreEngraver {
   constructor(container,engine=globalThis.VexFlow) {this.container=container; this.engine=engine; this.nodes=new Map(); this.active=new Map(); this.onSelect=()=>{}; this.renderCount=0;}
-  draw(score) {
+  draw(score,{barsPerLine='auto'}={}) {
+    this.barsPerLine=[1,2,3,4].includes(+barsPerLine)?+barsPerLine:null;
     const V=this.engine;
     if(!V) throw new Error('The local notation engine is unavailable.');
     if(score.staves.length!==2) throw new Error('The piano renderer requires two staves.');
     this.score=score; this.nodes.clear(); this.active.clear(); this.container.replaceChildren();
-    for(let offset=0;offset<score.measures.length;offset+=8) this.drawPage(score,score.measures.slice(offset,offset+8),offset);
+    this.columns=this.barsPerLine??(this.container.clientWidth>=1000 ? 2 : 1);
+    const pageSize=Math.floor(8/this.columns)*this.columns;
+    for(let offset=0;offset<score.measures.length;offset+=pageSize) this.drawPage(score,score.measures.slice(offset,offset+pageSize),offset);
     this.positions=score.moments.map(moment=>{
       const roles=new Map();
       for(const [ids,role] of [[moment.attacks,'starting'],[moment.continuing,'continuing']]) for(const id of ids) {
@@ -25,7 +28,7 @@ export class ScoreEngraver {
   }
   drawPage(score,measures,offset) {
     const V=this.engine;
-    const width=Math.max(560,this.container.clientWidth), columns=width>=1000 ? 2 : 1, measureWidth=(width-30)/columns;
+    const width=Math.max(1,this.container.clientWidth), columns=this.columns, measureWidth=(width-30)/columns;
     const above=[0,0],below=[0,0]; let nesting=0;
     for(const measure of measures) for(const event of measure.events) {
       const staffIndex=score.staves.findIndex(staff=>staff.id===event.staffId), treble=measure.clefs[event.staffId]==='treble';
@@ -36,7 +39,7 @@ export class ScoreEngraver {
     const staffDistance=120+above[1]+below[0], topMargin=50+above[0]+nesting*20;
     const rowHeight=Math.max(300,staffDistance+100+above[0]+below[1]+nesting*20);
     const height=Math.ceil(measures.length/columns)*rowHeight+topMargin+below[1]+20;
-    const page=document.createElement('div'); page.id=this.container.id+'-page-'+offset; page.className='score-page'; this.container.append(page);
+    const page=document.createElement('div'); page.id=this.container.id+'-page-'+offset; page.className='score-page'; page.dataset.barsPerLine=columns; this.container.append(page);
     const factory=new V.Factory({renderer:{elementId:page.id,width,height}});
     const context=factory.getContext(); context.setFillStyle('currentColor'); context.setStrokeStyle('currentColor');
     const noteToEvent=new Map(), pedalAnchors=[];

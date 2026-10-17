@@ -65,8 +65,10 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 - Written spelling is independent of MIDI pitch. Preserve 15 signatures, B-sharp/C-flat
   octave boundaries, collision-free generated positions and nearby accidental columns.
   Chord hints pair only unique nearest unmatched pitches; chord names require exact templates.
-- Loading/changing a score preview never changes active practice. Only **Start
-  practising this passage** commits it. Derived outlines preserve source IDs/ticks
+- Loading a file/library preview leaves active practice intact. Selecting a suggested
+  section or bookmark, editing endpoints or changing tracks activates the selected
+  passage automatically; **Start practising this passage** also activates it. Derived
+  outlines preserve source IDs/ticks
   and filtering/reduction provenance; they are untimed attacks, not recovered notation.
 - Light/dark, keyboard inversion and target visibility are independent settings.
   Targets default off. Preserve strong contrast and ticks/crosses as well as colour.
@@ -162,3 +164,7 @@ the final source-panic/tie regression; 21 Python tests and the full Edge browser
 suite pass. Mode switching, hierarchical/shared filters, imported MIDI notation,
 layout/Scale, playback cancellation and both palettes have browser checks. Unit
 coverage is separate from browser/controller and physical-device coverage.
+
+Study layout: remembered Automatic/1–4 bars per line sits beside Scale. Reflow
+preserves the study gate/cursor; study transport is beneath the staff. Engraving
+uses the pane width after a stable vertical scrollbar gutter, including Custom scaling.

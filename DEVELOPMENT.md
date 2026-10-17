@@ -226,8 +226,9 @@ size retains melody, bass, then inner pitches. Collision-safe inferred spelling 
 omit another pitch. Selected source-onset windows are limited to 512, with explicit
 retained/omitted counts. Empty filtered attacks are skipped only in this untimed view.
 
-The explicit Practise action activates a snapshot of the inspected file/passage;
-subsequent inspection previews do not replace active practice. Only Repeat is enabled
+Selecting a section/bookmark, editing endpoints or changing tracks activates a
+snapshot of the inspected passage, as does the explicit Practise action. Loading
+another file leaves active practice intact. Only Repeat is enabled
 for local outlines; generated phrase length/minimum chord size do not apply. Reloads
 return to generated practice because files are not persisted. Progress identities
 include source hash, passage and attack position without embedding an entire long
@@ -277,8 +278,8 @@ existing records; saving remains opt-in. An exact UTC daily table complements th
 SVG graph, and the summary exposes the 90th-percentile response time.
 
 
-MIDI outline track rules are explicit preview choices, snapshotted into the active
-passage on Practise. Included tracks may infer staff from middle C or be assigned
+MIDI outline track rules are explicit choices, snapshotted into the active
+passage when changed. Included tracks may infer staff from middle C or be assigned
 treble/bass by the player. Explicit assignments filter by assigned staff and the
 shared physical/reading range, allowing cross-middle-C notes; automatic assignments
 retain existing pitch-based hand/range behavior. Original tracks/channels/notes stay
@@ -340,7 +341,7 @@ release/pedal/reset clears attack metadata without changing physical-held matchi
 source SHA-256, label, filename, source-onset range (<=512), track/staff rules and
 update time. Equivalent file/range/rules update a bookmark rather than duplicating
 it. Music bytes and pitch/range settings are not stored in bookmarks. Loading the
-same file is required; a selected bookmark restores preview only, never active practice.
+same file is required; selecting a bookmark activates its passage automatically.
 Source playback stops when the preview passage changes. Cross-tab storage events
 refresh the menu without changing targets. Storage failure retains a session-only
 bookmark and reports that limitation. Invalid stored records are ignored safely.
@@ -382,8 +383,8 @@ contributor, licence evidence, review date and original MIDI checksum. Inspectio
 are prebuilt locally with `python tools/build_library.py`; tests reconstruct every
 entry from its original MIDI and check exact data/provenance equality. No external
 fetch or MIDI parsing is needed when a user loads a bundled piece. Selection and
-local import share a revision guard; preview never replaces active practice until
-explicit activation. Source files and notices remain alongside the GPL code.
+local import share a revision guard. Loading a file leaves active practice intact;
+section/bookmark selection, endpoint edits and track changes activate the passage. Source files and notices remain alongside the GPL code.
 
 Passage suggestions use MIDI markers, at least a half-quarter rest gap, then meter
 boundaries (default 4/4 when absent) within a default 32-onset bound. Large files
@@ -698,7 +699,7 @@ Hardware input-to-paint latency, USB devices and human musical review remain sep
 Random piece samples the intersected local library filters, excluding the current
 selection when there is an alternative. A pure helper accepts an injected RNG for
 reproducible checks. It loads only a preview through the existing revision guard;
-active practice still changes only with Start practising this passage. Empty
+section selection or Start practising this passage activates it. Empty
 filters/results and single-piece pools are covered; there is no online request.
 
 

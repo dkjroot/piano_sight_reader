@@ -576,6 +576,7 @@ async function switchWorkspace(mode) {
   document.documentElement.dataset.workspace=mode;
   $('mode-outline').setAttribute('aria-pressed',String(mode==='outline')); $('mode-study').setAttribute('aria-pressed',String(mode==='study'));
   $('outline-settings').hidden=mode!=='outline'; $('study-settings').hidden=mode!=='study'; $('outline-count').hidden=mode!=='outline';
+  $('study-transport').hidden=mode!=='study'; $('study-bars-control').hidden=mode!=='study';
   syncSettingsTree();
   document.querySelector('.progress-panel').hidden=mode!=='outline';
   $('staff').scrollTop=0; $('staff').scrollLeft=0;

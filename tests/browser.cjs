@@ -639,7 +639,6 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     await send([0x90,67,90]); await page.waitForTimeout(160); await send([0x80,67,0]); await page.waitForTimeout(300);
     assert.equal(await page.locator('#phrase-position').innerText(),'1 / 2');
     await page.locator('#passage-start').fill('2'); await page.locator('#passage-start').dispatchEvent('change');
-    await page.locator('#practice-score').click();
     assert.equal(await page.locator('#phrase-position').innerText(),'1 / 1');
     assert.equal(await page.locator('.key.target').getAttribute('data-pitch'),'67');
     await page.locator('#passage-name').fill('Closing note');
@@ -648,11 +647,12 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     assert.equal(await page.locator('#saved-passages option').count(),2);
     await page.locator('#passage-start').fill('1'); await page.locator('#passage-start').dispatchEvent('change');
     assert.equal(await page.inputValue('#saved-passages'),'');
+    assert.deepEqual(await page.locator('.key.target').evaluateAll(keys=>keys.map(key=>+key.dataset.pitch)),[60,64],'endpoint edits activate the passage without another button');
     await page.selectOption('#saved-passages',savedPassage);
     assert.equal(await page.inputValue('#passage-start'),'2');
     assert.equal(await page.inputValue('#passage-end'),'2');
     assert.equal(await page.inputValue('#score-staff-1'),'treble');
-    assert.equal(await page.locator('.key.target').getAttribute('data-pitch'),'67','restoring preview must not change active practice');
+    assert.equal(await page.locator('.key.target').getAttribute('data-pitch'),'67','restoring a bookmark automatically activates its passage');
     const savedPage=await page.context().newPage(); savedPage.on('pageerror',error=>errors.push(error.message));
     await savedPage.goto(process.env.APP_URL || 'http://127.0.0.1:8766');
     assert.equal(await savedPage.locator('#saved-passages').isDisabled(),true);

@@ -249,8 +249,9 @@ phrase and the selected study position; returning to a running study requires
 fresh articulation. Settings show the controls relevant to the selected source.
 
 For a MIDI study, load a library piece or local MIDI, choose tracks and passage
-endpoints, then **Start practising this passage**. Choose **Passage study**: its
-Source is now **Loaded MIDI passage**. Key, staff, range, pitch material and density
+endpoints (section and endpoint changes apply automatically). **Start practising
+this passage**, beside Save passage, also activates the selection. Choose
+**Passage study**: its Source is now **Loaded MIDI passage**. Key, staff, range, pitch material and density
 filters remain available in that branch. Browsing another preview does not replace
 active practice. Source playback remains available to hear the MIDI timing and
 pedal; **Play study** previews the derived notation with the shared Target sound.
@@ -270,7 +271,9 @@ The study currently accepts up to 512 selected attacks, 1,024 retained notes,
 16 simultaneous notation lanes and 256 measures, within the model's event limit.
 Unknown source note releases and repeated attacks collapsing into the same grid
 cell report an unavailable study rather than fabricating durations or merging
-attacks. For dense passages, shorten the selection or reduce density. Files and
+attacks. For dense passages, choose **1** under **Bars per line** beside Scale.
+Automatic or 1–4 bars per line is remembered. Reflow preserves your position.
+Study playback and practice controls sit directly below the stave. Files and
 derivations stay in memory; nothing is uploaded or bundled.
 
 The Source selector also offers the original **Independent voices** two-bar study
@@ -303,7 +306,7 @@ uses the shared playing toolbar. Backgrounding and unplugging pause safely.
 The heading above the stave names the active exercise. Its description lists the
 key, hand, reading and keyboard ranges, chord limit and pitch material. For MIDI
 practice it also names the active piece and source attack range. Loading a new
-preview does not change this description until you start practising it.
+file preview leaves this description intact; selecting a section updates it.
 
 ## Help
 
@@ -350,7 +353,7 @@ pitches are reported. Your original file stays unchanged and is not saved by the
 (channel 10) is excluded from piano outlines.
 The file is sent only to the Python server on this computer, with no external upload.
 
-Choose **First attack** and **Last attack**, then **Start practising this passage** to loop
+Changing **First attack** or **Last attack** automatically selects
 that passage (up to 512 source onsets). The current range, hand, key, pitch material
 and maximum chord size filter the source. Reduction keeps the highest note, then
 the bass, then inner notes; it never adds notes. Empty attacks are omitted from this
@@ -358,8 +361,7 @@ untimed reading exercise. Minimum chord size and generated phrase length do not
 apply. The preview reports retained/omitted notes before starting. Include or exclude MIDI
 tracks and assign each to treble/bass explicitly, or keep the middle-C inference.
 An explicit assignment allows crossing middle C; the hand selector then follows
-your assigned staff. Track changes remain a preview until **Start practising this passage**
-is clicked.
+your assigned staff. Track and staff changes automatically update the active passage.
 
 When you start a passage, the **Key** setting follows its opening key signature if the
 MIDI contains one. If it does not, the app estimates the key signature from note
@@ -392,8 +394,7 @@ to a shared library, and their redistribution rights are not assumed.
 Give a selected attack range a name and choose **Save passage**. Up to 50 bookmarks
 stay in this browser, including the track and staff choices. Load the library
 piece again or reopen the same local MIDI file, then choose its saved passage
-to restore the preview. **Start practising this passage**
-still starts it explicitly. Current pitch/range filters stay under your control.
+to activate it immediately. Current pitch/range filters stay under your control.
 Bookmarks match the file's hash, so another file with the same name cannot receive
 the wrong range. **Delete saved passage** removes a bookmark. Uploaded music files
 are not kept in browser storage. Other tabs in the same browser receive bookmark changes.

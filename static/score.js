@@ -10,7 +10,7 @@ const PASSAGES='piano-sight-reader-passages-v1';
 const RECENT='piano-sight-reader-recent-pieces-v1';
 export class ScorePanel {
   constructor(onPractice=()=>{},getSettings=()=>({low:48,high:84,hand:'right',material:'white',span:'near',size:1,key:'C'})) {
-    this.getSettings=getSettings;
+    this.getSettings=getSettings; this.onPractice=onPractice;
     this.score=null; this.revision=0; this.trackControls=[]; this.onPassageChange=()=>{}; this.savedPassages=[]; this.practiceUsesSourceKey=false;
     try {this.savedPassages=parsePassages(localStorage.getItem(PASSAGES)||'[]');} catch {$('passage-status').textContent='Saved passages are unavailable; this visit still works.';}
     $('score-file').addEventListener('change',()=>{const file=$('score-file').files[0]; if(file) void this.readFile(file);});
@@ -45,11 +45,11 @@ export class ScorePanel {
       const section=this.sections[+$('suggested-passages').value]; if(!section || $('suggested-passages').value==='') return;
       $('passage-start').value=section.start; $('passage-end').value=section.end; $('passage-name').value=section.label;
       $('saved-passages').value=''; $('delete-passage').disabled=true;
-      this.refresh(); this.onPassageChange(); $('passage-status').textContent=section.reason+' · suggested section; adjust the endpoints as needed.';
+      this.refresh(); this.onPassageChange(); this.activatePassage(); $('passage-status').textContent=section.reason+' · suggested section; adjust the endpoints as needed.';
     });
     void this.loadCatalogue();
     for(const id of ['passage-start','passage-end']) $(id).addEventListener('change',()=>this.editPassage());
-    $('practice-score').addEventListener('click',()=>{const outline=this.refresh(); if(outline?.targets.length) onPractice(this.score,{start:outline.start,end:outline.end,tracks:this.rules()},this.filename,this.keyInfo);});
+    $('practice-score').addEventListener('click',()=>this.activatePassage());
     $('save-passage').addEventListener('click',()=>{
       const outline=this.refresh(); if(!outline?.totalOnsets) return;
       try {
@@ -172,7 +172,8 @@ export class ScorePanel {
     if([...select.options].some(option=>option.value===selected)) select.value=selected;
     select.disabled=!entries.length; $('delete-passage').disabled=!select.value;
   }
-  editPassage() {$('suggested-passages').value=''; $('saved-passages').value=''; $('delete-passage').disabled=true; this.refresh(); this.onPassageChange();}
+  activatePassage() {const outline=this.refresh(); if(outline?.targets.length) this.onPractice(this.score,{start:outline.start,end:outline.end,tracks:this.rules()},this.filename,this.keyInfo);}
+  editPassage() {$('suggested-passages').value=''; $('saved-passages').value=''; $('delete-passage').disabled=true; this.refresh(); this.onPassageChange(); this.activatePassage();}
   usePassage() {
     const entry=this.savedPassages.find(item=>passageKey(item)===$('saved-passages').value);
     $('delete-passage').disabled=!entry;
@@ -180,7 +181,7 @@ export class ScorePanel {
     if(entry.end>attackGroups(this.score).length || entry.tracks.some(rule=>!this.score.tracks.some(track=>track.index===rule.track))) {$('passage-status').textContent='Saved range or tracks do not match this file.'; return;}
     $('suggested-passages').value=''; $('passage-start').value=entry.start; $('passage-end').value=entry.end; $('passage-name').value=entry.label;
     for(const control of this.trackControls) {const rule=entry.tracks.find(rule=>rule.track===control.track); control.include.checked=!!rule?.enabled && !control.include.disabled; control.staff.value=rule?.staff||'auto';}
-    this.refresh(); this.onPassageChange(); $('passage-status').textContent='Passage restored to preview.';
+    this.refresh(); this.onPassageChange(); this.activatePassage(); $('passage-status').textContent='Saved passage selected.';
   }
   rules() {return this.trackControls.map(control=>({track:control.track,enabled:control.include.checked,staff:control.staff.value}));}
   drawTracks() {

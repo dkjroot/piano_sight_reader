@@ -6,7 +6,10 @@
 .practice-modes [aria-pressed=true] { border-color:var(--accent); background:var(--button); color:var(--button-text); }
 .settings-grid > .settings { border-left:0; padding-left:0; }
 :root[data-workspace=study] #staff svg { max-width:none; min-height:0; }
-:root[data-workspace=study] #staff { overflow:auto; }
+:root[data-workspace=study] #staff { overflow-x:hidden; overflow-y:auto; scrollbar-gutter:stable; }
+#study-transport { flex:none; margin:6px 0; }
+.study-bars { display:flex; align-items:center; gap:4px; font-size:11px; }
+.study-bars select { width:auto; padding:4px; }
 #study-position { max-width:250px; }
 :root { --green:#006837; --correct-key:#007b70; --wrong-key:#ad361b; --sustain-key:#175da9; --target-marker:#a66b00; --extra-indicator:#ad361b; --sustain-indicator:#175da9; }
 :root[data-theme=dark] { --green:#5beba0; --target-marker:#ffc759; --hint:#ffc759; --extra-indicator:#ff9b76; --sustain-indicator:#80bcff; }
