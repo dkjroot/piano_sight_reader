@@ -382,6 +382,33 @@ h1 .subtitle { display:block; letter-spacing:0; }
 .notation-sound label { display:flex; align-items:center; gap:8px; }
 .notation-sound input { max-width:140px; }
 #study-audio-status { min-height:1.65em; }
+#study-practice-status { min-height:3.3em; }
+.study-keyboard-scroll { overflow-x:auto; margin:14px 0; }
+#study-keyboard { position:relative; height:120px; min-width:540px; touch-action:none; }
+#study-keyboard .key { position:absolute; top:0; padding:0; border-radius:0 0 3px 3px; }
+#study-keyboard .white { height:116px; }
+#study-keyboard .black { height:75px; }
+.key .study-key-mark { position:absolute; bottom:8px; left:0; right:0; text-align:center; font-weight:bold; font-size:20px; }
+.key .study-key-direction { top:10px; bottom:auto; text-align:center; font-size:20px; font-weight:bold; }
+.key.black :is(.study-key-mark,.study-key-direction) { font-size:12px; }
+#study-keyboard .key:is(.correct,.wrong,.sustained) { color:white; border:2px solid white; }
+#study-keyboard[data-inverted=true] { --white-key:#302a25; --black-key:#e9dfc8; --key-label:#e9dfc8; --key-border:#8c7d65; }
+#study-keyboard[data-inverted=true] .black { color:#453b2f; }
+#study-keyboard[data-inverted=true] .key:is(.correct,.wrong,.sustained) { color:white; }
+.engraving-output [data-score-tick] { visibility:hidden; }
+.engraving-output [data-practice=accepted] [data-score-tick] { visibility:visible; }
+.engraving-output [data-practice=accepted] { outline:2px solid var(--accent); outline-offset:3px; }
+.notation-controls input[type=number] { width:70px; }
+.notation-page { padding:16px 24px; margin:12px auto; }
+.notation-page header { padding-bottom:10px; margin-bottom:8px; }
+.notation-page h1 { font-size:32px; }
+.notation-page .notation-controls { margin:10px 0; }
+.notation-page :is(#notation-status,#notation-detail,#study-practice-status,#study-audio-status) { margin:4px 0; font-size:13px; line-height:20px; }
+.notation-page #notation-detail { min-height:40px; }
+.notation-page #study-practice-status { min-height:40px; }
+.notation-page .engraving-scroll { height:clamp(260px,42dvh,430px); overflow:auto; border-block:1px solid var(--line); }
+@media(max-width:650px) { .notation-page { padding:12px; } .notation-page h1 { font-size:26px; } }
+@media print { .score-page { break-after:page; } }
 
 
 /* User-positioned playing panels. The presets retain their normal document flow. */

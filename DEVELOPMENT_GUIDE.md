@@ -42,8 +42,8 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 | Synth/samples, independent live/Target controls, metronome | `static/audio.js`, `samples.js`, `sound.js` |
 | Source MIDI playback, scheduling, beat/count-in map | `static/playback.js`, `transport.js`, `beats.js` |
 | Attempt measurements, opt-in history and graphs | `static/metrics.js`, `progress.js` |
-| Authored rational-beat score model and tied playback | `static/score_model.js`, `score_transport.js` |
-| Separate engraving/playback evaluation at `/notation-study` | `static/engraving.js`, `notation_study.js`, `study_player.js` |
+| Authored rational-beat model, tied/pedal playback and patient matching | `static/score_model.js`, `score_transport.js`, `score_practice.js` |
+| Authored study engraving/playback/practice at `/notation-study` | `static/engraving.js`, `notation_study.js`, `study_player.js`, `study_practice.js` |
 | UI, help and shared support panel | `templates/`, `static/style.css`, `static/help.js` |
 | Reviewed catalogue, provenance, source files and inspections | `static/library/`, `tools/build_library.py`, `tools/discover_scores.py` |
 
@@ -102,9 +102,12 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
   outline still uses one signature. Private files are not identified online.
 - A separate immutable authored score model supports exact beats, voices, rests,
   meter/tempo/key maps and explicit ties. The original two-bar study engraves and
-  plays through bundled VexFlow 5.0.0. It is **not connected to live practice**.
-  Full-score engraving, changing signatures, duration/rhythm judgement, tied input,
-  notation-preserving import and scored timed modes remain roadmap work.
+  plays through bundled VexFlow 5.0.0. Patient study practice now matches attacks,
+  continuing ties and releases, timing independent holds/rests with correction waits.
+  A ten-bar original fixture covers cross-staff beams/unisons, mixed/nested tuplets,
+  changing signatures/clefs, pickups and paginated ties. Finger/pedal continuity and
+  explicit loop cuts are separate policies. Notation-preserving import, ornaments,
+  expressive traversal and scored timed modes remain roadmap work.
 - Music redistribution needs explicit edition/MIDI permission, source links, hashes,
   notices and licence text. Seven editions carry public-domain dedications; Rachmaninoff
   retains CC BY-SA 4.0. Samples and VexFlow retain their own notices. Discovery only
@@ -141,3 +144,10 @@ position, compact keyboard height, held-key preservation, narrow controls and
 restored desktop geometry after responsive fitting.
 Unit coverage is not browser/controller or hardware coverage. USB device behaviour,
 perceived sound quality and physical input-to-paint latency need separate validation.
+
+Stage 2 verification on 17 October 2026: 97 JavaScript + 21 Python tests and the
+full Edge browser suite passed, including authored duration/continuity practice,
+loop cuts, MIDI lifecycle/focus isolation and the ten-bar engraving fixture.
+The pure authored matcher has measured 100% unit line/branch coverage; this does
+not measure browser-controller coverage, device latency or human playability.
+Runtime dependencies and setup commands are unchanged.

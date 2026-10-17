@@ -545,18 +545,24 @@ safe integers; source objects are never modified. Quarter-note beats are the uni
 The schema has stable IDs, one to four treble/bass staves, up to sixteen independent
 voices, optional authored hands/stems, per-event staff placement, key/meter changes,
 explicit pickup lengths and note/rest events. Values w/h/q/8/16/32 accept up to two
-dots and complete uniform simple tuplets. Every voice fills each measure with notes
-or explicit rests; overlaps, gaps, dangling/branching ties and contradictory pitches
+dots, mixed-value tuplets and up to four nested tuplet layers. Every voice fills
+each measure with notes or explicit rests; overlaps, gaps, dangling/branching ties and contradictory pitches
 are rejected. Ties link particular same-pitch, adjacent segments in one voice and
 do not generate a second attack. Identical pitches in different voices retain IDs.
-Bounds: 1 MB source, 256 measures, 4,096 events and ten notes per chord. Nested/mixed
-value tuplets, per-note cross-staff chords, grace notes, clef changes and performance
-judgement are future work, not inferred from MIDI. Staff is not a detected hand.
+Bounds: 1 MB source, 256 measures, 4,096 events and ten notes per chord. A tuplet
+uses actual/normal/group; mixed or nested groups specify their written unit
+(w/h/q/8/16/32). tuplets is an outer-to-inner array; legacy tuplet remains valid.
+Group duration, ancestry, voice and contiguity are checked exactly. Measures can
+change treble/bass clefs by staff and end with single/double/final boundaries.
+Pedal events retain exact beats, controllers 64/66/67 and continuous 0–127 values;
+unsupported expression remains unscored. Different note lengths at one onset use
+independent voices. Per-note cross-staff chords and ornaments remain future
+extensions. Staff is not a detected hand.
 
 static/studies/independent-voices.json is an original two-bar regression study under
 the project's GPL terms: moving melody and held inner voice in one hand, held bass,
 a cross-bar tie, a rest, a dotted eighth/sixteenth pair and triplets. The model is
-not yet a new practice mode; current MIDI/generated behavior is unchanged.
+connected to patient authored practice; current MIDI/generated outline behavior is unchanged.
 
 
 ## Offline engraving evaluation
@@ -571,10 +577,17 @@ CDN, remote fonts, frontend build or additional Python package.
 The adapter aligns independent voices by exact musical time, renders simple/dotted
 values, voice rests, opposing stems, nearby accidental columns, eighth/sixteenth
 beams, simple tuplets and explicit ties. Wrapping a tie splits it into two system
-arcs. It currently accepts two fixed staves, up to eight measures / 128 events;
-per-event cross-staff placements are rejected by this adapter, not silently moved.
-Complex accidentals/unisons, nested/mixed tuplets, cross-staff engraving, changing
-clefs and full-score pagination need separate fixtures/evaluation before adoption.
+arcs. It accepts two piano staves within the model bounds, splitting into eight-measure
+SVG pages with wrapped tie endpoints. Per-event cross-staff placement and beams
+preserve voice identity; the adapter overrides VexFlow 5 Voice.draw only for moving
+voices, using public tickable draw methods so it does not reset their assigned
+staves. Staff/octave accidental state spans voices, with explicit natural
+cancellation, double accidentals, conflicting unisons and courtesy marks. Key
+changes cancel the previous signature. Clef changes, pickups, phrase boundaries,
+mixed/nested tuplets, 3:2 / 4:3 and page-split ties have original regression fixtures
+in notation-cases.json. Layout reserves vertical room for ledger overflow and
+nested brackets. Cross-staff chords within one event remain unsupported; encode
+independent voices rather than inventing a hand assignment.
 
 Notehead SVG elements retain authored IDs. Position highlighting updates only
 changed attributes/classes on existing nodes, including the current written segment
@@ -622,8 +635,61 @@ Tests cover tempo integration, triplets, tie versus repeat attacks, range clippi
 voice selection, speed scaling, held-note chase, polyphony limits, UI pause/background/
 resume/stop, seeking, unsupported Web Audio, cancelled sample loading, no main-setting
 writes and real OfflineAudioContext rendering with clean voice/node termination.
-This proves authored notation-to-sound for the original study, not rhythmic input
-judgement, original-score recovery from MIDI or measured hardware latency.
+Authored damper events extend sounding playback spans independently of notated
+release. A clipped playback entry chases pedal resonance; every exit clips sound.
+Controllers 66/67 remain preserved optional metadata, unassessed and unsynthesised.
+This proves local authored notation-to-sound, not original-score recovery from MIDI
+or measured hardware latency.
+
+
+## Stage 2 patient authored practice
+
+score_practice.js is a pure deterministic matcher with an injected monotonic clock;
+study_practice.js connects it to explicit Web MIDI access and pointer/keyboard keys
+on /notation-study. Input uses the existing Performance ownership/press-serial
+model. The main attack-outline controller, FlowGate, history and imported data
+are unchanged. No network, storage, parsing or engraving runs on MIDI events.
+Written glyphs, ticks and directions update in place; held-key feedback is immediate.
+The score/DOM mappings are precomputed and idle paint work is skipped.
+
+At a boundary, new sound IDs require fresh physical press serials. Tied IDs keep
+credit across written segments. Only ended notes retire; other voices continue.
+Simultaneous unisons retain all IDs but share an observable press. A repeated
+unison against a continuing voice requires one fresh press, with an explicit
+ambiguity allowance for its necessary release; MIDI cannot prove separate fingers.
+Continuity defaults to physical holds; the explicit pedal policy additionally
+accepts notes sustained by their owning source/channel. Pedal never creates
+attack credit. Original values are preserved; threshold 64 is the only live damper
+interpretation. No half-pedal, sostenuto, soft-pedal or velocity scoring is claimed.
+
+A correct boundary starts the exact next inter-boundary duration, converted through
+the tempo map at the clock boundary. Rests/hold-only positions advance using that
+clock without fictitious attacks. Short holds and unwanted keys freeze remaining
+time; a correction reanchors it. Releases and overdue physical overholds are shown
+as release requests; wait mode assigns no early/late onset or late-release penalties.
+Early-release and extra incidents are bounded by current-state fault IDs and shown
+for the current attempt only, separate from untimed response statistics.
+There is no accompaniment/metronome during patient practice; independent preview
+playback is stopped on entry and cannot feed the matcher.
+
+Practice loops use inclusive entry/exclusive exit moment indices. Exit excludes new
+attacks and retires all active notes, including cut ties. Entry/wrap demand released
+keys and pedal, then new attacks for all active notes. Pickups retain their exact
+length; no inferred count-in or pedal chase enters live matching. Background practice retains physical MIDI ownership without judging hidden
+events; unplug clears ownership safely. Resume restarts the current boundary's
+duration and asks for fresh active notes. The main outline page ignores MIDI while
+hidden or unfocused so playing a study cannot advance it. Seeking is silent
+inspection; entry/exit selectors choose the next practice cut. Preview playback retains its independent seek/chase
+policy. MIDI access/open revisions reject stale callbacks and late opens; access is
+requested only by Connect MIDI. Study keyboard range is independently remembered,
+initially copied from main range; inversion shares the remembered keyboard option.
+
+Tests in score_practice.test.js and score_practice.browser.cjs cover spread chords,
+missing/wrong notes, interrupted holds, corrected continuing voices, explicit ties,
+repeats/duplicate-ons/multiple owners, finger/pedal differences, all-rest intervals,
+unisons, loop cuts, pause/reentry, native-like disconnect/replacement, engraving
+alignment, complex spellings, both palettes, responsive pages and no live re-layout.
+Hardware latency, physical devices and human musical review remain separate checks.
 
 Random piece samples the intersected local library filters, excluding the current
 selection when there is an alternative. A pure helper accepts an injected RNG for

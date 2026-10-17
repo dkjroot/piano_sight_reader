@@ -22,10 +22,16 @@ export function authoredPlan(score,{speed=1,start=[0,1],end=score.duration,voice
   if(compareBeat(start,[0,1])<0 || compareBeat(end,score.duration)>0 || compareBeat(start,end)>=0) throw new Error('Invalid authored playback range.');
   speed=Math.max(.25,Math.min(2,Number(speed)||1));
   const seconds=timing(score), origin=seconds(start), selected=voices ? new Set(voices) : null;
-  const notes=score.sounds.filter(note=>(!selected || selected.has(note.voiceId)) && compareBeat(note.start,end)<0 && compareBeat(note.end,start)>0).map(note=>({
+  const damper=(score.pedals??[]).filter(event=>event.controller===64);
+  const soundingEnd=note=>{
+    const down=damper.filter(event=>compareBeat(event.at,note.end)<=0).at(-1)?.value>=64;
+    return down ? damper.find(event=>compareBeat(event.at,note.end)>0 && event.value<64)?.at??score.duration : note.end;
+  };
+  const notes=score.sounds.map(note=>({...note,soundingEnd:soundingEnd(note)})).filter(note=>(!selected || selected.has(note.voiceId)) && compareBeat(note.start,end)<0 && compareBeat(note.soundingEnd,start)>0).map(note=>({
     id:note.id,pitch:note.midi,voiceId:note.voiceId,velocity:80,
     start:(seconds(compareBeat(note.start,start)<0 ? start : note.start)-origin)/speed,
-    end:(seconds(compareBeat(note.end,end)>0 ? end : note.end)-origin)/speed,
+    end:(seconds(compareBeat(note.soundingEnd,end)>0 ? end : note.soundingEnd)-origin)/speed,
+    notatedEnd:(seconds(compareBeat(note.end,start)<0?start:note.end)-origin)/speed,
     sourceIds:[...note.segments]
   })).sort((a,b)=>a.start-b.start || a.pitch-b.pitch || a.id.localeCompare(b.id));
   const edges=notes.flatMap(note=>[[note.start,1],[note.end,-1]]).sort((a,b)=>a[0]-b[0] || a[1]-b[1]);

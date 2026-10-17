@@ -1128,6 +1128,10 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     const guide=page.getByRole('link',{name:'Help & guide'});
     const [help]=await Promise.all([page.waitForEvent('popup'),guide.click()]);
     await help.waitForURL('**/help'); await help.waitForSelector('#help-theme');
+    const backgroundMidiActivity=await page.locator('#midi-activity').innerText();
+    await page.evaluate(()=>{window.testMidi.send([0x90,60,100]); window.testMidi.send([0x90,64,100]);});
+    assert.equal(await page.locator('#midi-activity').innerText(),backgroundMidiActivity,'background practice must ignore MIDI consumed in a study tab');
+    assert.equal(await page.locator('#keyboard [aria-pressed="true"]').count(),0);
     assert.equal(await help.title(),'Help · Piano Sight Reader');
     assert.equal(await help.getByRole('heading',{name:'Choose a piece or passage'}).count(),1);
     assert.equal(await help.getByRole('heading',{name:'Find your own music'}).count(),1);
@@ -1434,11 +1438,14 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
       await context.addInitScript(mode => Object.defineProperty(navigator, 'requestMIDIAccess', {value: mode === 'unsupported' ? undefined : async () => {throw new DOMException('Denied', 'NotAllowedError');}}), mode);
       const p = await context.newPage();
       await p.goto(process.env.APP_URL || 'http://127.0.0.1:8766');
+      await p.waitForSelector('.key');
       await p.locator('#connect').click();
+      await p.waitForFunction(mode=>document.getElementById('midi-status').textContent.includes(mode==='unsupported'?'unavailable':'denied'),mode);
       assert.match(await p.locator('#midi-status').innerText(), mode === 'unsupported' ? /unavailable/ : /denied/);
       assert.ok(await p.locator('.key').count() > 0);
       await context.close();
     }
-    console.log('Browser checks passed: MIDI/input matching, fluid/release progression, layout/themes, progress/history, library/passages, source playback/count-in, and synth/acoustic audio.');
+    await require('./score_practice.browser.cjs')(browser,new URL(page.url()).origin);
+    console.log('Browser checks passed: MIDI/input matching, authored-score practice/engraving, fluid/release progression, layout/themes, progress/history, library/passages, source playback/count-in, and synth/acoustic audio.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

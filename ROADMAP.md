@@ -18,8 +18,8 @@ below so that completed foundations and remaining work are visible separately.
 | Real music | Local MIDI import, eight offline editions, key detection, filtering, passage loops and bookmarks | Notation-preserving import, voices, rests, ties and duration judgement |
 | Finding pieces | Composer/era/style/difficulty filters; reviewed source credits | More repertoire and reviewed difficulty levels |
 | Progress | Response times, accuracy, bests, optional history, graphs and reading patterns | Session runs, rhythm scores, targeted drills and profiles |
-| Sound | Independent synth/sample paths, MIDI source playback, metronome and count-in | Score-synchronised practice, latency calibration and timed modes |
-| Interface | Themes, contrast, height/key sizing, page scrolling, Help and support links | Full-score engraving and further usability/hardware validation |
+| Sound | Independent synth/sample paths, MIDI/authored playback, metronome and count-in | Accompaniment during practice, latency calibration and scored modes |
+| Interface | Themes, contrast, layout, page scrolling, paginated authored engraving, Help | Further usability/hardware validation and imported-score integration |
 
 ## Working foundation
 
@@ -68,43 +68,54 @@ Infeasible settings report an unavailable target rather than relaxing hard limit
   tied spans, and build an event timeline. Preserve MIDI inspections separately.
 - [x] Play the authored study from its tempo map, durations and tie chains, with audio-
   clock scheduling, visual following, pause/resume, seeking and independent preview sound.
-- [ ] Connect authored expectations to live practice and duration/release judgement.
-- [ ] Represent attacks, releases and continuing held notes separately. Support ties,
+- [x] Connect authored expectations to live practice and duration/release judgement.
+- [x] Represent attacks, releases and continuing held notes separately. Support ties,
   repeated notes, overlaps between hands, sustain pedal and notes crossing barlines.
-- [ ] Extend the delivered fluid attack gate to authored voice/duration expectations:
+- [x] Extend the delivered fluid attack gate to authored voice/duration expectations:
   ties do not demand a new attack, while explicit repeated source note-ons do.
-- [ ] Engrave multiple attacks per bar, note values, beams, rests, dots, tuplets, ties,
+- [x] Engrave multiple attacks per bar, note values, beams, rests, dots, tuplets, ties,
   changing signatures, courtesy/cancellation accidentals, cross-staff/voice collisions,
   pickups and phrase boundaries. Preserve authored enharmonic spelling.
 - [x] Evaluate an offline engraving engine against the original two-bar polyphonic
   study: VexFlow renders voices, rests, dots, beams, triplets and cross-bar/system ties.
   Highlight existing SVG nodes without rerunning layout; keep it off the live MIDI path.
-- [ ] Extend engraving fixtures to cross-staff/unison collisions, complex accidentals,
+- [x] Extend engraving fixtures to cross-staff/unison collisions, complex accidentals,
   nested/mixed tuplets, changing clefs and full-score pagination before broad adoption.
-- [ ] Define loop entry/exit: tied notes at a cut, pedal state, pickups and re-articulation.
+- [x] Define loop entry/exit: tied notes at a cut, pedal state, pickups and re-articulation.
 
 Exit: a small authored two-hand passage renders and plays correctly with ties, rests,
 different durations and more than one event per measure. No rhythm game is needed yet.
 
+Stage 2's authored-passage milestone is delivered through **Explore the notation
+study** in Help. Patient practice has independent attacks/holds/releases, explicit
+finger/pedal continuity, correction waits and re-articulated loop cuts. A second
+original ten-bar fixture exercises changing clefs/signatures, cross-staff beams,
+unisons, mixed/nested tuplets, 3:2 / 4:3, pickups and paginated ties. This milestone
+covers the explicit Stage 2 checklist and exit above. The cross-stage full-music
+requirements below remain individually tracked; ornaments, expressive traversal,
+notation-preserving import/reduction and scored timing are later integrations.
+
 ### Full-music requirements for the score model and matcher
 
-These extend Stage 2 and must feed into import, simplification, transport and scoring.
+These are cross-stage requirements extending the Stage 2 passage milestone into
+import, simplification, transport and scoring. Their unchecked items remain work
+for those stages; completing Stage 2 does not claim all full-music integrations.
 An ordered list of simultaneous pitch sets is not enough for real piano music.
 
 #### Independent musical events and voices
 
-- [ ] Give each note its own onset, notated duration, release expectation, voice and
+- [x] Give each note its own onset, notated duration, release expectation, voice and
   optional hand assignment. A chord can contain notes of different lengths, and its
   notes need not all stop when the next attack arrives.
-- [ ] Separate voice identity, staff placement and physical hand. Support multiple voices
+- [x] Separate voice identity, staff placement and physical hand. Support multiple voices
   in either hand, cross-staff notes, voice exchange, hand crossing and changing clefs.
   Staff alone must not be treated as proof of which hand actually played a note.
-- [ ] Support simultaneous but independent rhythms between hands and within one hand:
+- [x] Support simultaneous but independent rhythms between hands and within one hand:
   a held inner voice under a moving melody, a fugue subject against countersubjects,
   or a repeated bass pattern while upper parts move independently.
 - [ ] Represent rests per voice, including partial-bar, whole-bar and multi-measure rests.
   A rest in one voice does not require silence in every other voice or a global release.
-- [ ] Use exact score-time arithmetic for dotted/double-dotted values, syncopation,
+- [x] Use exact score-time arithmetic for dotted/double-dotted values, syncopation,
   tuplets and nested tuplets. Support polyrhythms such as 3:2 and 4:3 without cumulative
   floating-point drift or forcing both hands onto an inadequate rhythmic grid.
 - [ ] Distinguish simple/compound/irregular meter, beat grouping, pickups, incomplete
@@ -112,23 +123,23 @@ An ordered list of simultaneous pitch sets is not enough for real piano music.
 
 #### Ties, articulation and physical versus sounding duration
 
-- [ ] Store ties as explicit links between particular note events in a voice, including
+- [x] Store ties as explicit links between particular note events in a voice, including
   across barlines/systems. Match the initial attack and continuation correctly; a tied
   continuation must not ask for another attack. Preserve distinct same-pitch repetitions.
 - [ ] Treat slurs as phrasing/articulation, not as ties. Add legato, staccato, tenuto,
   accents and phrase marks with documented, adjustable release/onset expectations.
-- [ ] Maintain independent expected notes that are starting, continuing and ending at
+- [x] Maintain independent expected notes that are starting, continuing and ending at
   each score position. Retire the foundation's blanket release-between-targets rule
   for real-score practice: release only the notes whose musical duration has ended.
-- [ ] Distinguish physical key duration, pedal-sustained sound and notated duration.
+- [x] Distinguish physical key duration, pedal-sustained sound and notated duration.
   Allow a practice policy to require finger-held continuity where appropriate or to
   accept pedal-supported continuity, without silently treating the two as identical.
-- [ ] Add sustain/damper markings and pedal changes, including overlapping/changed pedal.
+- [x] Add sustain/damper markings and pedal changes, including overlapping/changed pedal.
   Preserve continuous pedal values when supplied; half-pedal scoring needs compatible
   hardware and an explicit policy. Do not infer capabilities from a device name.
-- [ ] Plan optional sostenuto (selectively retained notes) and soft pedal support. Keep
+- [x] Plan optional sostenuto (selectively retained notes) and soft pedal support. Keep
   unsupported controller/dynamic requirements optional and clearly unscored.
-- [ ] Handle shared MIDI pitches across voices/hands without inventing extra physical
+- [x] Handle shared MIDI pitches across voices/hands without inventing extra physical
   attacks or assigning the same event twice. Document ambiguous unisons, repeated notes
   against an already sustained voice, and the limits of MIDI evidence about fingering.
 
@@ -170,7 +181,7 @@ An ordered list of simultaneous pitch sets is not enough for real piano music.
 
 #### Engraving and acceptance examples
 
-- [ ] Render independent stems, beams, rests and ties per voice, including opposing
+- [x] Render independent stems, beams, rests and ties per voice, including opposing
   stems, shared/unison heads, close seconds, different note values at the same onset,
   cross-staff beams and accidentals scoped correctly within measures and voices.
 - [ ] Keep visual score events, performance-expanded ornaments, audio events and matcher
@@ -468,11 +479,11 @@ depend on catalogue downloads, audio setup or an account.
 
 - [x] Require fresh physical presses for every generated or imported target pitch, including shared changing-chord notes; ignore duplicate held note-ons for practice credit.
 
-- [x] Add an original two-bar polyphonic score-model fixture with held bass, two voices in one hand, cross-bar tie, rest, dots and simple triplets. Full engraving/matcher fixture coverage remains in Stage 2.
+- [x] Add an original two-bar polyphonic score-model fixture with held bass, two voices in one hand, cross-bar tie, rest, dots and simple triplets. Expanded Stage 2 engraving/matcher fixtures are delivered; broader full-music cases remain tracked above.
 
 - [x] Make the original notation study accessible from Help, with local engine/fonts, both palettes, keyboard/pointer note inspection and source/licence notices. This is a preview, not rhythmic practice.
 
-- [x] Render and play the original two-hand notation study with rests, independent voices, dots, triplets, tempo changes, cross-bar ties and distinct repeated attacks. Authored-score live judgement remains ahead.
+- [x] Render and play the original two-hand notation study with rests, independent voices, dots, triplets, tempo changes, cross-bar ties and distinct repeated attacks. Authored patient live judgement is now delivered in Stage 2.
 
 - [x] Document user-run music discovery in README and Help; support keyboard alternatives,
   MIDI archives and explicit CC BY-SA 4.0 opt-in without automatic asset imports.

@@ -440,6 +440,7 @@ for (const endpoint of ['low', 'high']) $(`learn-${endpoint}`).addEventListener(
   $('range-status').textContent = learning ? `Play your ${endpoint === 'low' ? 'lowest' : 'highest'} physical key now. Click again to cancel.` : 'Learning cancelled.';
 });
 function onMidi(event, inputId) {
+  if(document.hidden || !document.hasFocus()) return;
   const [status, note, velocity] = event.data;
   if ((status & 0xf0) === 0x90 && velocity > 0) $('midi-activity').textContent = `Last MIDI note: ${noteName(spell(note))} · MIDI ${note} · channel ${(status & 15)+1}`;
   if (learning && (status & 0xf0) === 0x90 && velocity > 0) {
