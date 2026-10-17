@@ -35,6 +35,7 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 | Authored harmonic recipes and exercise heading | `static/harmony.js`, `static/exercise.js` |
 | Per-hand generator, constraints, textures and attack groups | `static/generation.js` |
 | Bounded continuous refills off the input thread | `static/generated_stream.js`, `static/generation_worker.js` |
+| Remembered panel positions, resizing and staff scale | `static/layout_editor.js`, `layout.js` |
 | Main SVG staff, keyboard, viewport and reading windows | `static/notation.js`, `keyboard.js`, `layout.js` |
 | Library/preview UI; filtering/search/recent pieces | `static/score.js`, `library.js` |
 | Derived MIDI targets, section suggestions, bookmarks, key detection | `static/outline.js`, `sections.js`, `passages.js`, `score_key.js` |
@@ -70,7 +71,10 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 - Light/dark, keyboard inversion and target visibility are independent settings.
   Targets default off. Preserve strong contrast and ticks/crosses as well as colour.
   Keep the classical style, reserved feedback rows and simultaneous staff/keyboard
-  visibility; settings stay on the page below. Layout presets budget 180 px for chrome.
+  visibility in presets; settings stay below the playing workspace. Presets budget
+  180 px for chrome. Custom layout independently positions/resizes both panels and
+  scales notation, preserving exercise state and the last saved desktop geometry
+  when fitting a smaller viewport. Layout edits never regenerate or advance targets.
 - Live and Target sounds are independent. Both Hear buttons audition a chord; only
   Sound my playing toggles live audio. Internal `reference-*` names remain for saved
   compatibility. Audio uses its own clock; panic/backgrounding stops it. Async loads
@@ -131,5 +135,9 @@ logs. Stage 1 verification on 17 October 2026: 80 JavaScript + 21 Python tests a
 full Edge browser suite passed, including delayed/stale worker responses, pause/resume,
 advanced spelling and layout. Verify current results rather than treating this
 snapshot as a fresh run.
+Custom layout verification on 17 October 2026: 81 JavaScript + 21 Python tests
+and the full Edge browser suite passed, including extreme-ledger fit, first-drag
+position, compact keyboard height, held-key preservation, narrow controls and
+restored desktop geometry after responsive fitting.
 Unit coverage is not browser/controller or hardware coverage. USB device behaviour,
 perceived sound quality and physical input-to-paint latency need separate validation.

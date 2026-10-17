@@ -13,7 +13,7 @@ import {FlowGate} from '../static/flow.js';
 import {keyboardGeometry,keyboardKeyWidth} from '../static/keyboard.js';
 import {cleanPassages,parsePassages,savePassage,passageKey} from '../static/passages.js';
 import {secondsAt,referencePlan,PlaybackCursor} from '../static/transport.js';
-import {layoutPreset,staffViewport} from '../static/layout.js';
+import {layoutPreset,staffViewport,fitPanel,fitCustomPanels,parseCustomLayout} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
 import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,dailyPlot,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from '../static/metrics.js';
@@ -1128,4 +1128,21 @@ test('broken texture carries its harmonic and register pattern across a refill',
   const opening=makePracticePhrase({...settings,length:5},()=>.3);
   const refill=makePracticePhrase({...settings,length:3,sequenceOffset:5,previousTarget:opening.at(-1),generationState:opening.generationState},()=>.3);
   assert.deepEqual(refill.map(c=>c.map(n=>n.midi)),whole.slice(5).map(c=>c.map(n=>n.midi)));
+});
+
+
+test('custom panels validate saved geometry and remain reachable on smaller viewports',()=>{
+  const panels={staff:{x:0,y:0,width:700,height:600},keyboard:{x:720,y:0,width:400,height:240}};
+  const saved={version:1,density:'compact',scale:.65,panels};
+  assert.deepEqual(parseCustomLayout(JSON.stringify(saved)),saved);
+  for(const text of ['bad','null','{}',JSON.stringify({...saved,version:2}),JSON.stringify({...saved,scale:8}),JSON.stringify({...saved,density:'unknown'}),JSON.stringify({...saved,panels:{staff:panels.staff}}),JSON.stringify({...saved,panels:{...panels,keyboard:{...panels.keyboard,width:-1}}})]) assert.equal(parseCustomLayout(text),null);
+  const mobile=fitCustomPanels(panels,288);
+  assert.equal(mobile.staff.width,288);assert.equal(mobile.keyboard.x,0);
+  assert.ok(mobile.keyboard.y>=mobile.staff.y+mobile.staff.height);
+  assert.deepEqual(fitCustomPanels(panels,1200),panels);
+  assert.equal(panels.keyboard.x,720,'viewport fitting must not destroy the desktop save');
+  assert.equal(fitCustomPanels({...panels,staff:{...panels.staff,width:280,height:180}},1200).staff.height,320);
+  assert.deepEqual(fitPanel({x:-40,y:9000,width:30,height:9000},800),{x:0,y:3000,width:280,height:2000});
+  const reversed=fitCustomPanels({staff:panels.keyboard,keyboard:panels.staff},288);
+  assert.ok(reversed.staff.y>=reversed.keyboard.y+reversed.keyboard.height);
 });

@@ -77,6 +77,18 @@ You can practise without MIDI by using the on-screen keys.
   notation to 75%; larger presets retain normal note sizes. Distant ledger notes can
   scroll within the reserved staff pane. Feedback and MIDI activity reserve space
   so playing does not move the keyboard. Mode and note-name options are in Practice setup.
+- Drag the grip in the bar above the staff or keyboard to position that panel;
+  drag its lower-right corner to resize it. The panels can be arranged side by
+  side or one above the other. **Scale** above the staff adjusts notation size
+  from 40% to 160%, so you can combine a taller pane with smaller notation for
+  extreme ledger ranges. Resizing the keyboard changes key height; **Keyboard
+  key size** still controls their width independently.
+  Any adjustment selects **Custom** layout, remembered across reloads and restarts
+  in the same browser. The grip and corner controls also accept arrow keys
+  (Shift for larger steps). Choose a built-in **Layout** to return to a preset;
+  choose **Custom** again to restore your last arrangement. Smaller windows fit
+  the panels within reach without overwriting the saved desktop layout.
+  Layout changes preserve the current phrase, position and held-key feedback.
 - **Keyboard key size** is remembered independently. Automatic fits an 88-key piano
   into the available desktop width. Choose 20/28/36 px for a fixed width and horizontal
   scrolling. Automatic keeps wider touch targets on coarse-pointer devices; the full

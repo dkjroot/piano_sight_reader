@@ -382,3 +382,39 @@ h1 .subtitle { display:block; letter-spacing:0; }
 .notation-sound label { display:flex; align-items:center; gap:8px; }
 .notation-sound input { max-width:140px; }
 #study-audio-status { min-height:1.65em; }
+
+
+/* User-positioned playing panels. The presets retain their normal document flow. */
+#playing-layout { position:relative; }
+:root[data-layout=custom] main { max-width:none; margin:6px 12px; }
+#staff-panel, #keyboard-panel { position:relative; min-width:0; }
+.layout-toolbar { position:relative; z-index:4; cursor:grab; border-bottom:1px solid var(--line); touch-action:none; background:var(--paper); }
+.layout-toolbar:active { cursor:grabbing; }
+button.layout-move { flex:none; padding:0 4px; font-size:17px; line-height:20px; border-color:transparent; cursor:grab; touch-action:none; }
+.layout-toolbar h2 { margin-right:auto; }
+.staff-scale { display:flex; align-items:center; flex:none; gap:4px; font-size:11px; }
+.staff-scale input { width:70px; margin:0; touch-action:auto; }
+.staff-scale output { width:32px; font-variant-numeric:tabular-nums; }
+.practice-top { gap:8px; }
+.keyboard-heading { gap:8px; }
+button.layout-resize { position:absolute; bottom:0; right:0; width:18px; height:18px; padding:0; font-size:16px; line-height:16px; border:0; cursor:nwse-resize; touch-action:none; z-index:3; }
+.layout-move:focus-visible, .layout-resize:focus-visible { outline:2px solid var(--accent); outline-offset:1px; }
+:root[data-layout="720"] .layout-toolbar { border-bottom:0; }
+:root[data-layout="720"] button.layout-move { height:18px; line-height:16px; font-size:15px; }
+.custom-layout > :is(#staff-panel,#keyboard-panel) { position:absolute; margin:0; padding:8px 10px 18px; border:1px solid var(--line); background:var(--paper); display:flex; flex-direction:column; overflow:hidden; }
+.custom-layout .layout-toolbar { flex:none; }
+.custom-layout .practice-top { flex-wrap:wrap; }
+.custom-layout .practice-status { flex:1 1 220px; min-width:0; flex-wrap:wrap; justify-content:flex-end; }
+.custom-layout #exercise-summary { flex:none; }
+.custom-layout #staff { flex:1; min-height:60px; width:100%; max-width:none; height:auto; overflow:auto; margin:0; }
+.custom-layout #staff svg { max-width:none; min-height:0; }
+.custom-layout .feedback { flex:none; }
+.custom-layout #keyboard-scroll { flex:1; min-height:80px; overflow-y:hidden; }
+:root .custom-layout #keyboard { height:100%; }
+:root .custom-layout .key.white { height:calc(100% - 4px); }
+:root .custom-layout .key.black { height:64%; }
+@media(max-width:850px) {
+  .staff-scale input { width:54px; }
+  .practice-top { flex-wrap:wrap; }
+  .staff-scale { margin-left:auto; }
+}

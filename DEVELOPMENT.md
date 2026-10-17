@@ -692,3 +692,34 @@ paused. `test-results/generated-feedback-performance.json` records 20 synthetic
 key-event-to-next-animation-frame samples and verifies synchronous key-state marks.
 That rendering-opportunity proxy is not measured physical input-to-paint latency.
 No real MIDI device or full-size piano was measured during this change.
+
+
+## Custom playing layout — 17 October 2026
+
+`layout_editor.js` owns pointer-captured and keyboard-accessible move/resize controls
+for the staff and keyboard panels. Built-in layouts retain normal document flow;
+Custom positions the two panels independently inside a bounded playing workspace.
+The workspace reserves both panels' extent so settings stay below. `layout.js`
+validates versioned custom storage, clamps controls within the viewport and stacks
+saved side-by-side layouts on narrow windows without rewriting desktop geometry.
+The existing density preference stores `custom`; the separate
+`piano-sight-reader-custom-layout-v1` stores panel boxes, base density and staff
+scale (40–160%). Presets reset the visible arrangement and scale but keep the
+custom save available. Broken or restricted storage does not prevent practice.
+The staff has a flexible viewport inside its custom panel, with SVG geometry scaled
+explicitly and look-ahead capacity derived from the available width at that scale.
+Keyboard resizing changes key height while its remembered key-width setting remains
+independent. Resize/zoom redraw notation and fit existing key nodes; they never
+regenerate targets, alter settings identity, evaluate matching or grant attacks.
+Pointer updates are coalesced with animation frames and saved on release/cancel;
+keyboard edits save immediately and the scale slider saves on change. MIDI processing
+performs no custom-layout reads, storage writes or layout work. No runtime dependency
+or frontend build was added.
+
+
+Custom layout verification: 81 JavaScript tests, 21 Python tests and the full Edge
+browser suite passed. Browser checks reproduce MIDI-0 ledger overflow, remove its
+vertical staff scrolling through resize/zoom, preserve an actual held-key DOM node
+and fresh-attack progress, exercise pointer and keyboard edits, verify narrow-panel
+controls, reload persistence, viewport recovery, presets and restricted storage.
+Physical MIDI hardware and hardware input-to-paint latency were not measured.

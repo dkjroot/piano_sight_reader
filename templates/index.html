@@ -17,18 +17,22 @@
     <span id="midi-activity" aria-label="Last MIDI note"></span>
   </section>
 
-  <section class="practice card" aria-label="Practice">
-    <div class="practice-top"><h2><span id="practice-title">Phrase</span> <span id="phrase-position"></span></h2><div class="practice-status"><span><strong id="count">0</strong> <span id="count-label">repetitions completed</span></span><button id="pause-practice" class="quiet" aria-pressed="false" aria-label="Pause practice">Pause</button></div></div>
+  <div id="playing-layout">
+  <section class="practice card" id="staff-panel" aria-label="Practice">
+    <div class="practice-top layout-toolbar"><button class="quiet layout-move" aria-label="Move staff" title="Drag to move staff; arrow keys move, Shift for larger steps">⠿</button><h2><span id="practice-title">Phrase</span> <span id="phrase-position"></span></h2><div class="staff-scale"><label for="staff-scale">Scale</label><input id="staff-scale" type="range" min="40" max="160" step="5" value="100"><output id="staff-scale-value" for="staff-scale">100%</output></div><div class="practice-status"><span><strong id="count">0</strong> <span id="count-label">repetitions completed</span></span><button id="pause-practice" class="quiet" aria-pressed="false" aria-label="Pause practice">Pause</button></div></div>
     <p id="exercise-summary" class="exercise-summary" aria-label="Active exercise settings"></p>
     <div id="staff" aria-label="Grand staff"></div>
     <div class="feedback"><h2 id="feedback" role="status" aria-live="polite"></h2><span id="chord-name" role="status"></span><p id="detail"></p></div>
+    <button class="quiet layout-resize" aria-label="Resize staff" title="Drag to resize staff; arrow keys resize, Shift for larger steps">↘</button>
   </section>
 
-  <section class="card keyboard-card" aria-label="Live keyboard">
-    <div class="keyboard-heading"><h2>Keyboard</h2><div class="keyboard-options"><label class="check keyboard-option"><input id="show-targets" type="checkbox"> Show targets on keyboard</label><label class="check keyboard-option"><input id="invert-keyboard" type="checkbox"> Invert keyboard colours</label></div></div>
+  <section class="card keyboard-card" id="keyboard-panel" aria-label="Live keyboard">
+    <div class="keyboard-heading layout-toolbar"><button class="quiet layout-move" aria-label="Move keyboard" title="Drag to move keyboard; arrow keys move, Shift for larger steps">⠿</button><h2>Keyboard</h2><div class="keyboard-options"><label class="check keyboard-option"><input id="show-targets" type="checkbox"> Show targets on keyboard</label><label class="check keyboard-option"><input id="invert-keyboard" type="checkbox"> Invert keyboard colours</label></div></div>
     <div class="legend"><span id="target-legend" class="target-dot" hidden>Target</span><span class="correct-dot">Correct / held</span><span class="wrong-dot">Extra / held</span><span class="sustain-dot">Sustained</span></div>
     <div id="keyboard-scroll"><div id="keyboard" role="group" aria-label="Playable piano keys"></div></div>
+    <button class="quiet layout-resize" aria-label="Resize keyboard" title="Drag to resize keyboard; arrow keys resize, Shift for larger steps">↘</button>
   </section>
+  </div>
 
   <section class="settings-grid">
     <div class="card settings"><h2>Practice setup</h2>
@@ -51,7 +55,7 @@
       <label>Key <select id="key"><option value="C">C major / A minor</option></select></label>
       <label>Staff / hand <select id="hand"><option value="right">Treble · right hand</option><option value="left">Bass · left hand</option><option value="both">Both hands</option></select></label>
       <label>Phrase length <select id="length"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option><option value="6">6</option><option value="8">8</option><option value="12">12</option><option value="16">16</option><option value="24">24</option><option value="32">32</option></select></label>
-      <label>Layout <select id="density"><option value="auto">Automatic</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">1440p</option><option value="2160">2160p</option></select></label>
+      <label>Layout <select id="density"><option value="auto">Automatic</option><option value="720">720p</option><option value="1080">1080p</option><option value="1440">1440p</option><option value="2160">2160p</option><option value="custom">Custom</option></select></label>
       <label>Keyboard key size <select id="key-size"><option value="auto">Automatic</option><option value="36">Large · 36 px</option><option value="28">Medium · 28 px</option><option value="20">Small · 20 px</option></select></label>
       <label>Advancement <select id="progression"><option value="flow">Fluid</option><option value="release">Release between targets</option></select></label>
       <label>Scrolling <select id="scroll-mode"><option value="note">Note by note</option><option value="page">Page by page</option></select></label>

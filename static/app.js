@@ -1,3 +1,4 @@
+import {LayoutEditor} from './layout_editor.js';
 import {planningControls} from './generation.js';
 import {GeneratedStream} from './generated_stream.js';
 import {describeExercise} from './exercise.js';
@@ -78,13 +79,15 @@ function rangeLabels() {
   for (const id of ['low', 'high']) $(`${id}-label`).textContent = `${noteName(spell(+$(id).value))} · MIDI ${$(id).value}`;
 }
 
-let layout;
+let layout, layoutEditor;
 function applyDensity() {
   layout=layoutPreset($('density').value,innerHeight,innerWidth);
-  document.documentElement.dataset.density=layout.density;
-  document.documentElement.dataset.layout=layout.preset;
+  document.documentElement.dataset.density=$('density').value==='custom'?(layoutEditor?.state?.density||'compact'):layout.density;
+  document.documentElement.dataset.layout=$('density').value==='custom'?'custom':layout.preset;
+  if(layoutEditor && !layoutEditor.active && $('density').value!=='custom') layoutEditor.syncPresetScale(layout.preset);
 }
 function fitPlayingArea() {
+  if(layoutEditor?.active) return;
   const staff=$('staff').getBoundingClientRect(), keyboard=document.querySelector('.keyboard-card').getBoundingClientRect();
   const chrome=keyboard.bottom+window.scrollY-staff.height+16;
   document.documentElement.style.setProperty('--staff-viewport',staffViewport(layout,chrome)+'px');
@@ -92,7 +95,7 @@ function fitPlayingArea() {
 try {
   const density = localStorage.getItem('piano-sight-reader-density');
   const migrated=density==='compact' ? '1080' : density==='comfortable' ? '1440' : density;
-  if (['auto','720','1080','1440','2160'].includes(migrated)) $('density').value=migrated;
+  if (['auto','720','1080','1440','2160','custom'].includes(migrated)) $('density').value=migrated;
 } catch { /* Storage is optional. */ }
 applyDensity();
 $('density').addEventListener('change', () => {
@@ -135,7 +138,9 @@ $('show-targets').addEventListener('change', () => {
 });
 
 function drawStaff() {
-  const width = Math.max(660, Math.min(1040, $('staff').clientWidth || 740));
+  const scale=layoutEditor?.active?layoutEditor.state.scale:1;
+  const available=($('staff').clientWidth || 740)/scale;
+  const width = Math.max(660,layoutEditor?.active?available:Math.min(1040,available));
   const fifths = KEYS.find(key => key.id === settings().key).fifths;
   const stride = settings().size > 4 ? 220 : 180;
   const firstX = 190+Math.abs(fifths)*15+(settings().size > 4 ? 40 : 0);
@@ -153,7 +158,7 @@ function drawStaff() {
   const {trebleBottom, bassBottom, height, yFor} = staffLayout(allNotes, {compact:document.documentElement.dataset.density === 'compact'});
   const trebleY = yFor, bassY = yFor;
   const alterations = keyAlterations(settings().key);
-  let svg = `<svg class="phrase-system" data-start="${start}" data-end="${start+chunk.length-1}" viewBox="0 0 ${width} ${height}" style="${layout.preset==='720' ? `height:${height*.75}px` : ''}" role="img" aria-label="Phrase steps ${start+1} to ${start+chunk.length}"><title>Phrase on grand staff</title>`;
+  let svg = `<svg class="phrase-system" data-start="${start}" data-end="${start+chunk.length-1}" viewBox="0 0 ${width} ${height}" style="${layoutEditor?.active?`width:${width*scale}px;height:${height*scale}px`:layout.preset==='720' ? `height:${height*.75}px` : ''}" role="img" aria-label="Phrase steps ${start+1} to ${start+chunk.length}"><title>Phrase on grand staff</title>`;
   for (let local = 0; local < chunk.length; local++) {
     const step = start+local, x = centre(local);
     svg += `<text class="step-number" x="${x}" y="24" text-anchor="middle">${settings().endAction === 'new' ? streamOffset+step+1 : step%phrase.length+1}${step < phraseIndex ? ' ✓' : ''}</text>`;
@@ -505,3 +510,8 @@ window.addEventListener('focus', () => {progress.resume(); update();});
 document.addEventListener('visibilitychange', () => {if (document.hidden) {sound.panic(); progress.pause(); performance.clear(); update();} else if (document.hasFocus()) {progress.resume(); update();}});
 window.addEventListener('resize', () => {applyDensity(); fitKeyboard(); drawStaff(); scrollToCurrent(); update();});
 rangeLabels(); drawKeyboard(); newTarget();
+
+layoutEditor=new LayoutEditor({workspace:$('playing-layout'),panels:{staff:$('staff-panel'),keyboard:$('keyboard-panel')},selection:$('density'),scaleInput:$('staff-scale'),onChange:()=>{
+  applyDensity();fitKeyboard();drawStaff();scrollToCurrent();
+}});
+layoutEditor.restore();

@@ -414,6 +414,9 @@ depend on catalogue downloads, audio setup or an account.
 
 ### Layout follow-up delivered
 
+- [x] Remembered Custom layout: independently draggable/resizable staff and keyboard,
+  notation scale, keyboard-accessible controls and recoverable responsive fitting.
+
 - [x] Resolution-labelled 720p/1080p/1440p/2160p presets plus Automatic, with generous
   browser-chrome allowance and tighter header spacing.
 - [x] Reserve feedback/MIDI activity and staff-pane height so notes do not move the keyboard.

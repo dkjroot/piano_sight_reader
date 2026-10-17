@@ -1249,6 +1249,88 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     assert.equal(await page.locator('#exercise-summary').innerText(),activeDescription);
     await mainContext.close();
 
+    // Custom positions, independent resizing and notation scale preserve the phrase.
+    const layoutContext=await browser.newContext({viewport:{width:1440,height:900}});
+    const custom=await layoutContext.newPage();
+    custom.on('pageerror',error=>errors.push(error.message));
+    await custom.goto(process.env.APP_URL || 'http://127.0.0.1:8766');
+    await custom.evaluate(()=>{
+      for(const [id,value] of Object.entries({low:0,high:0,hand:'left',span:'full',source:'random',size:1,'min-size':1,length:4})) document.getElementById(id).value=value;
+      document.getElementById('source').dispatchEvent(new Event('change'));
+    });
+    const originalLayoutNotes=await custom.locator('.note').evaluateAll(notes=>notes.map(n=>[n.dataset.step,n.dataset.midi]));
+    assert.equal(await custom.locator('#staff').evaluate(el=>el.scrollHeight>el.clientHeight),true,'extreme ledger notes reproduce the reported staff overflow');
+    const drag=async(selector,dx,dy)=>{
+      const handle=custom.locator(selector);await handle.scrollIntoViewIfNeeded();
+      const box=await handle.boundingBox();
+      await custom.mouse.move(box.x+box.width/2,box.y+box.height/2);await custom.mouse.down();
+      await custom.mouse.move(box.x+box.width/2+dx,box.y+box.height/2+dy,{steps:8});await custom.mouse.up();
+    };
+    const originalPanelLeft=await custom.locator('#staff-panel').evaluate(el=>el.getBoundingClientRect().left);
+    await drag('#staff-panel .layout-resize',-250,260);
+    assert.ok(Math.abs(await custom.locator('#staff-panel').evaluate(el=>el.getBoundingClientRect().left)-originalPanelLeft)<2,'entering Custom must not jump the panel away from the pointer');
+    const initialOffset=await custom.locator('#staff-panel').evaluate(el=>parseFloat(el.style.left));
+    await drag('#staff-panel .layout-move',-initialOffset,0);
+    assert.equal(await custom.inputValue('#density'),'custom');
+    assert.equal(await custom.locator('html').getAttribute('data-layout'),'custom');
+    await custom.locator('#staff-scale').evaluate(el=>{el.value='50';el.dispatchEvent(new Event('input'));el.dispatchEvent(new Event('change'));});
+    assert.equal(await custom.locator('#staff-scale-value').innerText(),'50%');
+    assert.equal(await custom.locator('#staff').evaluate(el=>el.scrollHeight<=el.clientHeight+1),true,'resizing and scaling fit the extreme ledger range without vertical staff scrolling');
+    assert.deepEqual(await custom.locator('.note').evaluateAll(notes=>notes.map(n=>[n.dataset.step,n.dataset.midi])),originalLayoutNotes);
+    assert.equal(await custom.locator('#phrase-position').innerText(),'1 / 4');
+    await custom.evaluate(()=>{
+      window.customHeldKey=document.querySelector('.key[data-pitch="0"]');
+      window.customHeldKey.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+    });
+    const heldPosition=await custom.locator('#phrase-position').innerText();
+    const oldKeyHeight=await custom.locator('.key.white').first().evaluate(el=>el.getBoundingClientRect().height);
+    await drag('#keyboard-panel .layout-resize',-600,100);
+    assert.ok(await custom.locator('.key.white').first().evaluate(el=>el.getBoundingClientRect().height)>oldKeyHeight+60);
+    const oldPosition=await custom.locator('#keyboard-panel').evaluate(el=>parseFloat(el.style.top));
+    await custom.evaluate(()=>window.scrollTo(0,0));
+    await drag('#keyboard-panel .layout-move',820,-oldPosition);
+    assert.ok(await custom.locator('#keyboard-panel').evaluate(el=>parseFloat(el.style.top))<oldPosition-40);
+    assert.equal(await custom.evaluate(()=>window.customHeldKey===document.querySelector('.key[data-pitch="0"]')),true);
+    assert.equal(await custom.locator('.key[data-pitch="0"]').getAttribute('aria-pressed'),'true');
+    assert.equal(await custom.locator('#phrase-position').innerText(),heldPosition,'moving and resizing must not grant another held-note attack');
+    await custom.evaluate(()=>window.customHeldKey.dispatchEvent(new KeyboardEvent('keyup',{key:'Enter',bubbles:true})));
+    await custom.locator('#staff-panel .layout-move').press('ArrowDown');
+    await custom.locator('#staff-panel .layout-resize').press('Shift+ArrowLeft');
+    const savedGeometry=await custom.evaluate(()=>JSON.parse(localStorage.getItem('piano-sight-reader-custom-layout-v1')));
+    await custom.reload();await custom.waitForSelector('.custom-layout');
+    assert.equal(await custom.inputValue('#density'),'custom');assert.equal(await custom.inputValue('#staff-scale'),'50');
+    assert.deepEqual(await custom.evaluate(()=>JSON.parse(localStorage.getItem('piano-sight-reader-custom-layout-v1'))),savedGeometry);
+    await custom.evaluate(()=>window.scrollTo(0,0));
+    await custom.screenshot({path:'test-results/custom-layout-desktop.png',fullPage:true});
+    await custom.setViewportSize({width:390,height:844});
+    await custom.waitForTimeout(80);
+    assert.equal(await custom.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    assert.ok(await custom.locator('.layout-move').evaluateAll(buttons=>buttons.every(button=>{const b=button.getBoundingClientRect();return b.left>=0 && b.right<=innerWidth;})));
+    assert.deepEqual(await custom.evaluate(()=>JSON.parse(localStorage.getItem('piano-sight-reader-custom-layout-v1'))),savedGeometry,'responsive fitting preserves desktop geometry');
+    await custom.setViewportSize({width:1440,height:1000});await custom.waitForTimeout(80);
+    await custom.selectOption('#density','auto');
+    assert.equal(await custom.locator('.custom-layout').count(),0);assert.equal(await custom.inputValue('#staff-scale'),'100');
+    await custom.selectOption('#density','custom');
+    assert.equal(await custom.inputValue('#staff-scale'),'50');
+    for(let i=0;i<14;i++) await custom.locator('#staff-panel .layout-resize').press('Shift+ArrowLeft');
+    assert.ok(await custom.locator('#staff-panel').evaluate(panel=>{
+      const box=panel.getBoundingClientRect();
+      return [...panel.querySelectorAll('.layout-move,.staff-scale,#pause-practice,.feedback')].every(control=>{const r=control.getBoundingClientRect();return r.left>=box.left && r.right<=box.right+1 && r.bottom<=box.bottom+1;});
+    }),'a narrow custom staff panel keeps its scale, pause and feedback controls reachable');
+    await custom.screenshot({path:'test-results/custom-layout-narrow.png',fullPage:true});
+    await custom.selectOption('#density','720');
+    assert.equal(await custom.inputValue('#staff-scale'),'75');
+    await custom.selectOption('#density','1080');
+    await custom.reload();await custom.waitForSelector('.note');
+    assert.equal(await custom.inputValue('#density'),'1080');assert.equal(await custom.locator('.custom-layout').count(),0);
+    // Broken/restricted storage must not prevent the normal playing surface.
+    await custom.addInitScript(()=>{Storage.prototype.getItem=()=>{throw new Error('blocked');};Storage.prototype.setItem=()=>{throw new Error('blocked');};});
+    await custom.reload();await custom.waitForSelector('.note');
+    await custom.locator('#staff-panel .layout-move').press('ArrowDown');
+    assert.equal(await custom.inputValue('#density'),'custom');
+    assert.deepEqual(errors,[]);
+    await layoutContext.close();
+
     // Stage 1 controls, authored chromatic spelling and fresh alternate attacks.
     const generatedContext=await browser.newContext({viewport:{width:1280,height:900}});
     const generated=await generatedContext.newPage();
