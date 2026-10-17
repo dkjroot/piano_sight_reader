@@ -2,6 +2,7 @@ import {GeneratedStream} from '../static/generated_stream.js';
 import './score_practice.test.js';
 import './midi_study.test.js';
 import './passage_filters.test.js';
+import './midi_stream.test.js';
 import {handDistance,attackHands} from '../static/generation.js';
 import {scoreSecondsAt,authoredPlan} from '../static/score_transport.js';
 import {scoreKeyForPassage} from '../static/score_key.js';
@@ -749,7 +750,7 @@ test('exercise descriptions show active filters and omit disabled settings or pr
   const piece={filename:'Active piece.mid',bounds:{start:9,end:11,tracks:[{enabled:true},{enabled:false}]}};
   const imported=describeExercise({...base,source:'midi','min-size':9,material:'flats',hand:'left',endAction:'new'},piece);
   assert.equal(imported.title,'Local MIDI outline');
-  for(const text of ['Active piece.mid','Source attacks 9–11','1 selected track','Left hand','Up to 3 notes/chord','Chromatic, prefer flats','Repeat']) assert.ok(imported.description.includes(text),text);
+  for(const text of ['Active piece.mid','Source attacks 9–11','1 selected track','Left hand','Up to 3 notes/chord','Chromatic, prefer flats','Continue through piece']) assert.ok(imported.description.includes(text),text);
   assert.ok(!imported.description.includes('9–3 notes'));
   const continuous=describeExercise({...base,source:'random',size:1,endAction:'new',span:'full',hand:'both'});
   assert.match(continuous.description,/Single notes/); assert.match(continuous.description,/Both hands/); assert.match(continuous.description,/Continuous/);

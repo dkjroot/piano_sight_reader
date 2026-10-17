@@ -228,8 +228,8 @@ retained/omitted counts. Empty filtered attacks are skipped only in this untimed
 
 Selecting a section/bookmark, editing endpoints or changing tracks activates a
 snapshot of the inspected passage, as does the explicit Practise action. Loading
-another file leaves active practice intact. Only Repeat is enabled
-for local outlines; generated phrase length/minimum chord size do not apply. Reloads
+another file leaves active practice intact. Repeat, Continue through piece and
+Stop at end are available for local outlines; generated phrase length/minimum chord size do not apply. Reloads
 return to generated practice because files are not persisted. Progress identities
 include source hash, passage and attack position without embedding an entire long
 piece per attempt; generated-exercise identities remain compatible.
@@ -798,3 +798,25 @@ vertical staff scrolling through resize/zoom, preserve an actual held-key DOM no
 and fresh-attack progress, exercise pointer and keyboard edits, verify narrow-panel
 controls, reload persistence, viewport recovery, presets and restricted storage.
 Physical MIDI hardware and hardware input-to-paint latency were not measured.
+
+
+## Source, progression and panel-width follow-up
+
+Source and progression precede shared pitch filters. Returning to generated random
+practice is explicit in both setup cards; loading a piece no longer overwrites the
+selected progression policy. Imported Continuous uses midi_stream.js: one bounded
+following source window is prepared asynchronously, with revision cancellation and
+yields between empty windows. Matching only adopts prepared targets; parsing and
+filtering never run inside a MIDI event. End-of-file and Stop at end finish once,
+with a restart action shown only on completion. Fresh-attack and fluid overlap rules
+remain unchanged. Generated Continuous retains its module worker.
+
+Custom expands #playing-layout, not main: header/settings/library retain the 1120px
+centered shell. Activation still translates panel coordinates to preserve the first
+pointer position, and saved geometry fits without being overwritten on narrow screens.
+
+Study Stop rewinds to Entry; Rewind keeps listening if already playing, while Pause
+keeps the audio position. Play at end starts over. Playback plans clip to Entry/Exit
+and use the remembered Loop setting (default on). PlaybackCursor optionally loops,
+schedules across the boundary on audio time with distinct voice IDs per cycle,
+skips expired cycles after a stall and bounds loop scheduling work per pump.

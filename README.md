@@ -61,7 +61,7 @@ You can practise without MIDI by using the on-screen keys.
   **Notes in key**, **Near middle C**.
   Choose bass or both hands, chromatic notes, a wider range, or up to ten notes
   per target when ready. Turn on **Show note names** for help.
-- Choose **Repeat phrase** to loop the same material automatically, or
+- Choose **Repeat passage** to loop the same material automatically, or
   **Continuous** for an ongoing stream of fresh random practice. The choice is
   remembered. In Repeat, the opening appears beyond a double barline as you near
   the end, keeping the preview populated. Both modes wait for correct playing
@@ -70,6 +70,7 @@ You can practise without MIDI by using the on-screen keys.
   per chord** (1–10). For a mix of single notes and small chords, use minimum 1
   and maximum 3. Equal bounds give a fixed chord size, where the range allows it.
   Phrase length is disabled in Continuous; your repeat length is retained.
+  **Stop at end** finishes one phrase and offers **Restart passage**.
 - **Layout** offers Automatic or **720p / 1080p / 1440p / 2160p** display presets.
   Presets allow 180 pixels for browser/desktop chrome and also respect the actual
   viewport. Automatic chooses from available browser height. The choice is remembered;
@@ -89,6 +90,8 @@ You can practise without MIDI by using the on-screen keys.
   choose **Custom** again to restore your last arrangement. Smaller windows fit
   the panels within reach without overwriting the saved desktop layout.
   Layout changes preserve the current phrase, position and held-key feedback.
+  Only the playing area expands: the header, settings and library stay centered
+  within their normal maximum width, including on ultrawide screens.
 - **Keyboard key size** is remembered independently. Automatic fits an 88-key piano
   into the available desktop width. Choose 20/28/36 px for a fixed width and horizontal
   scrolling. Automatic keeps wider touch targets on coarse-pointer devices; the full
@@ -267,6 +270,14 @@ Study limits include continuing physical holds. An empty selection asks you to
 widen the filters. Texture, attack pattern,
 minimum generated chord size and generated phrase length apply to generation.
 
+Source and progression choices sit at the top of Practice setup. **Repeat passage**
+loops the selected MIDI window. **Continue through piece** moves through following
+source attacks in windows of the selected length, ending at the file boundary;
+filtered empty windows are skipped. **Stop at end** finishes only the current
+selection. Generated Continuous still creates fresh targets. **Use random pitches**
+returns to generated practice while keeping the loaded MIDI available. Passage
+study has the matching **Random pitch practice** shortcut beside its Source.
+
 MIDI study notation is a local derivation, not a recovery of a printed edition.
 It preserves every retained source attack and its note IDs, original ticks,
 track/channel and source hash, while retaining the raw inspection unchanged.
@@ -308,10 +319,15 @@ a held unison needs one new press. MIDI cannot identify fingers. There is no ons
 score, half-pedal, sostenuto, soft-pedal or velocity assessment.
 
 Entry beat and Exit beat select a study cut in quarter-note beats counted from
-zero, excluding new attacks at the exit. **Loop passage** repeats after releasing
+zero, excluding new attacks at the exit. **Loop passage**, on by default and
+remembered, repeats practice after releasing
 keys and pedal; entry and resume require fresh attacks of all active notes,
 including cut ties. Resume restarts the current position's duration. **Pause**
-uses the shared playing toolbar. Backgrounding and unplugging pause safely.
+uses the shared playing toolbar. **Stop study** stops and returns to Entry beat;
+**Pause playback** keeps the listening position. **Rewind** returns to Entry beat
+and keeps listening if playback is running. Play study restarts after reaching
+the end. Listening follows Entry/Exit and Loop passage too, with loops scheduled
+on audio time. Backgrounding and unplugging pause safely.
 
 ## Active exercise
 

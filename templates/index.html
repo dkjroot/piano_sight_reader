@@ -22,7 +22,7 @@
     <div class="practice-top layout-toolbar"><button class="quiet layout-move" aria-label="Move staff" title="Drag to move staff; arrow keys move, Shift for larger steps">⠿</button><h2><span id="practice-title">Phrase</span> <span id="phrase-position"></span></h2><label id="study-bars-control" class="study-bars" hidden>Bars per line <select id="study-bars"><option value="auto">Automatic</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></label><div class="staff-scale"><label for="staff-scale">Scale</label><input id="staff-scale" type="range" min="40" max="160" step="5" value="100"><output id="staff-scale-value" for="staff-scale">100%</output></div><div class="practice-status"><span id="outline-count"><strong id="count">0</strong> <span id="count-label">repetitions completed</span></span><button id="pause-practice" class="quiet" aria-pressed="false" aria-label="Pause practice">Pause</button></div></div>
     <p id="exercise-summary" class="exercise-summary" aria-label="Active exercise settings"></p>
     <div id="staff" aria-label="Grand staff"></div>
-    <div id="study-transport" class="range-buttons" hidden><button id="study-start">Practise passage</button><button id="study-stop" class="quiet">Stop study</button><button id="study-play" class="quiet">Play study</button><button id="study-audio-pause" class="quiet" disabled>Pause playback</button></div>
+    <div id="study-transport" class="range-buttons" hidden><button id="study-start">Practise passage</button><button id="study-stop" class="quiet" title="Stop and return to passage start">Stop study</button><button id="study-rewind" class="quiet" title="Return to passage start; continue listening if playback is running">Rewind</button><button id="study-play" class="quiet">Play study</button><button id="study-audio-pause" class="quiet" disabled>Pause playback</button></div>
     <div class="feedback"><h2 id="feedback" role="status" aria-live="polite"></h2><span id="chord-name" role="status"></span><p id="detail"></p></div>
     <button class="quiet layout-resize" aria-label="Resize staff" title="Drag to resize staff; arrow keys resize, Shift for larger steps">↘</button>
   </section>
@@ -38,20 +38,24 @@
   <section class="settings-grid">
         <div class="card settings" id="study-settings" hidden><h2>Passage study</h2>
       <label>Source <select id="study-source"><option value="loaded" disabled>Loaded MIDI passage</option><option value="independent-voices" selected>Independent voices · original study</option><option value="notation-cases">Notation and continuity · original study</option></select></label>
+      <label class="check"><input id="study-loop" type="checkbox" checked> Loop passage</label>
+      <button id="study-random" class="quiet">Random pitch practice</button>
       <label>Position <input id="study-position" type="range" min="0" max="0" value="0"></label>
       <label>Speed <select id="study-speed"><option value="0.5">50%</option><option value="0.75">75%</option><option value="1" selected>100%</option><option value="1.5">150%</option><option value="2">200%</option></select></label>
       <label>Continuity <select id="study-continuity"><option value="fingers">Finger held</option><option value="pedal">Pedal supported</option></select></label>
-      <label class="check"><input id="study-loop" type="checkbox"> Loop passage</label>
       <label>Entry beat <select id="study-entry"></select></label><label>Exit beat <select id="study-exit"></select></label>
       <div id="study-filter-slot"></div>
       <p id="study-source-status" class="small" role="status"></p>
     </div>
     <div class="card settings" id="outline-settings"><h2>Practice setup</h2>
+      <label>Source <select id="source"><option value="random">Random pitches</option><option value="triads">Diatonic chords</option><option value="cadence">Cadence</option><option value="advanced">Advanced harmony</option><option id="source-midi" value="midi" disabled>Local MIDI outline</option></select></label>
+    <button id="return-random" class="quiet">Use random pitches</button>
+    <fieldset class="phrase-end"><legend>Mode</legend><label class="check"><input id="end-repeat" type="radio" name="end-action" value="repeat" checked> Repeat passage</label><label class="check"><input id="end-new" type="radio" name="end-action" value="new"> <span id="continuous-label">Continuous</span></label><label class="check"><input id="end-stop" type="radio" name="end-action" value="stop"> Stop at end</label></fieldset>
+    <p id="mode-description" class="small"></p>
+    <button id="restart-pitch" class="quiet" hidden>Restart passage</button>
     <div class="practice-actions"><label class="check"><input id="reveal" type="checkbox"> Show note names</label><span id="note-names" hidden></span></div>
     <div id="outline-filter-slot"></div>
-    <fieldset class="phrase-end"><legend>Mode</legend><label class="check"><input id="end-repeat" type="radio" name="end-action" value="repeat" checked> Repeat phrase</label><label class="check"><input id="end-new" type="radio" name="end-action" value="new"> Continuous</label></fieldset>
 
-      <label>Exercise <select id="source"><option value="random">Random pitches</option><option value="triads">Diatonic chords</option><option value="cadence">Cadence</option><option value="advanced">Advanced harmony</option><option id="source-midi" value="midi" disabled>Local MIDI outline</option></select></label>
       <label>Texture <select id="texture"><option value="block">Block chords</option><option value="melody">Melody with chords</option><option value="bass">Bass with chords</option><option value="broken">Broken chords</option><option value="alberti">Alberti bass</option></select></label>
       <label>Advanced vocabulary <select id="advanced-kind"><option value="secondary">Secondary dominant</option><option value="diminished">Leading-tone diminished seventh</option><option value="mixture">Borrowed minor subdominant</option><option value="augmented-sixth">German augmented sixth</option><option value="ninths">Extended ii9–V9–Imaj9</option><option value="altered">ii7–V7♭9–I</option><option value="quartal">Quartal planing</option></select></label>
       <label>Attack pattern <select id="attack-pattern"><option value="together">Hands together</option><option value="alternate">Alternate hands</option><option value="2:1">Right twice per left attack</option><option value="3:2">Right three per two left attacks</option></select></label>

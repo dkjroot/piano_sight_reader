@@ -15,9 +15,12 @@ function loadEngine() {
 export class ScoreWorkspace {
   constructor(input,sound,onChange,getScale) {
     Object.assign(this,{input,sound,onChange,getScale}); this.cursor=new PlaybackCursor(); this.index=0; this.revision=0; this.active=false;
-    $('study-start').addEventListener('click',()=>this.start()); $('study-stop').addEventListener('click',()=>this.stop());
+    $('study-start').addEventListener('click',()=>this.start()); $('study-stop').addEventListener('click',()=>this.rewind());
+    $('study-rewind').addEventListener('click',()=>this.rewind(true));
     $('study-play').addEventListener('click',()=>void this.play()); $('study-audio-pause').addEventListener('click',()=>{this.pausePlayback(); this.onChange();});
     $('study-position').addEventListener('input',()=>{this.stop(); this.index=+$('study-position').value; this.show(); onChange();});
+    $('study-loop').addEventListener('change',()=>{try {localStorage.setItem('piano-sight-reader-study-loop',String($('study-loop').checked));} catch {}});
+    try {const saved=localStorage.getItem('piano-sight-reader-study-loop'); if(['true','false'].includes(saved)) $('study-loop').checked=saved==='true';} catch {}
     for(const id of ['study-speed','study-continuity','study-loop','study-entry','study-exit']) $(id).addEventListener('change',()=>this.stop());
     try {const bars=localStorage.getItem('piano-sight-reader-study-bars'); if(['auto','1','2','3','4'].includes(bars)) $('study-bars').value=bars;} catch {}
     $('study-bars').addEventListener('change',()=>{try {localStorage.setItem('piano-sight-reader-study-bars',$('study-bars').value);} catch {} this.draw(); this.onChange();});
@@ -59,14 +62,15 @@ export class ScoreWorkspace {
     try {this.stopPlayback(); this.gate=new ScorePractice(this.score,{speed:+$('study-speed').value,policy:$('study-continuity').value,loop:$('study-loop').checked,start:+$('study-entry').value,end:+$('study-exit').value}); this.gate.begin(this.input,performance.now()/1000); this.onChange();}
     catch(error) {$('feedback').textContent=error.message;}
   }
+  rewind(keepPlaying=false) {const playing=this.cursor.state==='playing'; this.stop(); this.index=+$('study-entry').value||0; this.shown=-1; this.show(); this.onChange(); if(keepPlaying && playing) void this.play();}
   stop() {this.gate=null; this.stopPlayback(); this.onChange();}
   pause() {this.gate?.pause(); this.pausePlayback();}
   togglePause() {if(this.gate?.state==='paused') this.gate.resume(this.input,performance.now()/1000); else this.pause(); this.onChange();}
   beforeInput() {if(this.active) this.gate?.update(this.input,performance.now()/1000);}
-  get target() {if(this.gate && this.gate.index===this.gate.end) return []; const point=this.score?.moments[this.index]; return point?[...new Set([...point.attacks,...point.continuing].map(id=>this.sounds.get(id)))].map(note=>({...note,staff:note.staffId==='lower'?'bass':'treble'})):[];}
+  get target() {if(this.cursor.state==='ended' || this.gate && this.gate.index===this.gate.end) return []; const point=this.score?.moments[this.index]; return point?[...new Set([...point.attacks,...point.continuing].map(id=>this.sounds.get(id)))].map(note=>({...note,staff:note.staffId==='lower'?'bass':'treble'})):[];}
   show() {
     if(!this.engraver || !this.score) return;
-    this.engraver.highlight(this.gate && this.gate.index===this.gate.end?-1:this.index);
+    this.engraver.highlight(this.cursor.state==='ended' || this.gate && this.gate.index===this.gate.end?-1:this.index);
     $('study-position').value=this.index;
     const point=this.score.moments[this.index], measure=this.score.measures.find(measure=>compareBeat(point.at,measure.start)>=0 && compareBeat(point.at,measure.end)<0);
     $('practice-title').textContent=this.score.source.title;
@@ -86,7 +90,7 @@ export class ScoreWorkspace {
     if(this.cursor.state==='playing') {
       const audioNow=this.sound.engine.context.currentTime;
       this.cursor.pump(audioNow,note=>this.sound.engine.reference.noteOn(note.pitch,note.time,note.duration,note.id,note.velocity/127));
-      const at=this.cursor.at(audioNow); this.index=this.plan.moments.findLastIndex(point=>point.time<=at); this.index=Math.max(0,this.index);
+      const at=this.cursor.at(audioNow); this.index=this.plan.moments.findLast(point=>point.time<=at)?.index??+$('study-entry').value;
       if(this.cursor.state==='ended') {clearInterval(this.audioTimer); this.sound.engine.reference.stop();}
     }
     if(this.shown!==this.index) this.show();
@@ -108,6 +112,7 @@ export class ScoreWorkspace {
     else if(result) feedback=[result.missing.length?'Play '+names(result.missing):'',result.early.length?'Hold again '+names(result.early):'',result.extra.length?'Release extra keys':''].filter(Boolean).join(' · ')||'✓ Hold';
     else if(this.cursor.state==='playing') feedback='Playing study';
     else if(this.cursor.state==='paused') feedback='Playback paused';
+    else if(this.cursor.state==='ended') feedback='Playback complete';
     $('feedback').textContent=feedback;
     $('detail').textContent=this.gate?`Short holds ${this.gate.counts.earlyRelease} · Extra notes ${this.gate.counts.extra}`:'';
     $('chord-name').textContent='';
@@ -120,12 +125,17 @@ export class ScoreWorkspace {
   }
   async play() {
     if(!this.score || !this.active || !$('reference-sound').checked) return;
+    const entry=+$('study-entry').value, exit=+$('study-exit').value;
+    const ended=this.cursor.state==='ended';
+    if(ended || this.index<entry || this.index>=exit) this.index=entry;
     this.gate=null; const revision=++this.revision, resume=this.cursor.state==='paused';
     if(!await this.sound.activate() || revision!==this.revision || !this.active) return;
-    const position=resume?this.cursor.position:this.plan?.moments?.[this.index]?.time;
+    const position=resume?this.cursor.position:0;
     this.sound.onReferenceStop();
-    this.plan=authoredPlan(this.score,{speed:+$('study-speed').value});
-    this.cursor.play(this.plan,this.sound.engine.context.currentTime,resume?position:this.plan.moments[this.index]?.time??0); this.onChange();
+    try {
+      this.plan=authoredPlan(this.score,{speed:+$('study-speed').value,start:this.score.moments[entry].at,end:this.score.moments[exit].at});
+      this.cursor.play(this.plan,this.sound.engine.context.currentTime,resume?position:this.plan.moments.find(point=>point.index===this.index)?.time??0,{loop:$('study-loop').checked}); this.onChange();
+    } catch(error) {$('feedback').textContent=error.message;}
   }
   pausePlayback() {this.revision++; if(this.sound.engine) this.cursor.pause(this.sound.engine.context.currentTime); this.sound.engine?.reference.stop();}
   stopPlayback(invalidate=true) {if(invalidate) this.revision++; this.cursor.stop(); this.sound.engine?.reference.stop();}

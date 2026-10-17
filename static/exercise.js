@@ -28,6 +28,6 @@ export function describeExercise(settings,activePiece=null) {
   } else if(!harmonic) parts.push(({white:'Notes in key',sharps:'Chromatic, prefer sharps',flats:'Chromatic, prefer flats'})[settings.material]);
   if(!imported && settings.texture && settings.texture!=='block') parts.push(({melody:'Melody with chords',bass:'Bass with chords',broken:'Broken chords',alberti:'Alberti bass'})[settings.texture]);
   if(!imported && settings.hand==='both' && settings['attack-pattern'] && settings['attack-pattern']!=='together') parts.push(`Attack pattern: ${settings['attack-pattern']}`);
-  parts.push(settings.endAction==='new' && !imported ? 'Continuous' : 'Repeat');
+  parts.push(settings.endAction==='new' ? imported?'Continue through piece':'Continuous' : settings.endAction==='stop'?'Stop at end':'Repeat');
   return {title,description:parts.filter(Boolean).join(' · ')};
 }

@@ -1,5 +1,6 @@
 import {LayoutEditor} from './layout_editor.js';
 import {planningControls} from './generation.js';
+import {MidiPassageStream} from './midi_stream.js';
 import {GeneratedStream} from './generated_stream.js';
 import {describeExercise} from './exercise.js';
 import {FlowGate} from './flow.js';
@@ -25,7 +26,7 @@ const progress = new ProgressPanel();
 let activePiece=null;
 const scorePanel = new ScorePanel((score,bounds,filename,keyInfo)=>{
   if(keyInfo?.keyId) $('key').value=keyInfo.keyId;
-  activePiece={score,bounds,filename}; $('source-midi').disabled=false; $('source').value='midi'; $('end-repeat').checked=true;
+  activePiece={score,bounds,filename}; $('source-midi').disabled=false; $('source').value='midi';
   $('study-source').querySelector('[value="loaded"]').disabled=false;
   $('study-source').value='loaded';
   if(workspace==='study') {persist(); syncMode(); newTarget(); scorePanel.practiceStarted(); sourcePlayer.stop(); $('study-source').value='loaded'; void loadStudy(); return;}
@@ -43,7 +44,8 @@ const generatedStream=new GeneratedStream(()=>{
   else if(waitingForGenerated) update();
 });
 let inputRevision = 0;
-let practicePaused=false, resumeRelease=false;
+let practicePaused=false, resumeRelease=false, passageEnded=false, waitingForMidi=false;
+const midiStream=new MidiPassageStream(()=>{if(workspace==='outline' && waitingForMidi && !practicePaused) advancePhrase();});
 const sound=new SoundPanel(()=>workspace==='study'?authored?.target??[]:target,()=>new Set([...performance.held,...performance.sustained]),()=>performance.attacks);
 const sourcePlayer=new SourcePlayer(sound,scorePanel);
 const SETTLE_MS = 120;
@@ -56,7 +58,7 @@ try {
   for (const id of controls) {
     if (saved[id] !== undefined && (['low', 'high'].includes(id) ? Number.isInteger(+saved[id]) && +saved[id] >= 0 && +saved[id] <= 127 : [...$(id).options].some(o => !o.disabled && o.value === String(saved[id])))) $(id).value = saved[id];
   }
-  if (['repeat','new'].includes(saved.endAction)) $(`end-${saved.endAction}`).checked = true;
+  if (['repeat','new','stop'].includes(saved.endAction)) $(`end-${saved.endAction}`).checked = true;
 } catch { /* Restricted storage or an old setting must not prevent practice. */ }
 if (+$('low').value > +$('high').value) $('high').value = $('low').value;
 if (+$('min-size').value > +$('size').value) $('min-size').value = $('size').value;
@@ -64,8 +66,8 @@ function settings() { return {...Object.fromEntries(controls.map(id => [id, ['lo
 function persist() { try { localStorage.setItem(storageKey, JSON.stringify(settings())); } catch { /* Session still works. */ } }
 function syncMode() {
   const imported=workspace==='study' || $('source').value==='midi';
-  $('end-new').disabled=imported;
-  if($('source').value==='midi') $('end-repeat').checked=true;
+  $('end-new').disabled=false;
+  $('return-random').disabled=$('source').value==='random';
   const continuous = settings().endAction === 'new';
   $('length').disabled = continuous || imported; $('min-size').disabled=imported;
   const harmonic=workspace==='outline' && ['triads','cadence','advanced'].includes($('source').value);
@@ -79,7 +81,9 @@ function syncMode() {
   const labels=cadenceLabels($('harmony-scale').value==='minor',$('harmony-kind').value==='sevenths');
   [...$('cadence-shape').options].forEach((option,i)=>option.textContent=labels[i]);
   $('material').disabled=harmonic;
-  document.querySelector('.phrase-end').hidden=imported;
+  document.querySelector('.phrase-end').hidden=false;
+  $('continuous-label').textContent=$('source').value==='midi'?'Continue through piece':'Continuous';
+  $('mode-description').textContent=$('source').value==='midi'?'Repeat loops this selection. Continue moves into following source attacks. Stop at end plays the selection once.':'Repeat loops the phrase. Continuous generates more targets. Stop at end finishes one phrase.';
   $('count-label').textContent = continuous ? 'targets completed' : 'repetitions completed';
   for(const id of ['advanced-kind','cadence-shape','harmony-scale','harmony-kind','attack-pattern','length','min-size','texture','hand-span','left-density','left-leap','right-density','right-leap','ledger-limit','material']) {
     $(id).closest('label').hidden=$(id).disabled;
@@ -316,8 +320,8 @@ function paintKeys(hints = [],expected=target) {
   $('pedal').textContent = performance.pedal ? 'Sustain on' : 'Sustain off';
 }
 function newTarget() {
-  outlineSettingsDirty=false;
-  waitingForGenerated=false;generatedStream.reset();
+  outlineSettingsDirty=false; passageEnded=false; progress.resume('ended'); $('restart-pitch').hidden=true; $('pause-practice').disabled=false;
+  waitingForGenerated=false;generatedStream.reset(); waitingForMidi=false; midiStream.reset();
   const description=describeExercise(settings(),activePiece);
   $('practice-title').textContent=description.title; $('exercise-summary').textContent=description.description;
   clearTimeout(settleTimer); clearTimeout(nextTimer);
@@ -325,11 +329,12 @@ function newTarget() {
   $('score-playing').textContent=settings().source==='midi' && activePiece ? `Practising ${activePiece.filename} · source attacks ${activePiece.bounds.start}–${activePiece.bounds.end}` : '';
   scorePanel.refresh();
   streamOffset = 0;
-  if(settings().endAction==='new' && settings().source!=='midi') generatedStream.prepare(settings(),phrase,phrase.length);
+  if(settings().endAction==='new') {if(settings().source==='midi' && activePiece) midiStream.prepare(activePiece.score,settings(),activePiece.bounds); else generatedStream.prepare(settings(),phrase,phrase.length);}
   restartPhrase();
 }
 function restartPhrase() {
   clearTimeout(settleTimer); clearTimeout(nextTimer);
+  passageEnded=false; $('restart-pitch').hidden=true;
   phraseIndex = 0; solved = false; resumeRelease=false; progress.resume('resume');
   waitingForRelease = performance.held.size > 0;
   target = phrase[0] || []; flowGate.start(target,[],performance.held,performance.attacks); $('chord-name').textContent = '';
@@ -340,15 +345,23 @@ function restartPhrase() {
 function advancePhrase() {
   const flow=$('progression').value==='flow', previous=target;
   if (!flow && performance.held.size) return;
-  if(settings().endAction==='new' && phraseIndex===phrase.length-1 && !generatedStream.queue.length) {
+  if(settings().source==='midi' && settings().endAction==='new' && phraseIndex===phrase.length-1) {
+    const next=midiStream.take();
+    if(!next) {if(midiStream.ended) {finishPassage(); return;} waitingForMidi=true; solved=true; update(); return;}
+    waitingForMidi=false; streamOffset+=phrase.length; activePiece.bounds=next.bounds; phrase=next.targets; phraseIndex=-1;
+    const description=describeExercise(settings(),activePiece); $('exercise-summary').textContent=description.description;
+    $('score-playing').textContent=`Practising ${activePiece.filename} · source attacks ${next.bounds.start}–${next.bounds.end}`;
+    setTimeout(()=>{if(activePiece?.bounds===next.bounds && scorePanel.score?.sha256===activePiece.score.sha256) { $('passage-start').value=next.bounds.start; $('passage-end').value=next.bounds.end; $('passage-name').value=`Attacks ${next.bounds.start}–${next.bounds.end}`; $('suggested-passages').value=''; $('saved-passages').value=''; $('delete-passage').disabled=true; scorePanel.refresh(); scorePanel.onPassageChange(); }},0);
+  }
+  if(settings().source!=='midi' && settings().endAction==='new' && phraseIndex===phrase.length-1 && !generatedStream.queue.length) {
     waitingForGenerated=true;solved=true;update();return;
   }
   if (phraseIndex === phrase.length-1 && settings().endAction!=='new') {
     if (settings().endAction === 'repeat') {if(flow) phraseIndex=-1; else {restartPhrase(); return;}}
-    else {newTarget(); return;}
+    else {finishPassage(); return;}
   }
   phraseIndex++; target = phrase[phraseIndex]; solved = false;
-  if (settings().endAction === 'new' && phraseIndex >= 24) {
+  if (settings().source!=='midi' && settings().endAction === 'new' && phraseIndex >= 24) {
     const prune=17, refill=generatedStream.take(prune);
     if(refill) {
       streamOffset += prune;
@@ -363,6 +376,8 @@ function advancePhrase() {
   progress.start(target,settings(),phrase);
   update();
 }
+function finishPassage() {passageEnded=true; waitingForMidi=false; target=[]; solved=true; progress.pause('ended'); $('restart-pitch').hidden=false; $('pause-practice').disabled=true; update();}
+$('restart-pitch').addEventListener('click',()=>{progress.resume('ended'); $('pause-practice').disabled=false; newTarget();});
 $('pause-practice').addEventListener('click',()=>{
   if(workspace==='study') {authored?.togglePause(); return;}
   practicePaused=!practicePaused;
@@ -376,6 +391,7 @@ $('pause-practice').addEventListener('click',()=>{
     progress.resume('resume');
     if(resumeRelease) progress.pause('resume');
     progress.resume('practice');
+    if(waitingForMidi) {advancePhrase();return;}
     if(waitingForGenerated && generatedStream.queue.length) {waitingForGenerated=false;advancePhrase();return;}
   }
   update();
@@ -404,6 +420,8 @@ function update() {
     waitingForRelease = false;
     progress.start(target,settings(),phrase);
   }
+  if(passageEnded) {$('feedback').textContent='✓ Passage complete'; $('detail').textContent=''; return;}
+  if(waitingForMidi) {$('feedback').textContent='Preparing next passage…'; $('detail').textContent=''; return;}
   if (!target.length) {
     $('feedback').textContent = settings().source==='midi' ? 'No notes in this range' : 'No playable target with these settings';
     $('detail').textContent = settings().source==='midi' ? 'Choose another hand, widen the reading range, or adjust the keyboard endpoints.' : 'Widen the range, hand span or leap limits, allow more ledger lines, or choose another texture.';
@@ -587,9 +605,10 @@ async function switchWorkspace(mode) {
   } else {
     authored.leave(); progress.resume('workspace'); flowGate.start(target,target,performance.held,performance.attacks);
     resumeRelease=$('progression').value==='release' && !solved && performance.held.size>0;
-    $('pause-practice').disabled=false; $('pause-practice').textContent=practicePaused?'Resume':'Pause'; $('pause-practice').setAttribute('aria-label',practicePaused?'Resume practice':'Pause practice');
+    $('pause-practice').disabled=passageEnded; $('pause-practice').textContent=practicePaused?'Resume':'Pause'; $('pause-practice').setAttribute('aria-label',practicePaused?'Resume practice':'Pause practice');
     const description=describeExercise(settings(),activePiece); $('practice-title').textContent=description.title; $('exercise-summary').textContent=description.description;
     if(outlineSettingsDirty) newTarget();
+    else if(waitingForMidi && !practicePaused) advancePhrase();
     else if(waitingForGenerated && generatedStream.queue.length && !practicePaused) advancePhrase();
     else {drawStaff(); update();}
   }
@@ -615,3 +634,7 @@ document.querySelector('.settings-stack .settings').append(document.querySelecto
 syncSettingsTree();
 const view=new URLSearchParams(location.search);
 if(view.get('view')==='study') {if(view.get('study')==='notation-cases') $('study-source').value='notation-cases'; void switchWorkspace('study');}
+
+async function randomPitchPractice() {const changed=$('source').value!=='random'; $('source').value='random'; persist(); if(workspace==='study') {outlineSettingsDirty ||= changed; await switchWorkspace('outline');} else if(changed) {syncMode(); newTarget();} }
+$('return-random').addEventListener('click',()=>void randomPitchPractice());
+$('study-random').addEventListener('click',()=>void randomPitchPractice());

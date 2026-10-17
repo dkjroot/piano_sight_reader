@@ -39,7 +39,9 @@ Web MIDI without a front-end build step.
   Allow small finger onset differences. Match pitch sets, not note order.
 - Repeat mode loops 1–32 targets after correct playing and physical release;
   preview the opening beyond a double barline. Continuous mode replenishes a
-  bounded random stream; phrase length only applies to Repeat. Repeats require
+  bounded generated stream, or continues through following MIDI windows to the
+  file end. Stop at end finishes the selected phrase/passage once; generated
+  phrase length applies to Repeat and Stop at end. Repeats require
   fresh articulation. Fluid progression is the default: complete exact physical pitch sets
   immediately, allow retiring notes from the previous target to overlap briefly,
   and require a fresh physical release/press for every pitch in every new target,
@@ -47,7 +49,9 @@ Web MIDI without a front-end build step.
   while a pitch remains physically held do not earn practice credit. Keep the optional release-between-targets
   mode. Never add fixed settling/release delays to fluid mode. Preserve the current scrolling policy pending real scores.
 - Repeat/Continuous are the automatic modes; do not restore redundant manual
-  Repeat phrase/New phrase buttons. Optional note-by-note versus page-by-page
+  Repeat phrase/New phrase buttons. Stop at end may offer Restart passage after
+  completion. Keep source/progression choices prominent and provide an explicit
+  return from loaded MIDI to random generation. Optional note-by-note versus page-by-page
   scrolling must remain independent of practice progression.
 - In note-by-note view keep the active target leftmost beside the clefs; page view
   keeps the displayed group still until its last target is completed.
@@ -102,7 +106,9 @@ Web MIDI without a front-end build step.
 - Keep routine explanations in README, not repeated around the playing surface.
   Prefer concise labels and changing feedback; omit obvious instructions and
   defensive phrases such as "defaults are not a hardware specification" in UI.
-- Preserve the simple single-page layout: settings remain on the page and can
+- Preserve the simple single-page layout: settings stay centered at a bounded maximum width when playing panels resize.
+  Only the movable playing canvas may expand across the viewport. Settings remain
+  on the page and can
   extend below the playing area. Prioritise simultaneous staff/keyboard visibility
   on typical 1080p browser viewports, allowing space for browser chrome. Future
   compact/collapsible header options must preserve readable notation, ledger-line

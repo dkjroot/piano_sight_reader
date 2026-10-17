@@ -387,7 +387,8 @@ h1 .subtitle { display:block; letter-spacing:0; }
 
 /* User-positioned playing panels. The presets retain their normal document flow. */
 #playing-layout { position:relative; }
-:root[data-layout=custom] main { max-width:none; margin:6px 12px; }
+:root[data-layout=custom] main { margin:6px auto; }
+:root[data-layout=custom] #playing-layout { width:calc(100vw - 48px); margin-left:calc(50% - 50vw + 24px); }
 #staff-panel, #keyboard-panel { position:relative; min-width:0; }
 .layout-toolbar { position:relative; z-index:4; cursor:grab; border-bottom:1px solid var(--line); touch-action:none; background:var(--paper); }
 .layout-toolbar:active { cursor:grabbing; }

@@ -623,7 +623,7 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     await page.selectOption('#score-staff-1','treble');
     await page.locator('#practice-score').click();
     assert.equal(await page.inputValue('#source'),'midi');
-    assert.equal(await page.locator('#end-new').isDisabled(),true);
+    assert.equal(await page.locator('#end-new').isDisabled(),false);
     assert.equal(await page.locator('#length').isDisabled(),true);
     assert.equal(await page.locator('#min-size').isDisabled(),true);
     assert.equal(await page.locator('#material').isDisabled(),false);
@@ -1356,6 +1356,7 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
       await context.close();
     }
     await require('./score_practice.browser.cjs')(browser,new URL(page.url()).origin);
+    await require('./ui_flow.browser.cjs')(browser,new URL(page.url()).origin);
     console.log('Browser checks passed: MIDI/input matching, authored-score practice/engraving, fluid/release progression, layout/themes, progress/history, library/passages, source playback/count-in, and synth/acoustic audio.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

@@ -60,7 +60,9 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
   Optional release-between-targets mode retains its 120 ms stable-match/release gate.
 - Sustain affects sound, never physical matching. Keep input source/channel ownership;
   guard asynchronous port opening, input replacement and stale callbacks by revision.
-- Repeat loops a fixed 1–32-target phrase; Continuous replenishes a bounded stream.
+- Repeat loops a fixed phrase/passage; Stop at end finishes it once. Generated
+  Continuous replenishes a bounded stream; MIDI Continue traverses following
+  bounded source windows asynchronously through `static/midi_stream.js`.
   Wrapped previews follow a double barline. Note/page scrolling and look-ahead changes
   preserve the sequence and progress. No redundant manual repeat/new-phrase buttons.
 - Written spelling is independent of MIDI pitch. Preserve 15 signatures, B-sharp/C-flat
@@ -179,3 +181,15 @@ independent duration lanes. Dotted values and voice-directed ties reduce clutter
 Passage-control/readability verification, 17 October 2026: 112 JavaScript and
 21 Python checks pass, including complete-tie reduction, held-note limits,
 authored hand/clef changes and the Rachmaninoff Section 2 reproduction.
+
+Source/progression controls lead setup in both views. Custom expands only the
+playing canvas; the page shell stays centered at 1120px. Study Stop rewinds to
+Entry, Pause preserves position, and Rewind keeps listening when already playing.
+Playback follows Entry/Exit and remembered Loop (default on), including audio-clock
+look-ahead across cycle boundaries. Tests include Chrome at 3840px width.
+
+Source/layout/transport verification, 17 October 2026: 116 JavaScript tests,
+21 Python tests and full Chrome/Edge browser suites pass. Focused Chrome checks
+also cover 3840px resizing, MIDI continuation/end/repeat, source escape preserving
+the random phrase, and study loop/cut/pause/rewind/replay. Preview on 8767 is
+independent of the isolated test servers and is left running.

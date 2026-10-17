@@ -55,21 +55,27 @@ export function referencePlan(score,{start=1,end=512,tracks=null}={},speed=1) {
 }
 export class PlaybackCursor {
   constructor() {this.state='stopped'; this.position=0; this.plan=null;}
-  play(plan,now,position=0) {
+  play(plan,now,position=0,{loop=false}={}) {
     this.plan=plan; this.position=Math.max(0,Math.min(plan.duration,position));
-    this.origin=now+.03-this.position; this.index=0; this.state='playing';
+    this.origin=now+.03-this.position; this.index=0; this.cycle=0; this.loop=loop && plan.duration>0; this.state='playing';
   }
-  at(now) {return this.state==='playing' ? Math.max(this.position,Math.min(this.plan.duration,now-this.origin)) : this.position;}
+  at(now) {if(this.state!=='playing') return this.position; const elapsed=Math.max(this.position,now-this.origin); return this.loop?elapsed%this.plan.duration:Math.min(this.plan.duration,elapsed);}
   pause(now) {if(this.state==='playing') {this.position=this.at(now); this.state='paused';}}
   stop() {this.position=0; this.index=0; this.state='stopped';}
   pump(now,emit) {
     if(this.state!=='playing') return;
-    const position=this.at(now);
-    if(position>=this.plan.duration) {this.position=this.plan.duration; this.state='ended'; return;}
-    while(this.index<this.plan.notes.length && this.origin+this.plan.notes[this.index].start<now+.1) {
-      const note=this.plan.notes[this.index++], start=Math.max(note.start,this.position,position);
-      if(note.end<=start) continue;
-      emit({...note,time:Math.max(now,this.origin+start),duration:note.end-start});
+    const position=Math.max(this.position,now-this.origin), duration=this.plan.duration;
+    if(!this.loop && position>=duration) {this.position=duration; this.state='ended'; return;}
+    if(this.loop && this.cycle<Math.floor(position/duration)) {this.cycle=Math.floor(position/duration); this.index=0;}
+    let budget=this.loop?512:Infinity;
+    while(this.index<this.plan.notes.length && budget-->0) {
+      const note=this.plan.notes[this.index], offset=this.loop?this.cycle*duration:0;
+      if(this.origin+offset+note.start>=now+.1) break;
+      this.index++;
+      if(this.loop && this.index===this.plan.notes.length) {this.index=0; this.cycle++;}
+      const start=Math.max(offset+note.start,this.position,position), end=offset+note.end;
+      if(end<=start) continue;
+      emit({...note,id:this.loop?note.id+':cycle:'+offset/duration:note.id,time:Math.max(now,this.origin+start),duration:end-start});
     }
   }
 }
