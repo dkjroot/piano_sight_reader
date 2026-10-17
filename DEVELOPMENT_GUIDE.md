@@ -32,7 +32,9 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 | Practice controller, MIDI port lifecycle, persistence and progression | `static/app.js` |
 | Pitch spelling/generation/matching; source/channel ownership and sustain | `static/core.js` |
 | Fresh physical press credit and previous-chord overlap | `static/flow.js` |
-| Diatonic chords/cadences; exercise heading | `static/harmony.js`, `static/exercise.js` |
+| Authored harmonic recipes and exercise heading | `static/harmony.js`, `static/exercise.js` |
+| Per-hand generator, constraints, textures and attack groups | `static/generation.js` |
+| Bounded continuous refills off the input thread | `static/generated_stream.js`, `static/generation_worker.js` |
 | Main SVG staff, keyboard, viewport and reading windows | `static/notation.js`, `keyboard.js`, `layout.js` |
 | Library/preview UI; filtering/search/recent pieces | `static/score.js`, `library.js` |
 | Derived MIDI targets, section suggestions, bookmarks, key detection | `static/outline.js`, `sections.js`, `passages.js`, `score_key.js` |
@@ -76,8 +78,13 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 
 ## Delivered and boundaries
 
-- Generated random pitches, diatonic triads/sevenths/cadences, hand-span controls,
-  configurable reading range/chord sizes, themes, layout/key sizes and both scrolling modes.
+- Stage 1 untimed generation: random/diatonic/advanced harmonic recipes, block,
+  melody/bass/chord and broken/Alberti textures; independent hand density/leaps,
+  span/ledger limits and untimed together/alternating/2:1/3:2 attack groups.
+  Authored advanced spelling preserves double accidentals; no inferred ties or rhythm.
+  Continuous generation prefetches a bounded 17-target worker buffer outside MIDI
+  processing, preserving per-hand state and harmonic/arpeggio phase across refills.
+- Configurable reading range/chord sizes, themes, layout/key sizes and both scrolling modes.
 - Local MIDI import, filtered pitch outlines, passage loops/bookmarks and source playback
   with tempo/speed, pedal, metronome and count-in. Independent piano/organ synthesis
   and acoustic samples. Progress times/accuracy/bests, selective history clearing,
@@ -120,7 +127,9 @@ If temp-directory permissions fail, create local `.tmp` and set TEMP/TMP to its 
 Add meaningful regression coverage for changed behaviour. Run relevant checks while
 editing, then the full suite for behavioural changes. Read the short runner summary;
 inspect only failed logs or coverage gaps in ignored `test-results/`. Never dump passing
-logs. Last feature baseline: `cd24b04`, 73 JavaScript + 21 Python tests and browser suite
-passed; verify current results rather than treating this snapshot as a fresh run.
+logs. Stage 1 verification on 17 October 2026: 80 JavaScript + 21 Python tests and the
+full Edge browser suite passed, including delayed/stale worker responses, pause/resume,
+advanced spelling and layout. Verify current results rather than treating this
+snapshot as a fresh run.
 Unit coverage is not browser/controller or hardware coverage. USB device behaviour,
 perceived sound quality and physical input-to-paint latency need separate validation.

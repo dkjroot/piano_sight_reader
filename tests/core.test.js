@@ -1,3 +1,5 @@
+import {GeneratedStream} from '../static/generated_stream.js';
+import {handDistance,attackHands} from '../static/generation.js';
 import {scoreSecondsAt,authoredPlan} from '../static/score_transport.js';
 import {scoreKeyForPassage} from '../static/score_key.js';
 import {readFileSync} from 'node:fs';
@@ -15,7 +17,7 @@ import {layoutPreset,staffViewport} from '../static/layout.js';
 import {attackGroups,makeOutline} from '../static/outline.js';
 import {SynthPath,LocalAudio,MetronomeClock} from '../static/audio.js';
 import {AttemptTracker,cleanHistory,summary,exerciseIdentity,grouped,daily,dailyPlot,parseHistory,mergeHistory,readingPatterns,clearHistoryPeriod} from '../static/metrics.js';
-import {makePracticePhrase, harmonicPitchClasses,cadenceLabels} from '../static/harmony.js';
+import {makePracticePhrase, harmonicPitchClasses,cadenceLabels,advancedChord,advancedVocabulary} from '../static/harmony.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {KEYS, keyAlterations, spellInKey, spell, spellChord, noteName, staffStep, candidates, makeTarget, makePhrase, chordName, match, Performance} from '../static/core.js';
@@ -1008,4 +1010,122 @@ test('score key is estimated only from strong whole-piece pitch evidence when me
   assert.equal(scoreKeyForPassage({notes:notes.slice(0,12),ticks_per_quarter:100,events:[]}).keyId,null);
   const conflict=scoreKeyForPassage({...bach,events:[...bach.events,{tick:0,track:50,message:{type:'key_signature',key:'G'}},{tick:0,track:51,message:{type:'key_signature',key:'F'}}]});
   assert.equal(conflict.keyId,null); assert.equal(conflict.ambiguous,true); assert.equal(conflict.source,'conflict');
+});
+
+
+test('authored advanced vocabularies preserve functional tones and double accidentals',()=>{
+  const pcs=(kind,index)=>advancedChord('C',false,kind,index).pcs;
+  assert.deepEqual(pcs('secondary',1),[2,6,9,0]);
+  assert.deepEqual(pcs('diminished',1),[11,2,5,8]);
+  assert.deepEqual(pcs('augmented-sixth',1),[8,0,3,6]);
+  assert.deepEqual(pcs('altered',1),[7,11,2,5,8]);
+  assert.deepEqual(advancedChord('C',true,'secondary',2).pcs,[4,8,11]);
+  const written=advancedChord('B',true,'secondary',1).spell([70,74,77,80]);
+  assert.deepEqual(written.map(noteName),['A♯4','C𝄪5','E♯5','G♯5']);
+  const german=advancedChord('C',false,'augmented-sixth',1).spell([56,60,63,66]);
+  assert.deepEqual(german.map(noteName),['A♭3','C4','E♭4','F♯4']);
+  for(const key of KEYS) for(const minor of [false,true]) for(const [kind,vocab] of Object.entries(advancedVocabulary)) {
+    for(let i=0;i<vocab.chords.length;i++) {
+      const recipe=advancedChord(key.id,minor,kind,i);
+      const pitches=recipe.pcs.map(pc=>60+pc);
+      const notes=recipe.spell(pitches);
+      assert.ok(notes,`${key.id}/${minor}/${kind}/${i}`);
+      for(const n of notes) assert.equal((n.octave+1)*12+({C:0,D:2,E:4,F:5,G:7,A:9,B:11})[n.letter]+n.accidental,n.midi);
+    }
+  }
+});
+
+test('all generated sources obey hand density, span, ledger and refill leap limits',()=>{
+  let seed=812; const random=()=>((seed=seed*16807%2147483647)/2147483647);
+  for(const source of ['random','triads','cadence','advanced']) for(const hand of ['left','right','both']) {
+    const settings={...defaults,source,hand,texture:'block',span:'full',low:36,high:84,size:6,'min-size':2,length:16,'hand-span':7,'left-density':2,'right-density':3,'left-leap':5,'right-leap':5,'ledger-limit':2};
+    const first=makePracticePhrase(settings,random), next=makePracticePhrase({...settings,sequenceOffset:16,previousTarget:first.at(-1)},random);
+    const previous={left:[],right:[]};
+    for(const chord of [...first,...next]) {
+      assert.equal(new Set(chord.map(staffStep)).size,chord.length);
+      assert.ok(chord.every(n=>n.midi>=36 && n.midi<=84));
+      for(const side of ['left','right']) {
+        const notes=chord.filter(n=>n.hand===side), pitches=notes.map(n=>n.midi);
+        assert.ok(pitches.length<=(side==='left'?2:3));
+        if(pitches.length) {
+          assert.ok(pitches.at(-1)-pitches[0]<=7);
+          assert.ok(handDistance(previous[side],pitches)<=5);
+          previous[side]=pitches;
+        }
+        const bottom=side==='left'?18:30;
+        assert.ok(notes.every(n=>Math.floor(Math.max(0,bottom-staffStep(n),staffStep(n)-bottom-8)/2)<=2));
+      }
+    }
+    assert.ok(first.some(chord=>chord.length),source+'/'+hand);
+  }
+});
+
+test('musical textures have distinct moving-hand roles and ordered broken patterns',()=>{
+  const base={...defaults,source:'cadence',hand:'both',texture:'block',span:'wide',low:48,high:84,size:4,'min-size':4,length:8};
+  const melody=makePracticePhrase({...base,texture:'melody'},()=>.3);
+  assert.ok(melody.every(chord=>chord.filter(n=>n.hand==='right').length===1 && chord.filter(n=>n.hand==='left').length===3));
+  const bass=makePracticePhrase({...base,texture:'bass'},()=>.3);
+  assert.ok(bass.every(chord=>chord.filter(n=>n.hand==='left').length===1 && chord.filter(n=>n.hand==='right').length===3));
+  for(const [texture,order] of [['broken',[0,1,2,1]],['alberti',[0,2,1,2]]]) {
+    const phrase=makePracticePhrase({...base,hand:'right',texture,size:1,'min-size':1,length:4},()=>.3);
+    const pitches=phrase.map(c=>c[0].midi), sorted=[...new Set(pitches)].sort((a,b)=>a-b);
+    assert.equal(sorted.length,3);
+    assert.deepEqual(pitches,order.map(i=>sorted[i]));
+    assert.ok(phrase.flat().every(n=>[0,4,7].includes(n.midi%12)));
+  }
+});
+
+test('attack independence schedules exact fresh pitch sets without implied holds',()=>{
+  assert.deepEqual(Array.from({length:4},(_,i)=>attackHands('3:2',i)),[[true,true],[false,true],[true,false],[false,true]]);
+  const settings={...defaults,source:'random',texture:'block',hand:'both',span:'wide',size:4,'min-size':4,length:8,'attack-pattern':'3:2'};
+  const phrase=makePracticePhrase(settings,()=>.3);
+  for(let i=0;i<phrase.length;i++) {
+    const [left,right]=attackHands('3:2',i);
+    assert.equal(phrase[i].some(n=>n.hand==='left'),left);
+    assert.equal(phrase[i].some(n=>n.hand==='right'),right);
+    assert.ok(phrase[i].every(n=>n.sourceOnset===undefined));
+  }
+  const id=exerciseIdentity(phrase[0],settings,phrase);
+  for(const [field,value] of [['texture','melody'],['left-leap','2'],['ledger-limit','0'],['attack-pattern','alternate']]) assert.notEqual(exerciseIdentity(phrase[0],{...settings,[field]:value},phrase),id);
+});
+
+test('narrow ranges never bypass strict limits and repeat seams respect both hand leaps',()=>{
+  const impossible=makePracticePhrase({...defaults,source:'advanced',texture:'block',key:'C',low:61,high:61,length:3,'advanced-kind':'secondary'},()=>.2);
+  assert.deepEqual(impossible,[[],[],[]]);
+  const settings={...defaults,source:'random',texture:'melody',hand:'both',span:'wide',size:2,'min-size':2,length:8,endAction:'repeat','left-leap':2,'right-leap':2};
+  const phrase=makePracticePhrase(settings,()=>.3);
+  assert.ok(phrase.every(c=>c.length));
+  for(const side of ['left','right']) {
+    const first=phrase[0].filter(n=>n.hand===side).map(n=>n.midi), last=phrase.at(-1).filter(n=>n.hand===side).map(n=>n.midi);
+    assert.ok(handDistance(first,last)<=2);
+  }
+  assert.equal(handDistance([48,60],[48,72]),12);
+});
+
+
+test('worker refills are bounded, retain each hand and ignore obsolete settings',()=>{
+  const messages=[], worker={postMessage:data=>messages.push(data)};let changes=0;
+  const stream=new GeneratedStream(()=>changes++,()=>worker);
+  const phrase=[[{midi:48,staff:'bass'}],[{midi:72,staff:'treble'}]];
+  stream.prepare({texture:'block'},phrase,32);
+  assert.equal(messages[0].settings.length,17);
+  assert.deepEqual(messages[0].settings.previousTarget.map(n=>n.midi),[48,72]);
+  assert.equal(stream.take(17),null);
+  stream.reset();worker.onmessage({data:{revision:messages[0].revision,targets:[[spell(60)]]}});
+  assert.equal(changes,0);assert.equal(stream.queue.length,0);
+  stream.prepare({texture:'melody'},phrase,32);
+  worker.onmessage({data:{revision:messages[1].revision,targets:Array.from({length:17},()=>[spell(60)])}});
+  assert.equal(changes,1);assert.equal(stream.take(17).length,17);assert.equal(stream.queue.length,0);
+  worker.onmessage({data:{revision:stream.revision,error:'unavailable'}});assert.equal(stream.error,'unavailable');
+  worker.onerror();assert.match(stream.error,/Choose Repeat/);
+  const unsupported=new GeneratedStream(()=>{},()=>{throw Error('unsupported');});
+  unsupported.prepare({},[],0);assert.match(unsupported.error,/Choose Repeat/);
+});
+
+test('broken texture carries its harmonic and register pattern across a refill',()=>{
+  const settings={...defaults,source:'cadence',texture:'broken',hand:'right',span:'wide',low:60,high:84,size:1,'min-size':1,captureState:true};
+  const whole=makePracticePhrase({...settings,length:8},()=>.3);
+  const opening=makePracticePhrase({...settings,length:5},()=>.3);
+  const refill=makePracticePhrase({...settings,length:3,sequenceOffset:5,previousTarget:opening.at(-1),generationState:opening.generationState},()=>.3);
+  assert.deepEqual(refill.map(c=>c.map(n=>n.midi)),whole.slice(5).map(c=>c.map(n=>n.midi)));
 });

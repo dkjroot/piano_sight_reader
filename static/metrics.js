@@ -1,3 +1,4 @@
+import {planningControls} from './generation.js';
 // Untimed reading measurements. No DOM, storage or device dependencies.
 export class AttemptTracker {
   constructor({now=()=>globalThis.performance.now(),stamp=()=>new Date().toISOString()}={}) {this.now=now; this.stamp=stamp; this.active=null;}
@@ -37,6 +38,7 @@ export function exerciseIdentity(notes,settings,phrase) {
   const imported=settings.source==='midi';
   const fields=['hand','key','source','material','span','low','high','size','min-size','harmony-scale','hand-span','endAction'];
   if(imported) fields.push('scoreId','passage');
+  else for(const field of [...planningControls,'advanced-kind']) if(settings[field]!==undefined) fields.push(field);
   if(settings.progression) fields.push('progression');
   if(['triads','cadence'].includes(settings.source) && settings['harmony-kind']) fields.push('harmony-kind');
   if(settings.source==='cadence' && settings['cadence-shape']) fields.push('cadence-shape');

@@ -240,9 +240,9 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     await page.setViewportSize({width: 1280, height: 1000});
     // Reproduce D4 / D-sharp4 / G4 through the real generator and renderer.
     await page.evaluate(() => {
-      for (const [id, value] of Object.entries({low: 62, high: 67, size: 3, hand: 'right', span: 'full', material: 'sharps'})) document.getElementById(id).value = value;
-      const random = Math.random, values = [0, 0, .99];
-      try { Math.random = () => values.shift() ?? 0; document.getElementById('high').dispatchEvent(new Event('change')); }
+      for (const [id, value] of Object.entries({low: 62, high: 67, size: 3, 'min-size':3, hand: 'right', span: 'full', material: 'sharps'})) document.getElementById(id).value = value;
+      const random = Math.random; let calls=0;
+      try { Math.random = () => [4,146].includes(++calls) ? .99 : 0; document.getElementById('high').dispatchEvent(new Event('change')); }
       finally { Math.random = random; }
     });
     assert.deepEqual(await page.locator('.note').evaluateAll(notes => notes.map(n => +n.dataset.midi)), [62,63,67]);
@@ -332,8 +332,8 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     // An exactly recognised chord is named only after it is played correctly.
     await page.evaluate(() => {
       for (const [id,value] of Object.entries({low:60, high:67, size:3, 'min-size':3, length:1, hand:'right', material:'white', key:'C'})) document.getElementById(id).value=value;
-      const previous = Math.random, values=[0,0,.3,.99];
-      try {Math.random=()=>values.shift()??0; document.getElementById('length').dispatchEvent(new Event('change'));}
+      const previous = Math.random;let calls=0;
+      try {Math.random=()=>{calls++;return calls===3?.3:calls===4?.99:calls===146?.065:0;}; document.getElementById('length').dispatchEvent(new Event('change'));}
       finally {Math.random=previous;}
     });
     assert.deepEqual(await page.locator('.key.target').evaluateAll(keys => keys.map(key=>+key.dataset.pitch)),[60,64,67]);
@@ -944,7 +944,7 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
       for(const [id,value] of Object.entries({source:'random',low:60,high:64,size:2,'min-size':2,length:2,preview:1,hand:'right',material:'white',span:'near',key:'C'})) document.getElementById(id).value=value;
       document.getElementById('end-repeat').checked=true;
       const original=Math.random; let calls=0;
-      try {Math.random=()=>calls++<3 ? 0 : .999; document.getElementById('source').dispatchEvent(new Event('change'));}
+      try {Math.random=()=>calls++<98 ? 0 : .999; document.getElementById('source').dispatchEvent(new Event('change'));}
       finally {Math.random=original;}
     });
     assert.deepEqual(await page.locator('.note[data-step="0"]').evaluateAll(notes=>notes.map(note=>+note.dataset.midi).sort()),[60,62]);
@@ -1248,6 +1248,104 @@ const bundledPieces=JSON.parse(require('node:fs').readFileSync('static/library/c
     assert.equal(page.isClosed(),false);
     assert.equal(await page.locator('#exercise-summary').innerText(),activeDescription);
     await mainContext.close();
+
+    // Stage 1 controls, authored chromatic spelling and fresh alternate attacks.
+    const generatedContext=await browser.newContext({viewport:{width:1280,height:900}});
+    const generated=await generatedContext.newPage();
+    generated.on('pageerror',error=>errors.push(error.message));
+    await generated.goto(process.env.APP_URL || 'http://127.0.0.1:8766');
+    const configured={source:'advanced','advanced-kind':'augmented-sixth',texture:'block',hand:'right',key:'C',low:48,high:84,span:'wide',size:4,'min-size':4,length:4,preview:3,'hand-span':'16','left-density':'2','right-density':'4','left-leap':'12','right-leap':'12','ledger-limit':'4','attack-pattern':'together'};
+    await generated.evaluate(values=>{
+      for(const [id,value] of Object.entries(values)) document.getElementById(id).value=value;
+      document.getElementById('source').dispatchEvent(new Event('change'));
+    },configured);
+    assert.equal(await generated.locator('#advanced-kind').isDisabled(),false);
+    assert.equal(await generated.locator('#material').isDisabled(),true);
+    assert.match(await generated.locator('#exercise-summary').innerText(),/German augmented sixth/);
+    const chromatic=await generated.locator('.note[data-step="1"]').evaluateAll(notes=>[...new Set(notes.map(n=>+n.dataset.midi%12))].sort((a,b)=>a-b));
+    assert.deepEqual(chromatic,[0,3,6,8]);
+    await generated.reload(); await generated.waitForSelector('.note');
+    for(const id of ['source','advanced-kind','texture','left-density','right-density','left-leap','right-leap','ledger-limit','hand-span']) assert.equal(await generated.inputValue('#'+id),String(configured[id]));
+    const generatedFeedback=await generated.evaluate(async()=>{
+      const key=document.querySelector('.key:not(.target)'), samples=[];
+      for(let i=0;i<20;i++) {
+        await new Promise(requestAnimationFrame);
+        const started=performance.now();
+        key.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+        const synchronous=key.getAttribute('aria-pressed')==='true' && key.querySelector('.key-state').textContent==='×';
+        await new Promise(requestAnimationFrame);
+        samples.push({milliseconds:performance.now()-started,synchronous});
+        key.dispatchEvent(new KeyboardEvent('keyup',{key:'Enter',bubbles:true}));
+      }
+      return samples;
+    });
+    assert.ok(generatedFeedback.every(sample=>sample.synchronous),'key marks must update in the input task');
+    require('node:fs').writeFileSync('test-results/generated-feedback-performance.json',JSON.stringify({kind:'Headless synthetic key event to next animation frame; a rendering opportunity proxy, not measured device-to-paint latency',samples:generatedFeedback},null,2));
+    await generated.screenshot({path:'test-results/generated-advanced.png',fullPage:true});
+    await generated.evaluate(()=>{
+      for(const [id,value] of Object.entries({source:'advanced','advanced-kind':'secondary','harmony-scale':'minor',key:'B',hand:'right',texture:'block',size:4,'min-size':4,length:4,preview:3,'right-leap':'any',low:60,high:84})) document.getElementById(id).value=value;
+      document.getElementById('source').dispatchEvent(new Event('change'));
+    });
+    assert.ok((await generated.locator('.accidental[data-step="1"]').allTextContents()).includes('𝄪'),'secondary dominant in G-sharp minor retains C-double-sharp');
+    await generated.evaluate(()=>{
+      for(const [id,value] of Object.entries({source:'random',texture:'melody',hand:'both',key:'C',low:48,high:84,size:1,'min-size':1,length:4,'attack-pattern':'alternate','left-leap':'5','right-leap':'5',span:'wide'})) document.getElementById(id).value=value;
+      document.getElementById('source').dispatchEvent(new Event('change'));
+    });
+    for(let step=0;step<4;step++) {
+      const pitches=await generated.locator('.key.target').evaluateAll(keys=>keys.map(n=>+n.dataset.pitch));
+      assert.equal(pitches.length,1);
+      assert.equal(pitches[0]<60,step%2===0);
+      const key=generated.locator(`.key[data-pitch="${pitches[0]}"]`);
+      await key.press('Enter');
+      await generated.waitForFunction(expected=>document.getElementById('phrase-position').textContent===expected,`${step===3?1:step+2} / 4`);
+    }
+    await generated.selectOption('#texture','alberti');
+    await generated.selectOption('#attack-pattern','together');
+    await generated.reload(); await generated.waitForSelector('.note');
+    assert.equal(await generated.inputValue('#texture'),'alberti');
+    assert.deepEqual(errors,[]);
+    await generatedContext.close();
+
+    // Exhaust a deliberately delayed worker: keep feedback live, reject stale
+    // settings, and preserve an earned advance while practice is paused.
+    const delayedContext=await browser.newContext();
+    await delayedContext.addInitScript(()=>{
+      window.Worker=class {
+        constructor(){window.testGenerationWorker=this;}
+        postMessage(data){this.pending=data;}
+      };
+    });
+    const delayed=await delayedContext.newPage();
+    delayed.on('pageerror',error=>errors.push(error.message));
+    await delayed.goto(process.env.APP_URL || 'http://127.0.0.1:8766');
+    await delayed.evaluate(()=>{
+      for(const [id,value] of Object.entries({source:'random',texture:'block',low:60,high:60,hand:'right',span:'full',size:1,'min-size':1,progression:'flow'})) document.getElementById(id).value=value;
+      document.getElementById('end-new').checked=true;
+      document.getElementById('source').dispatchEvent(new Event('change'));
+      const key=document.querySelector('.key[data-pitch="60"]');
+      for(let i=0;i<32;i++) {
+        key.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+        key.dispatchEvent(new KeyboardEvent('keyup',{key:'Enter',bubbles:true}));
+      }
+    });
+    assert.equal(await delayed.locator('#count').innerText(),'32');
+    assert.match(await delayed.locator('#feedback').innerText(),/Preparing/);
+    await delayed.locator('#pause-practice').click();
+    await delayed.evaluate(()=>{
+      const worker=window.testGenerationWorker, revision=worker.pending.revision;
+      const targets=Array.from({length:17},()=>[{midi:60,letter:'C',accidental:0,octave:4,staff:'treble',hand:'right'}]);
+      worker.onmessage({data:{revision:revision-1,targets}});
+      worker.onmessage({data:{revision,targets}});
+    });
+    assert.equal(await delayed.locator('#phrase-position').innerText(),'32');
+    assert.equal(await delayed.locator('#feedback').innerText(),'Paused');
+    await delayed.locator('#pause-practice').click();
+    assert.equal(await delayed.locator('#phrase-position').innerText(),'33');
+    assert.equal(await delayed.locator('#count').innerText(),'32');
+    await delayed.locator('.key[data-pitch="60"]').press('Enter');
+    assert.equal(await delayed.locator('#count').innerText(),'33');
+    assert.deepEqual(errors,[]);
+    await delayedContext.close();
 
     for (const mode of ['unsupported', 'denied']) {
       const context = await browser.newContext();

@@ -14,7 +14,7 @@ below so that completed foundations and remaining work are visible separately.
 
 | Area | Delivered | Still ahead |
 | --- | --- | --- |
-| Generated practice | Random pitches, triads/sevenths, cadences, fluid/release progression | Richer textures and advanced harmony |
+| Generated practice | Random/diatonic/advanced harmony, five textures, per-hand constraints and attack patterns | Timed rhythm, sustained independent voices and hand crossing |
 | Real music | Local MIDI import, eight offline editions, key detection, filtering, passage loops and bookmarks | Notation-preserving import, voices, rests, ties and duration judgement |
 | Finding pieces | Composer/era/style/difficulty filters; reviewed source credits | More repertoire and reviewed difficulty levels |
 | Progress | Response times, accuracy, bests, optional history, graphs and reading patterns | Session runs, rhythm scores, targeted drills and profiles |
@@ -37,18 +37,28 @@ below so that completed foundations and remaining work are visible separately.
 ## Stage 1 — More musical generated practice
 
 - [x] Offer random pitches and diatonic chords/cadences as choices; random remains unrestricted.
-- [ ] Add explicitly authored dissonant/advanced harmonic vocabularies.
+- [x] Add explicitly authored dissonant/advanced harmonic vocabularies.
 - [x] Generate diatonic triads, inversions/doublings and major/natural-minor cadences.
 - [x] Add diatonic sevenths and ii–V–I / I–vi–ii–V progressions alongside I–IV–V–I.
 - [x] Bound harmonic hand spans and prefer nearby voicings.
-- [ ] Extend explicit per-hand planning and leap limits to every exercise source.
-- [ ] Add melody, bass, chordal and broken-chord textures, with separate hand difficulty.
-- [ ] Separate difficulty dimensions: range, accidentals, ledger lines, density, leaps,
-  independence of hands and rhythm. A single easy/hard label is insufficient internally.
-- [ ] Keep chromatic material, unusual keys and advanced accidentals available as goals.
+- [x] Extend explicit per-hand planning and leap limits to every generated exercise source.
+  Imported MIDI remains source material with its own reduction controls, not recomposed practice.
+- [x] Add melody, bass, chordal and broken-chord textures, with separate hand difficulty.
+- [x] Separate difficulty dimensions: range, accidentals, ledger lines, density, leaps,
+  independence of hands and rhythm. Separate controls constrain generation; attack groups
+  offer untimed independence only. Notated rhythm, duration judgement and continuing
+  voices are explicitly deferred to Stage 2, rather than inferred from pitch targets.
+- [x] Keep chromatic material, unusual keys and advanced accidentals available as goals.
 
 Exit: useful musical miniatures that respect the selected instrument and reading level,
 without requiring imported music. Random pitch practice remains available.
+
+Stage 1 is delivered for untimed pitch reading. Advanced here describes harmonic,
+spelling, density, register and attack-pattern demands; it does not claim full
+advanced piano performance, rhythmic scoring, fingering or independent held voices.
+Generation uses each difficulty dimension as a ceiling (with note-density bounds),
+whereas future real-score reduction preserves and narrows authored source material.
+Infeasible settings report an unavailable target rather than relaxing hard limits.
 
 ## Stage 2 — A real score and performance model
 

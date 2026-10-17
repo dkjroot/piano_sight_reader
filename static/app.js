@@ -1,8 +1,10 @@
+import {planningControls} from './generation.js';
+import {GeneratedStream} from './generated_stream.js';
 import {describeExercise} from './exercise.js';
 import {FlowGate} from './flow.js';
 import {KEYS, keyAlterations, spell, noteName, staffStep, chordName, match, Performance} from './core.js';
 import {staffLayout, accidentalLayout, readingWindow} from './notation.js';
-import {makePracticePhrase as makePhrase,cadenceLabels} from './harmony.js';
+import {makePracticePhrase as makePhrase,cadenceLabels,advancedVocabulary} from './harmony.js';
 import {ProgressPanel} from './progress.js';
 import {SoundPanel} from './sound.js';
 import {ScorePanel} from './score.js';
@@ -21,12 +23,17 @@ const scorePanel = new ScorePanel((score,bounds,filename,keyInfo)=>{
   activePiece={score,bounds,filename}; $('source-midi').disabled=false; $('source').value='midi'; $('end-repeat').checked=true;
   completed=0; $('count').textContent='0'; persist(); syncMode(); newTarget(); scorePanel.practiceStarted();
 },()=>settings());
-const controls = ['progression', 'hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-kind', 'cadence-shape', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
+const controls = [...planningControls, 'advanced-kind', 'progression', 'hand', 'size', 'min-size', 'length', 'preview', 'scroll-mode', 'source', 'harmony-kind', 'cadence-shape', 'harmony-scale', 'hand-span', 'material', 'span', 'low', 'high', 'key'];
 for (const id of ['size','min-size']) $(id).replaceChildren(...Array.from({length:10}, (_, i) => new Option(String(i+1), String(i+1))));
 $('key').replaceChildren(...KEYS.map(key => new Option(key.label, key.id)));
 let target = [], completed = 0, solved = false, settleTimer, nextTimer, access, selectedInput, learning;
 let phrase = [], phraseIndex = 0, waitingForRelease = false;
 let streamOffset = 0;
+let waitingForGenerated=false;
+const generatedStream=new GeneratedStream(()=>{
+  if(waitingForGenerated && generatedStream.queue.length && !practicePaused) {waitingForGenerated=false;advancePhrase();}
+  else if(waitingForGenerated) update();
+});
 let inputRevision = 0;
 let practicePaused=false, resumeRelease=false;
 const sound=new SoundPanel(()=>target,()=>new Set([...performance.held,...performance.sustained]),()=>performance.attacks);
@@ -53,8 +60,13 @@ function syncMode() {
   if(imported) $('end-repeat').checked=true;
   const continuous = settings().endAction === 'new';
   $('length').disabled = continuous || imported; $('min-size').disabled=imported;
-  const harmonic=['triads','cadence'].includes($('source').value);
-  $('harmony-scale').disabled=!harmonic; $('hand-span').disabled=!harmonic; $('harmony-kind').disabled=!harmonic;
+  const harmonic=['triads','cadence','advanced'].includes($('source').value);
+  for(const id of [...planningControls,'hand-span']) $(id).disabled=imported;
+  $('attack-pattern').disabled=imported || $('hand').value!=='both';
+  $('advanced-kind').disabled=$('source').value!=='advanced';
+  $('harmony-scale').querySelector('[value="minor"]').textContent=$('source').value==='advanced'?'Minor':'Natural minor';
+  for(const option of $('advanced-kind').options) {const vocabulary=advancedVocabulary[option.value];option.textContent=$('harmony-scale').value==='minor'?(vocabulary.minorLabel||vocabulary.label):vocabulary.label;}
+  $('harmony-scale').disabled=!harmonic; $('harmony-kind').disabled=!harmonic || $('source').value==='advanced';
   $('cadence-shape').disabled=$('source').value!=='cadence';
   const labels=cadenceLabels($('harmony-scale').value==='minor',$('harmony-kind').value==='sevenths');
   [...$('cadence-shape').options].forEach((option,i)=>option.textContent=labels[i]);
@@ -281,13 +293,15 @@ function paintKeys(hints = []) {
   $('pedal').textContent = performance.pedal ? 'Sustain on' : 'Sustain off';
 }
 function newTarget() {
+  waitingForGenerated=false;generatedStream.reset();
   const description=describeExercise(settings(),activePiece);
   $('practice-title').textContent=description.title; $('exercise-summary').textContent=description.description;
   clearTimeout(settleTimer); clearTimeout(nextTimer);
-  phrase = settings().source==='midi' ? makeOutline(activePiece?.score,settings(),activePiece?.bounds).targets : makePhrase({...settings(), length:settings().endAction === 'new' ? 32 : settings().length});
+  phrase = settings().source==='midi' ? makeOutline(activePiece?.score,settings(),activePiece?.bounds).targets : makePhrase({...settings(),captureState:settings().endAction==='new', length:settings().endAction === 'new' ? 32 : settings().length});
   $('score-playing').textContent=settings().source==='midi' && activePiece ? `Practising ${activePiece.filename} · source attacks ${activePiece.bounds.start}–${activePiece.bounds.end}` : '';
   scorePanel.refresh();
   streamOffset = 0;
+  if(settings().endAction==='new' && settings().source!=='midi') generatedStream.prepare(settings(),phrase,phrase.length);
   restartPhrase();
 }
 function restartPhrase() {
@@ -302,16 +316,23 @@ function restartPhrase() {
 function advancePhrase() {
   const flow=$('progression').value==='flow', previous=target;
   if (!flow && performance.held.size) return;
-  if (phraseIndex === phrase.length-1) {
+  if(settings().endAction==='new' && phraseIndex===phrase.length-1 && !generatedStream.queue.length) {
+    waitingForGenerated=true;solved=true;update();return;
+  }
+  if (phraseIndex === phrase.length-1 && settings().endAction!=='new') {
     if (settings().endAction === 'repeat') {if(flow) phraseIndex=-1; else {restartPhrase(); return;}}
     else {newTarget(); return;}
   }
   phraseIndex++; target = phrase[phraseIndex]; solved = false;
   if (settings().endAction === 'new' && phraseIndex >= 24) {
-    const prune = phraseIndex-7;
-    streamOffset += prune;
-    phrase = phrase.slice(prune).concat(makePhrase({...settings(),length:prune,sequenceOffset:streamOffset+phrase.length-prune}));
-    phraseIndex -= prune; target = phrase[phraseIndex];
+    const prune=17, refill=generatedStream.take(prune);
+    if(refill) {
+      streamOffset += prune;
+      phrase=phrase.slice(prune).concat(refill);
+      phrase.generationState=refill.generationState;
+      phraseIndex -= prune;target=phrase[phraseIndex];
+      generatedStream.prepare(settings(),phrase,streamOffset+phrase.length);
+    }
   }
   flowGate.start(target,previous,performance.held,performance.attacks);
   drawStaff(); scrollToCurrent();
@@ -330,6 +351,7 @@ $('pause-practice').addEventListener('click',()=>{
     progress.resume('resume');
     if(resumeRelease) progress.pause('resume');
     progress.resume('practice');
+    if(waitingForGenerated && generatedStream.queue.length) {waitingForGenerated=false;advancePhrase();return;}
   }
   update();
 });
@@ -346,6 +368,7 @@ function update() {
   for (const check of $('staff').querySelectorAll('.note-check')) check.textContent = +check.dataset.step === phraseIndex && accepted.has(+check.dataset.target) ? '✓' : '';
   for (const hint of $('staff').querySelectorAll('.note-direction')) hint.textContent = +hint.dataset.step === phraseIndex && directions.has(+hint.dataset.target) ? (directions.get(+hint.dataset.target) === 'up' ? '↑' : '↓') : '';
   if(practicePaused) {$('feedback').textContent='Paused'; $('detail').textContent=''; return;}
+  if(waitingForGenerated) {$('feedback').textContent=generatedStream.error||'Preparing next targets…';$('detail').textContent='';return;}
   if(resumeRelease) {
     if(held.size) {$('feedback').textContent='Release keys'; $('detail').textContent=''; return;}
     resumeRelease=false; progress.resume('resume');
@@ -356,8 +379,8 @@ function update() {
     progress.start(target,settings(),phrase);
   }
   if (!target.length) {
-    $('feedback').textContent = 'No notes in this range';
-    $('detail').textContent = 'Choose another hand, widen the reading range, or adjust the keyboard endpoints.';
+    $('feedback').textContent = settings().source==='midi' ? 'No notes in this range' : 'No playable target with these settings';
+    $('detail').textContent = settings().source==='midi' ? 'Choose another hand, widen the reading range, or adjust the keyboard endpoints.' : 'Widen the range, hand span or leap limits, allow more ledger lines, or choose another texture.';
     return;
   }
   if (!solved && (!flow || !result.complete || result.ready)) progress.observe(flow ? result.effective : held);

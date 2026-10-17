@@ -88,18 +88,44 @@ You can practise without MIDI by using the on-screen keys.
   in from the right. **Look-ahead** controls the maximum number of upcoming
   targets shown; the display fits fewer on smaller screens or for larger chords.
   **None** shows only the current target. Changing look-ahead preserves the phrase.
-- **Exercise** chooses Random pitches, Diatonic chords or Cadence. Harmonic
-  exercises follow the selected key's major or relative natural-minor tonality;
-  Cadence offers I–IV–V–I, ii–V–I and I–vi–ii–V, with the corresponding natural-minor
-  degrees when Minor is selected. Choose Triads or Diatonic sevenths. Set both
-  chord-size bounds to 3 for full triads or 4 for full seventh chords, or allow
-  single chord tones and doublings. Phrase lengths 3/6 suit ii–V–I loops. Maximum hand span
-  bounds harmonic voicings; smaller targets may be necessary in narrow ranges.
-  Harmonic exercises stay diatonic, so chromatic preference is inactive there.
+- **Exercise** chooses Random pitches, Diatonic chords, Cadence or Advanced harmony.
+  Diatonic exercises use the selected major or relative natural-minor scale, with
+  triads or sevenths and I–IV–V–I, ii–V–I or I–vi–ii–V sequences (corresponding
+  degrees in minor). Advanced harmony supplies authored secondary dominants,
+  leading-tone diminished sevenths, borrowed minor subdominants, German augmented
+  sixths, ninths, altered dominants and quartal planing. Chromatic functions retain
+  their written spelling, including double sharps/flats in remote keys; minor
+  dominant functions use a raised leading tone. Harmonic vocabulary determines
+  the pitches, so **Pitch material** is inactive for harmonic exercises.
+- **Texture** chooses block chords, a moving melody with lower chords, moving bass
+  with upper chords, broken chords (low–middle–high–middle), or Alberti bass
+  (low–high–middle–high). Single-hand textures use a single moving note; two-hand
+  textures place the moving note in its named hand with chord attacks in the other.
+  For broken/Alberti textures one harmony lasts four targets. Every written note is
+  a fresh attack; these are untimed reading patterns, without implied ties or holds.
+- Set **Minimum notes per chord** and **Maximum notes per chord** together for
+  consistent density, or apart for variety. Generated exercises compose directly
+  within your limits, rather than simplifying an existing piece. **Left hand notes**
+  and **Right hand notes** cap each hand separately; **Maximum hand span**, separate
+  hand leap limits and **Ledger lines** apply to all generated sources. Leap limits
+  bound the largest nearest-voice movement in either direction, not fingering.
+  Two-hand exercises plan left below middle C and right from middle C upward;
+  they do not model hand crossing. Textures, spelling and available keys can require
+  fewer notes than the minimum. A target that cannot fit is reported; constraints
+  are never silently widened. To hear a full ninth chord, allow five notes and a
+  tenth or wider span, or share it across the hands.
+- **Attack pattern** can alternate hands or order right/left attacks in 2:1 or
+  3:2 groups. This separates hand independence from density, range, accidentals,
+  ledger lines and leaps. The groups prescribe attack order only: there is no
+  rhythmic notation, timing judgement or requirement to hold a voice through
+  another attack. The optional metronome remains independent. For fully voiced
+  harmony with both hands attacking together, use **Hands together** and
+  **Block chords**. For cadential closure, use a phrase length covering whole
+  progressions (four targets per harmony for broken/Alberti textures).
 - Choose **Key** for the signature on both staves. All 15 standard signatures
   are available, labelled with relative major/minor pairs. **Notes in key** follows
-  that signature; chromatic modes add accidentals and naturals as needed. Minor
-  labels refer to natural minor, without harmonic or melodic alterations.
+  that signature; chromatic modes add accidentals and naturals as needed. Diatonic minor
+  exercises use natural minor; Advanced harmony adds explicitly authored alterations.
 - Play all written pitches together without extra notes. There is no timer:
   fingers can arrive at different times. Fluid progression advances immediately;
   every pitch needs a fresh release and press for each target, including notes

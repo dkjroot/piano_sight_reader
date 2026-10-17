@@ -10,12 +10,28 @@ Flask serves local assets; the browser owns MIDI, notation, keyboard feedback an
 exercise state. `static/core.js` has spelling, target generation, exact matching,
 and per-source/channel held/sustain state. `static/app.js` handles UI, MIDI lifecycle
 and completion timing. Native modules need no build or npm install.
-`static/harmony.js` wraps the random generator with bounded diatonic chord/cadence
-voicings and local nearest-voicing preferences. Continuous refill passes an absolute
-sequence offset so cadences do not restart at buffer boundaries. Each hand has a
-span and five-note cap; all generated pitches still obey the physical/reading range.
-`makePhrase` chooses a per-target chord size within the bounds, then uses the
-same spelling/range generator. Phrases stay in memory, and repeat reuses the
+`static/harmony.js` defines diatonic and authored advanced recipes; chromatic
+recipes store diatonic degree/alteration pairs and preserve functional spelling
+through double accidentals. `static/generation.js` plans explicit hands, per-hand
+note caps and symmetric nearest-voice leap limits, span and ledger-line ceilings,
+textures and untimed attack groups. Chord density tries the requested size first,
+then reduces only for feasibility. It never widens a hard constraint. Generated
+hands use split registers at middle C, not inferred physical fingering or crossing.
+Range, accidentals/vocabulary, ledger lines, density, leaps and hand attack order
+are independent dimensions; rhythmic duration/scoring remains a Stage 2 contract.
+MIDI outlines retain their source/reduction pipeline and are never recomposed.
+Continuous refills run in a native module worker (`generation_worker.js`) through
+`GeneratedStream`: 32 active targets plus at most 17 prefetched targets, revision-
+guarded settings replacement and explicit failure feedback. At index 24 a ready
+refill prunes 17 targets and replenishes the stream; if not ready, existing targets
+remain playable until exhaustion. A late worker reply resumes the earned advance
+without crediting held/duplicate notes. Generation carries the last attack of each
+hand and arpeggio/harmonic phase across chunks. Initial/settings generation remains
+synchronous, outside MIDI input handling. A local Node benchmark of 17 ten-note
+chromatic targets took approximately 60–90 ms before moving refill work to the worker;
+this is generation cost, not physical or browser input-to-paint latency.
+The low-level `core.makePhrase` remains an unrestricted pitch/spelling helper;
+application generation uses the planner for all selected exercises. Phrases stay in memory, and repeat reuses the
 sequence. Display-only changes never regenerate it. The active target remains
 leftmost after the signature in note view. In page view the pointer advances within
 a stationary window. Both use the pure readingWindow policy and bounded look-ahead. Completion
@@ -662,3 +678,17 @@ clear best-fitting signature. An uncertain estimate leaves the setting alone. Al
 calculation stays in the browser; a private file is never searched online. Key markers
 inside a passage are counted and reported, but the current untimed outline uses one key
 for every target. Showing score-accurate modulations remains open work.
+
+
+## Stage 1 verification — 17 October 2026
+
+80 JavaScript tests, 21 Python tests and the full Edge browser suite passed.
+The planner and harmonic recipe modules each have 100% measured unit line coverage
+(about 94–95% branch coverage); the stream coordinator has 100% unit line coverage
+and 95% branches. These percentages exclude browser-controller and hardware coverage.
+Browser regressions cover advanced accidentals, settings persistence, per-hand
+attack order, continuous refill and forced worker exhaustion/stale replies while
+paused. `test-results/generated-feedback-performance.json` records 20 synthetic
+key-event-to-next-animation-frame samples and verifies synchronous key-state marks.
+That rendering-opportunity proxy is not measured physical input-to-paint latency.
+No real MIDI device or full-size piano was measured during this change.
