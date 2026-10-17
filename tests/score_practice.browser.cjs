@@ -75,6 +75,14 @@ module.exports=async function scorePracticeChecks(browser,url) {
     assert.equal(await page.locator('.score-page svg').nth(1).getAttribute('data-score-page'),'2');
     await page.selectOption('#study-bars','auto');
     assert.ok(await page.locator('.vf-tuplet').count()>=4); assert.equal(await page.locator('.vf-stavetie').count(),2);
+    await page.selectOption('#study-source','meter-groups');
+    await page.waitForFunction(()=>document.getElementById('practice-title').textContent==='Study in meter and beat groups');
+    assert.equal(await page.locator('#authored-engraving svg').first().getAttribute('data-meter-groups'),'3+3|3+3|2+3|3+2|1+1+1|1+1+1');
+    assert.equal(await page.locator('.vf-beam').count(),11,'compound 3+3, asymmetric groups and simple beats control beaming');
+    const aligned=await page.evaluate(()=>['compound-melody-3-note','compound-bass-1-note'].map(id=>{const b=document.querySelector(`[data-score-note="${id}"] text`).getBoundingClientRect();return b.x+b.width/2;}));
+    assert.ok(Math.abs(aligned[0]-aligned[1])<2,'independent voices align by musical time');
+    await page.evaluate(()=>window.scrollTo(0,0)); await page.screenshot({path:'test-results/meter-groups-study.png'});
+
     await page.locator('#mode-outline').click();
     await page.locator('#score-file').setInputFiles('tests/fixtures/polyphony.mid');
     await page.waitForFunction(()=>!document.getElementById('practice-score').disabled);
@@ -127,8 +135,12 @@ module.exports=async function scorePracticeChecks(browser,url) {
     const tieSides=await page.locator('.vf-stavetie').evaluateAll(ties=>ties.map(tie=>[tie.dataset.scoreVoice,tie.dataset.tieSide]));
     assert.ok(tieSides.length>0);
     for(const voice of new Set(tieSides.map(tie=>tie[0]))) assert.equal(new Set(tieSides.filter(tie=>tie[0]===voice).map(tie=>tie[1])).size,1,'ties stay on a consistent side within each voice');
-    const header=await page.evaluate(()=>{const rect=id=>document.getElementById(id).getBoundingClientRect();return {bar:rect('phrase-position').y+rect('phrase-position').height/2,bars:rect('study-bars-control').y+rect('study-bars-control').height/2};});
-    assert.ok(Math.abs(header.bar-header.bars)<8,JSON.stringify(header));
+    const header=await page.evaluate(()=>{
+      const rect=id=>document.getElementById(id).getBoundingClientRect(), middle=b=>b.y+b.height/2;
+      return {title:middle(rect('practice-title')),bar:middle(rect('phrase-position')),bars:middle(rect('study-bars-control')),scale:middle(document.querySelector('.staff-scale').getBoundingClientRect()),titleGap:rect('phrase-position').left-rect('practice-title').right,groupGap:document.querySelector('.staff-scale').getBoundingClientRect().left-rect('study-bars-control').right};
+    });
+    assert.ok(Math.max(header.title,header.bar,header.bars,header.scale)-Math.min(header.title,header.bar,header.bars,header.scale)<2,JSON.stringify(header));
+    assert.ok(header.titleGap>=16 && header.groupGap>=20,JSON.stringify(header));
     await page.evaluate(()=>window.scrollTo(0,0)); await page.screenshot({path:'test-results/rach-section-two.png'});
     await page.locator('#density').selectOption('custom');
     await page.locator('#staff-scale').fill('160'); await page.locator('#staff-scale').dispatchEvent('input');

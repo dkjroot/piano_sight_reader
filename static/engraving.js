@@ -1,3 +1,4 @@
+import {beatGroupAt} from './meter.js';
 import {compareBeat} from './score_model.js';
 import {noteName,keyAlterations,staffStep} from './core.js';
 
@@ -70,7 +71,7 @@ export class ScoreEngraver {
         let beam=[], beatGroup=null;
         const flush=()=>{if(beam.length>1) factory.Beam({notes:beam}); beam=[];};
         line.events.forEach((event,i)=>{
-          const group=Math.floor(event.at[0]/event.at[1]);
+          const group=beatGroupAt(event.at,measure);
           if(event.kind!=='note' || event.tuplets.length || !(+event.value>=8)) {flush(); beatGroup=null; return;}
           if(group!==beatGroup) flush(); beatGroup=group; beam.push(line.notes[i]);
         });
@@ -136,6 +137,7 @@ export class ScoreEngraver {
     const svg=page.querySelector('svg');
     [...svg.querySelectorAll('.vf-stavetie')].forEach((element,index)=>{element.dataset.scoreVoice=tieStyles[index].voice; element.dataset.tieSide=tieStyles[index].direction<0?'above':'below';});
     svg.dataset.scorePage=String(++this.pageCount);
+    svg.dataset.meterGroups=measures.map(measure=>measure.beatGroups.join('+')).join('|');
     for(const {pedal,anchor,measure,stave} of pedalAnchors) {
       const text=document.createElementNS('http://www.w3.org/2000/svg','text');
       const local=pedal.at[0]/pedal.at[1]-measure.start[0]/measure.start[1], fraction=local/(measure.length[0]/measure.length[1]);

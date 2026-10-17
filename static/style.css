@@ -432,6 +432,10 @@ button.layout-resize { position:absolute; bottom:0; right:0; width:18px; height:
 }
 
 /* Align the title, bar label and reading controls on one compact header row. */
-.practice-top h2 { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; margin:0 auto 0 0; line-height:1.35; }
-#phrase-position { display:inline; white-space:nowrap; }
+.practice-top h2 { display:flex; align-items:center; flex-wrap:wrap; gap:20px; margin:0 auto 0 0; line-height:1.2; }
+#phrase-position { display:inline; white-space:nowrap; margin:0; line-height:1.2; flex:none; }
 .study-bars { margin:0; flex:none; }
+
+.practice-top { column-gap:22px; row-gap:10px; align-items:center; }
+.study-bars, .staff-scale { gap:8px; align-items:center; line-height:1.2; }
+@media(max-width:650px) { .practice-top { column-gap:14px; } .practice-top h2 { gap:14px; } }

@@ -67,7 +67,6 @@ function persist() { try { localStorage.setItem(storageKey, JSON.stringify(setti
 function syncMode() {
   const imported=workspace==='study' || $('source').value==='midi';
   $('end-new').disabled=false;
-  $('return-random').disabled=$('source').value==='random';
   const continuous = settings().endAction === 'new';
   $('length').disabled = continuous || imported; $('min-size').disabled=imported;
   const harmonic=workspace==='outline' && ['triads','cadence','advanced'].includes($('source').value);
@@ -633,8 +632,4 @@ $('outline-filter-slot').append(filters);
 document.querySelector('.settings-stack .settings').append(document.querySelector('.practice-actions'));
 syncSettingsTree();
 const view=new URLSearchParams(location.search);
-if(view.get('view')==='study') {if(view.get('study')==='notation-cases') $('study-source').value='notation-cases'; void switchWorkspace('study');}
-
-async function randomPitchPractice() {const changed=$('source').value!=='random'; $('source').value='random'; persist(); if(workspace==='study') {outlineSettingsDirty ||= changed; await switchWorkspace('outline');} else if(changed) {syncMode(); newTarget();} }
-$('return-random').addEventListener('click',()=>void randomPitchPractice());
-$('study-random').addEventListener('click',()=>void randomPitchPractice());
+if(view.get('view')==='study') {if(['notation-cases','meter-groups'].includes(view.get('study'))) $('study-source').value=view.get('study'); void switchWorkspace('study');}

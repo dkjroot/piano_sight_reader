@@ -1,5 +1,19 @@
 import {secondsAt} from './transport.js';
-// Source MIDI meter pulses; no inference of printed pickups or beat grouping.
+import {defaultBeatGroups} from './meter.js';
+// Meter pulses use compound groups; MIDI does not supply irregular group choices
+// or printed pickups. Count-in preserves source phase without inventing either.
+function pulses(meter,ppq,first,last,emit) {
+  const groups=defaultBeatGroups(meter.numerator);
+  const unit=ppq*4/meter.denominator, bar=unit*meter.numerator;
+  for(let cycle=Math.floor((first-meter.tick)/bar);meter.tick+cycle*bar<last;cycle++) {
+    let offset=0;
+    for(const [beat,group] of groups.entries()) {
+      const tick=meter.tick+cycle*bar+offset*unit;
+      if(tick>=first && tick<last) emit({tick,beat});
+      offset+=group;
+    }
+  }
+}
 export function sourceBeats(score,plan,speed=1,bars=0) {
   if(plan.sourceStart===undefined || plan.sourceEnd<=plan.sourceStart) return {beats:[],leadIn:0};
   speed=Math.max(.25,Math.min(2,Number(speed)||1)); bars=Math.max(0,Math.min(2,Math.trunc(bars)||0));
@@ -9,16 +23,15 @@ export function sourceBeats(score,plan,speed=1,bars=0) {
   const changes=[...meters.values()].sort((a,b)=>a.tick-b.tick), beats=[], origin=secondsAt(score,first);
   let entry=changes[0]; for(const meter of changes) if(meter.tick<=first) entry=meter;
   for(let i=0;i<changes.length;i++) {
-    const meter=changes[i], end=Math.min(last,changes[i+1]?.tick??last), unit=ppq*4/meter.denominator;
-    let index=Math.max(0,Math.ceil((Math.max(first,meter.tick)-meter.tick)/unit)), tick=meter.tick+index*unit;
-    if(tick>=end) continue;
-    if(!Number.isFinite(unit) || unit<=0 || Math.ceil((end-tick)/unit)+beats.length>8192) throw new Error('Source passage exceeds 8,192 metronome pulses; choose a shorter passage.');
-    for(;tick<end;index++,tick=meter.tick+index*unit) beats.push({start:(secondsAt(score,tick)-origin)/speed,beat:index%meter.numerator,tick});
+    const meter=changes[i], end=Math.min(last,changes[i+1]?.tick??last);
+    pulses(meter,ppq,Math.max(first,meter.tick),end,({tick,beat})=>{
+      if(beats.length>=8192) throw new Error('Source passage exceeds 8,192 metronome pulses; choose a shorter passage.');
+      beats.push({start:(secondsAt(score,tick)-origin)/speed,beat,tick});
+    });
   }
-  const tempo=score.tempo_map.filter(change=>change.tick<=first).at(-1), unit=ppq*4/entry.denominator;
-  const interval=tempo.microseconds_per_quarter/1e6*4/entry.denominator/speed, count=bars*entry.numerator, leadIn=count*interval;
-  const index=Math.ceil((first-entry.tick)/unit), offset=(entry.tick+index*unit-first)/unit;
-  const countIn=Array.from({length:count},(_,i)=>({start:-leadIn+(offset+i)*interval,beat:(index+i)%entry.numerator,countIn:true}));
+  const tempo=score.tempo_map.filter(change=>change.tick<=first).at(-1), bar=ppq*4*entry.numerator/entry.denominator;
+  const secondsPerTick=tempo.microseconds_per_quarter/1e6/ppq/speed, leadIn=bars*bar*secondsPerTick, countIn=[];
+  if(bars) pulses(entry,ppq,first-bars*bar,first,({tick,beat})=>countIn.push({start:(tick-first)*secondsPerTick,beat,countIn:true}));
   return {beats:[...countIn,...beats],leadIn};
 }
 export class BeatCursor {

@@ -1,3 +1,4 @@
+import {meterDefinition} from './meter.js';
 import {KEYS} from './core.js';
 
 function requireValue(condition,message) {if(!condition) throw new Error(message);}
@@ -61,9 +62,11 @@ export function compileScore(input) {
   });
   const voiceById=new Map(voices.map(voice=>[voice.id,voice]));
   requireValue(Array.isArray(source.measures) && source.measures.length>=1 && source.measures.length<=256,'Use one to 256 measures.');
-  const measures=[], events=[], notes=[], groups=new Map(); let position=ZERO, meter=[4,4], signature='C', clefs=Object.fromEntries(staves.map(staff=>[staff.id,staff.clef]));
+  const measures=[], events=[], notes=[], groups=new Map(); let position=ZERO, meter=[4,4], grouping, signature='C', clefs=Object.fromEntries(staves.map(staff=>[staff.id,staff.clef]));
   for(const measure of source.measures) {
-    identify(measure.id); meter=measure.meter??meter; signature=measure.key??signature;
+    identify(measure.id); if(measure.meter && JSON.stringify(measure.meter)!==JSON.stringify(meter)) grouping=undefined; meter=measure.meter??meter;
+    if(measure.beatGroups!==undefined) grouping=measure.beatGroups;
+    const metric=meterDefinition(meter,grouping); signature=measure.key??signature;
     requireValue(Array.isArray(meter) && meter.length===2 && Number.isInteger(meter[0]) && meter[0]>=1 && meter[0]<=32 && [1,2,4,8,16,32].includes(meter[1]),'Invalid time signature.');
     requireValue(KEYS.some(key=>key.id===signature),'Invalid key signature.');
     requireValue(measure.clefs===undefined || (measure.clefs && typeof measure.clefs==='object' && !Array.isArray(measure.clefs) && Object.entries(measure.clefs).every(([id,clef])=>staffIds.has(id) && ['treble','bass'].includes(clef))),'Invalid clef change.');
@@ -72,6 +75,11 @@ export function compileScore(input) {
     const full=beat([meter[0]*4,meter[1]]), length=measure.length ? beat(measure.length) : full;
     requireValue(compareBeat(length,ZERO)>0 && compareBeat(length,full)<=0,'Invalid measure or pickup length.');
     requireValue(Array.isArray(measure.events) && measure.events.length>0 && events.length+measure.events.length<=4096,'Empty measure or too many score events.');
+    requireValue(measure.pickup===undefined || typeof measure.pickup==='boolean','Invalid pickup flag.');
+    const pickup=measure.pickup??(measure.beatOffset===undefined && measures.length===0 && compareBeat(length,full)<0);
+    requireValue(!pickup || compareBeat(length,full)<0,'A pickup must be shorter than its meter.');
+    const beatOffset=measure.beatOffset!==undefined?beat(measure.beatOffset):pickup?addBeat(full,[-length[0],length[1]]):ZERO;
+    requireValue(compareBeat(beatOffset,ZERO)>=0 && compareBeat(addBeat(beatOffset,length),full)<=0,'Beat offset must keep the fragment inside its measure.');
     const start=position, end=addBeat(start,length), local=[];
     for(const event of measure.events) {
       identify(event.id); const voice=voiceById.get(event.voice), staff=event.staff??voice?.staff;
@@ -107,7 +115,7 @@ export function compileScore(input) {
       for(const event of line) {requireValue(compareBeat(event.start,next)===0,'Each voice must be continuous: use explicit rests, without overlapping events.'); next=event.end;}
       requireValue(compareBeat(next,end)===0,'Each voice must fill every measure, including explicit rests.');
     }
-    measures.push({...measure,meter:[...meter],key:signature,clefs:{...clefs},length,start,end,events:local}); position=end;
+    measures.push({...measure,meter:[...meter],meterKind:metric.kind,beatGroups:metric.groups,beatOffset,pickup,key:signature,clefs:{...clefs},length,start,end,events:local}); position=end;
   }
   for(const [groupId,group] of groups) {
     group.sort((a,b)=>compareBeat(a.start,b.start)); const first=group[0];

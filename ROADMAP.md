@@ -86,7 +86,8 @@ Infeasible settings report an unavailable target rather than relaxing hard limit
 Exit: a small authored two-hand passage renders and plays correctly with ties, rests,
 different durations and more than one event per measure. No rhythm game is needed yet.
 
-Stage 2's passage milestone is delivered through **Passage study** in the main
+Stage 2's core passage milestone is complete; the extension checklist below is
+not an indication that this core milestone is half-finished. The passage milestone is delivered through **Passage study** in the main
 workspace navigation. Patient practice has independent attacks/holds/releases, explicit
 finger/pedal continuity, correction waits and re-articulated loop cuts. A second
 original ten-bar fixture exercises changing clefs/signatures, cross-staff beams,
@@ -113,12 +114,14 @@ An ordered list of simultaneous pitch sets is not enough for real piano music.
 - [x] Support simultaneous but independent rhythms between hands and within one hand:
   a held inner voice under a moving melody, a fugue subject against countersubjects,
   or a repeated bass pattern while upper parts move independently.
-- [ ] Represent rests per voice, including partial-bar, whole-bar and multi-measure rests.
-  A rest in one voice does not require silence in every other voice or a global release.
+- [x] Represent explicit partial-bar/full-duration rests independently per voice;
+  consecutive silent bars retain their exact event timing. Other voices keep playing.
+- [ ] Add dedicated whole-bar rest glyphs for non-4/4 meters and consolidated
+  multi-measure rest notation, retaining independent voice expectations.
 - [x] Use exact score-time arithmetic for dotted/double-dotted values, syncopation,
   tuplets and nested tuplets. Support polyrhythms such as 3:2 and 4:3 without cumulative
   floating-point drift or forcing both hands onto an inadequate rhythmic grid.
-- [ ] Distinguish simple/compound/irregular meter, beat grouping, pickups, incomplete
+- [x] Distinguish simple/compound/irregular meter, beat grouping, pickups, incomplete
   measures and meter changes. Align voices vertically by musical time, not by note index.
 
 #### Ties, articulation and physical versus sounding duration
@@ -145,8 +148,10 @@ An ordered list of simultaneous pitch sets is not enough for real piano music.
 
 #### Expressive timing, ornaments and playback order
 
-- [ ] Add tempo maps, gradual tempo changes, rubato practice, fermatas and explicit
-  pause/count-in behaviour. Keep a steady-tempo teaching option alongside score-faithful
+- [x] Use discrete tempo maps, speed scaling, pause/resume, seeking, entry/exit cuts
+  and audio-clock loops for authored playback. Source count-in retains meter phase.
+- [ ] Add gradual tempo changes, rubato practice, fermatas and expressive
+  pause/count-in policies. Keep a steady-tempo teaching option alongside score-faithful
   playback; define when expressive timing is accepted, measured or deliberately ignored.
 - [ ] Represent grace notes, acciaccaturas/appoggiaturas, rolled chords, trills, mordents
   and turns as authored symbols with a separate performance expansion/policy. Permit
@@ -169,30 +174,35 @@ An ordered list of simultaneous pitch sets is not enough for real piano music.
 - [ ] Define rests and hold-only passages in each mode: untimed learning, scored wait
   and continuous playback. They need meaningful duration/advance behaviour even when
   no new key is pressed. Optional rhythm-free reading can relax duration deliberately.
-- [ ] When wait mode pauses, freeze/re-anchor the score clock and remaining expected
-  durations coherently with accompaniment and metronome. A late correction must not
-  make a held voice indefinitely long or mark every following attack late.
+- [x] Freeze/re-anchor the patient-practice clock and remaining durations during
+  corrections, pauses and fresh-articulation resume.
+- [ ] Synchronise those correction waits with accompaniment and metronome. A late
+  correction must not make a held voice indefinitely long or mark later attacks late.
 - [ ] On a miss, distinguish correcting the current event, continuing after an expired
   event and explicit seeking. Recover at clear score/beat anchors; do not silently
   jump between similar passages or repeated occurrences on ambiguous pitch evidence.
-- [ ] Restore or deliberately re-articulate continuing notes on seek, loop entry,
-  hands/voices being muted, pause/resume and disconnection. Reset playback and pedal
-  state safely, and avoid stuck audio or retroactive credit for notes never played.
+- [x] Re-articulate continuing notes on patient-practice entry, loop cuts,
+  pause/resume and disconnection; filtered studies restart with fresh credit.
+- [ ] Preserve traversal/scoring identity through future live voice muting and
+  seeking. Reset playback/pedal state safely without stuck audio or retroactive credit.
 
 #### Engraving and acceptance examples
 
 - [x] Render independent stems, beams, rests and ties per voice, including opposing
   stems, shared/unison heads, close seconds, different note values at the same onset,
   cross-staff beams and accidentals scoped correctly within measures and voices.
-- [ ] Keep visual score events, performance-expanded ornaments, audio events and matcher
-  events linked but separate. Playback must never masquerade as live performance input.
-- [ ] Build authored, deterministic fixtures for each case before broad catalogue import:
-  a held bass under moving right-hand notes; two independent voices in one hand;
-  a tied inner note across a bar while neighbouring notes repeat; one hand resting
-  while the other continues; different release times in one chord; syncopated holds;
-  3:2 and 4:3 rhythms; a pickup/meter change; pedal-supported releases versus finger
-  holds; an arpeggiated chord/grace ornament; shared-pitch voice ambiguity; repeat
-  endings; and seeking/looping into the middle of a tie or pedal span.
+- [x] Link visual notes, playback and patient-matcher expectations by stable IDs,
+  while keeping preview audio independent of live performance input.
+- [ ] Extend those links to performance-expanded ornaments and repeated traversal
+  occurrences without conflating their identities.
+- [x] Build deterministic authored model/engraving/patient-matcher fixtures for
+  held bass, independent inner voices, ties versus repetitions, voice rests,
+  independent releases, nested tuplets/polyrhythms, pickups, meter/clef changes,
+  pedal versus finger support, ambiguous unisons and loop cuts.
+- [x] Add a six-bar meter fixture covering compound 3+3, explicit 2+3/3+2,
+  right-aligned pickup versus ordinary short bar, and vertical time alignment.
+- [ ] Extend the existing authored fixtures to arpeggiated/grace ornaments and
+  repeat endings, then cover their future scored timing and recovery policies.
 - [ ] For each fixture, assert score representation, engraving, expected live MIDI,
   playback events, timing/release judgements, mode-specific recovery and filtered-score
   behaviour. Include wrong-note, missing-note and premature-release variants.
@@ -238,12 +248,12 @@ notation where supplied. Untimed MIDI practice is delivered; this full exit is n
 - [x] Loop an imported outline with fluid or release-between-targets progression.
   Require every retained source note-on to be freshly played, including a repeated note
   inside a changing chord. This is attack matching, not inferred tie support.
-- [ ] Preserve musical time/bar alignment and silence when omitting notes in rhythmic
-  versions. The current attack-only view deliberately does not judge rhythm or rests.
+- [x] Preserve time, bar phase, silence and retained source identity in MIDI-derived
+  rhythmic studies and authored reductions. Pitch outlines remain untimed.
 - [ ] Add adjustable voice-aware musical reduction alongside a literal eligibility
   filter; protect useful melody/bass/harmonic anchors and avoid impossible hand spans.
-- [ ] Preserve/rebuild durations and ties after filtering, including orphaned tie ends
-  and holds across omitted attacks. Add explicit ledger-distance eligibility.
+- [x] Filter complete tied sounds, retaining durations/links across omitted attacks
+  without orphaned ends. Apply ledger, hand span, leap and per-hand density limits.
 - [ ] Support comparable staged restoration of independent voices and rhythmic detail,
   eventually restoring a complete source. Range/accidentals/density are adjustable now.
 - [ ] Offer transposition/octave relocation only as separate, explicit derived choices
@@ -384,7 +394,7 @@ against an uninterrupted clock. Each mode has explicit, testable recovery rules.
   Preserve pitch gating, loop boundaries, look-ahead and progress when switching
   views. Test short/partial final pages, repeat wrap and continuous replenishment.
   Keep the current view until this option is implemented and reviewed.
-- [ ] Keep the single-page interface, with settings visible on the page and more
+- [x] Keep the single-page interface, with settings visible on the page and more
   settings reachable by scrolling below the playing area rather than moving them
   into separate screens or hidden settings dialogs.
 - [x] Fit the staff and on-screen keyboard together in a typical 1080p desktop
@@ -456,7 +466,9 @@ depend on catalogue downloads, audio setup or an account.
 - [ ] Multiple acoustic velocity layers and measured sample-start latency; consider release/pedal/resonance modelling after profiling.
 
 - [x] Optional source-aligned metronome with tempo/meter changes, speed scaling and one/two-bar count-in.
-- [ ] Compound beat grouping, subdivisions and notation-aware pickup handling in the source clock.
+- [x] Compound beat grouping in source clicks/count-in, with phase-preserving cuts.
+- [ ] Subdivisions and notation-aware printed pickups in the source clock; MIDI
+  alone does not provide printed pickup or irregular grouping information.
 
 - [x] Reproducible optional browser-test dependency and regression CI configuration with compact reports. Hosted execution is pending a push.
 
@@ -481,7 +493,9 @@ depend on catalogue downloads, audio setup or an account.
 
 - [x] Add an original two-bar polyphonic score-model fixture with held bass, two voices in one hand, cross-bar tie, rest, dots and simple triplets. Expanded Stage 2 engraving/matcher fixtures are delivered; broader full-music cases remain tracked above.
 
-- [x] Make the original notation study accessible from Help, with local engine/fonts, both palettes, keyboard/pointer note inspection and source/licence notices. This is a preview, not rhythmic practice.
+- [x] Make the original studies available in the primary Passage study view, with
+  local engine/fonts, both palettes, keyboard/pointer inspection and live patient
+  practice. Help documents the shared source selectors.
 
 - [x] Render and play the original two-hand notation study with rests, independent voices, dots, triplets, tempo changes, cross-bar ties and distinct repeated attacks. Authored patient live judgement is now delivered in Stage 2.
 
@@ -503,3 +517,14 @@ depend on catalogue downloads, audio setup or an account.
 
 This advances MIDI-derived rhythmic study; notation-preserving edition import,
 expressive transcription, ornaments and scored modes remain distinct roadmap work.
+
+
+## Stage 2 meter and settings follow-up
+
+- [x] Remove redundant random-practice shortcuts; keep Source first in each view.
+- [x] Center the title/bar number with Bars per line and Scale, with distinct,
+  spaced control groups and a narrow-screen layout.
+- [x] Validate and engrave explicit beat groups, compound defaults, pickups and
+  ordinary incomplete measures; preserve known MIDI fragment phase separately.
+- [x] Exercise the new meter study through playback, patient holds/rests,
+  correction waits and source-preserving filtering.

@@ -803,7 +803,7 @@ Physical MIDI hardware and hardware input-to-paint latency were not measured.
 ## Source, progression and panel-width follow-up
 
 Source and progression precede shared pitch filters. Returning to generated random
-practice is explicit in both setup cards; loading a piece no longer overwrites the
+practice uses Pitch practice and its always-available Source dropdown; loading a piece no longer overwrites the
 selected progression policy. Imported Continuous uses midi_stream.js: one bounded
 following source window is prepared asynchronously, with revision cancellation and
 yields between empty windows. Matching only adopts prepared targets; parsing and
@@ -820,3 +820,21 @@ keeps the audio position. Play at end starts over. Playback plans clip to Entry/
 and use the remembered Loop setting (default on). PlaybackCursor optionally loops,
 schedules across the boundary on audio time with distinct voice IDs per cycle,
 skips expired cycles after a stall and bounds loop scheduling work per pump.
+
+
+## Meter-aware score extension
+
+meter.js validates denominator-unit beat groups (for example 2+3 versus 3+2),
+classifies meter, and compares score positions to groups with exact arithmetic.
+score_model.js inherits authored groups until the signature changes and exposes
+pickup/fragment phase independently of incomplete duration. Explicit beatOffset
+keeps source MIDI cuts aligned to their actual source bar instead of inventing
+an anacrusis. The raw inspection and authored source remain unchanged.
+
+engraving.js groups normal beams by this metric position rather than integer
+quarter beats. Explicit tuplets stay separate. The original six-bar meter-groups
+fixture exercises pickup, compound, irregular and incomplete bars with independent
+voices and rests. Source metronome/count-in uses conventional compound groups;
+ambiguous irregular MIDI retains denominator pulses, with no invented grouping.
+Rest/patient-clock foundations already delivered are separated from remaining
+multi-measure rest glyphs, expressive traversal and scored modes in ROADMAP.

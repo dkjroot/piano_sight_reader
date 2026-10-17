@@ -48,9 +48,9 @@ module.exports=async function uiFlowChecks(browser,url) {
     await page.locator('#end-stop').check(); await on(67);
     assert.equal(await page.locator('#feedback').innerText(),'✓ Passage complete'); await off(67);
     await page.locator('#restart-pitch').click(); assert.notEqual(await page.locator('#feedback').innerText(),'✓ Passage complete');
-    await page.locator('#return-random').click();
+    await page.selectOption('#source','random');
     assert.equal(await page.inputValue('#source'),'random'); assert.equal(await page.locator('#practice-title').innerText(),'Random pitches');
-    assert.equal(await page.locator('#return-random').isDisabled(),true,'source shortcut does not become a manual New phrase button');
+    assert.equal(await page.locator('#return-random').count(),0);
     const randomPhrase=await page.locator('#staff').innerHTML();
     await page.locator('#mode-study').click(); await page.waitForSelector('[data-score-note]');
     await page.selectOption('#study-source','independent-voices'); await page.waitForFunction(()=>document.getElementById('practice-title').textContent==='Study in independent voices');
@@ -73,7 +73,7 @@ module.exports=async function uiFlowChecks(browser,url) {
     await page.locator('#study-play').click(); await page.waitForFunction(()=>document.getElementById('feedback').textContent==='Playing study');
     await page.locator('#study-rewind').click(); await page.waitForFunction(()=>document.getElementById('feedback').textContent==='Playing study');
     assert.equal(await page.inputValue('#study-position'),'1');
-    await page.locator('#study-stop').click(); await page.locator('#study-random').click();
+    await page.locator('#study-stop').click(); await page.locator('#mode-outline').click();
     assert.equal(await page.locator('html').getAttribute('data-workspace'),'outline'); assert.equal(await page.inputValue('#source'),'random');
     assert.equal(await page.locator('#staff').innerHTML(),randomPhrase,'returning to the existing random source preserves the phrase');
     assert.deepEqual(errors,[]);

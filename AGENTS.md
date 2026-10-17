@@ -51,7 +51,8 @@ Web MIDI without a front-end build step.
 - Repeat/Continuous are the automatic modes; do not restore redundant manual
   Repeat phrase/New phrase buttons. Stop at end may offer Restart passage after
   completion. Keep source/progression choices prominent and provide an explicit
-  return from loaded MIDI to random generation. Optional note-by-note versus page-by-page
+  return from loaded MIDI to random generation through the always-available Source
+  selector. Do not add redundant random-practice shortcut buttons. Optional note-by-note versus page-by-page
   scrolling must remain independent of practice progression.
 - In note-by-note view keep the active target leftmost beside the clefs; page view
   keeps the displayed group still until its last target is completed.

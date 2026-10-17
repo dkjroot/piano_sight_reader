@@ -80,7 +80,7 @@ export function midiStudy(inspection,settings,bounds={},title='MIDI passage') {
     const since=(absolute-signature.tick)*8/resolution, remainder=((Math.round(since)%full)+full)%full;
     const change=meterEvents.find(event=>event.tick>absolute);
     const end=Math.min(duration,at+full-remainder,change?Math.max(at+1,position(change.tick)):Infinity);
-    const measure={id:'derived-bar-'+measures.length,meter,key:keyAt(absolute),length:[end-at,8],events:[]};
+    const measure={id:'derived-bar-'+measures.length,meter,key:keyAt(absolute),length:[end-at,8],pickup:false,beatOffset:[remainder,8],events:[]};
     for(const voice of voices) {
       let cursor=at;
       while(cursor<end) {

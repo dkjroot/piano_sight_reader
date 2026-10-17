@@ -43,6 +43,7 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 | Synth/samples, independent live/Target controls, metronome | `static/audio.js`, `samples.js`, `sound.js` |
 | Source MIDI playback, scheduling, beat/count-in map | `static/playback.js`, `transport.js`, `beats.js` |
 | Attempt measurements, opt-in history and graphs | `static/metrics.js`, `progress.js` |
+| Exact authored meter groups, pickup/fragment phase and beam grouping | `static/meter.js`, `score_model.js`, `engraving.js` |
 | Authored rational-beat model, tied/pedal playback and patient matching | `static/score_model.js`, `score_transport.js`, `score_practice.js` |
 | Shared passage-study controller and MIDI notation derivation | `static/score_workspace.js`, `midi_study.js`, `engraving.js` |
 | UI, help and shared support panel | `templates/`, `static/style.css`, `static/help.js` |
@@ -193,3 +194,20 @@ Source/layout/transport verification, 17 October 2026: 116 JavaScript tests,
 also cover 3840px resizing, MIDI continuation/end/repeat, source escape preserving
 the random phrase, and study loop/cut/pause/rewind/replay. Preview on 8767 is
 independent of the isolated test servers and is left running.
+
+Stage 2 meter extension: measure.beatGroups is an optional list of positive
+counts in denominator units, inherited until the meter changes. Default compound
+groups are threes; irregular grouping remains explicit. Compiled measures expose
+meterKind, beatGroups, pickup and exact beatOffset. First short authored bars infer
+a pickup unless disabled; explicit offsets describe fragments without inventing
+pickups. MIDI derivation supplies its known source phase. Normal beams use exact
+group membership; authored tuplets keep their own grouping. Source clicks/count-in
+follow compound groups, retaining denominator pulses for ambiguous irregular MIDI.
+The original meter-groups.json study is selectable beside the earlier examples.
+Source dropdowns remain prominent; the redundant random shortcut buttons are gone.
+
+Stage 2 meter/header verification, 17 October 2026: 121 JavaScript tests,
+21 Python tests and the full Chrome browser suite pass, with unit coverage
+collected separately from browser/hardware coverage. Focused Edge checks cover
+the meter study, rhythmic alignment and the Rachmaninoff header reproduction.
+Preview server health on 8767 is confirmed; it remains running.

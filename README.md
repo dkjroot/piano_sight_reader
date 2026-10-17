@@ -274,9 +274,9 @@ Source and progression choices sit at the top of Practice setup. **Repeat passag
 loops the selected MIDI window. **Continue through piece** moves through following
 source attacks in windows of the selected length, ending at the file boundary;
 filtered empty windows are skipped. **Stop at end** finishes only the current
-selection. Generated Continuous still creates fresh targets. **Use random pitches**
-returns to generated practice while keeping the loaded MIDI available. Passage
-study has the matching **Random pitch practice** shortcut beside its Source.
+selection. Generated Continuous still creates fresh targets. To return to random
+notes, choose **Pitch practice**, then **Random pitches** in **Source**. The Source
+selector stays at the top; the loaded MIDI remains available.
 
 MIDI study notation is a local derivation, not a recovery of a printed edition.
 It preserves every retained source attack and its note IDs, original ticks,
@@ -299,12 +299,20 @@ Automatic or 1–4 bars per line is remembered. Reflow preserves your position.
 Study playback and practice controls sit directly below the stave. Files and
 derivations stay in memory; nothing is uploaded or bundled.
 
-The Source selector also offers the original **Independent voices** two-bar study
-and **Notation and continuity** ten-bar study. Bar 1 of Independent voices includes
+The Source selector also offers the original **Independent voices** two-bar study,
+**Notation and continuity** ten-bar study, and **Meter and beat groups** six-bar
+study. Bar 1 of Independent voices includes
 4/4, dotted rhythm and triplets; the inner G ties across the barline, and bar 2 has
 a melody rest. The longer study adds nested/mixed tuplets, cross-staff beams,
 changing signatures/clefs and paginated ties. Existing `/notation-study` links
 forward into this same workspace.
+
+**Meter and beat groups** includes a pickup, 6/8 grouped 3+3, contrasting 5/8
+groupings of 2+3 and 3+2, a short middle bar, rests and independent hands. Choose
+Both hands and chromatic material to inspect every voice. Staff beams follow
+the authored groups; source playback/count-in uses dotted beats for compound
+MIDI meters such as 6/8. MIDI does not supply an irregular grouping or printed
+pickup, so those are not invented.
 
 Choose **Practise passage** to begin duration-aware patient practice. New attacks
 must be physically pressed; tied voices continue. Correct states start the next
