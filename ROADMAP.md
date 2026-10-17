@@ -6,7 +6,7 @@ range and rhythm until they can perform the full score. Support patient correcti
 timed practice with recovery, and continuous performance with scoring. Keep random
 exercises independently useful throughout. Unchecked items are plans, not implemented claims.
 
-## Current status — 16 October 2026
+## Current status — 17 October 2026
 
 Checked items are implemented and covered by local automated checks; they do not
 claim measured MIDI hardware latency or verified hosted CI. Mixed tasks are split
@@ -15,7 +15,7 @@ below so that completed foundations and remaining work are visible separately.
 | Area | Delivered | Still ahead |
 | --- | --- | --- |
 | Generated practice | Random pitches, triads/sevenths, cadences, fluid/release progression | Richer textures and advanced harmony |
-| Real music | Local MIDI import, two offline pieces, filtering, passage loops and bookmarks | Notation-preserving import, voices, rests, ties and duration judgement |
+| Real music | Local MIDI import, eight offline editions, key detection, filtering, passage loops and bookmarks | Notation-preserving import, voices, rests, ties and duration judgement |
 | Finding pieces | Composer/era/style/difficulty filters; reviewed source credits | More repertoire and reviewed difficulty levels |
 | Progress | Response times, accuracy, bests, optional history, graphs and reading patterns | Session runs, rhythm scores, targeted drills and profiles |
 | Sound | Independent synth/sample paths, MIDI source playback, metronome and count-in | Score-synchronised practice, latency calibration and timed modes |

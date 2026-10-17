@@ -1,5 +1,9 @@
 # Development
 
+Start with [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md) for the concise current-state
+map. This file retains detailed contracts and investigation notes; read relevant
+sections rather than loading it all for each task. ROADMAP.md tracks delivery status.
+
 ## Architecture and performance
 
 Flask serves local assets; the browser owns MIDI, notation, keyboard feedback and
@@ -54,8 +58,9 @@ delivery. Preserve this requirement when adding features.
 Written notes carry `{midi, letter, accidental, octave, staff}`. Accidental values
 support doubles independently of MIDI pitch. SVG rendering currently provides
 clefs, ledger lines, explicit accidentals and offset adjacent noteheads. It is a
-foundation, not a full engraving engine. Generated chords are pitch sets, without
-voice-leading, hand-span guarantees or rhythm.
+foundation, not a full engraving engine. Random chords are untimed pitch sets.
+Harmonic exercises add hand-span bounds and nearest-voicing preferences; neither
+source has authored rhythm.
 The 15 standard key signatures share major/natural-minor pitch collections.
 Generation preserves key-native spelling, including octave-crossing B♯/C♭.
 Rendering places the signature on each clef and emits an explicit accidental,
@@ -125,7 +130,8 @@ and visual backlog. Backlog entries are not authorisation to implement them now.
 - Authored enharmonics, harmonic/melodic minor and double accidentals.
 - Real composed public-domain snippets and reviewed score import. Verify rights
   for each composition, edition and source; do not assume editions or recordings
-  are all public domain. No score material or recordings are currently bundled.
+  are all public domain. Reviewed MIDI editions and acoustic samples are now bundled
+  under their individual licences; see Reviewed repertoire and discovery policy below.
 - Optional right-to-left timed/score-loss and reaction-time modes after the untimed foundation. Rhythm and reaction
   modes must not be prerequisites for basic reading practice.
 - Profile and improve event-to-paint latency as the application grows.

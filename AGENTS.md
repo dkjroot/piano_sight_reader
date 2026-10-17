@@ -1,5 +1,9 @@
 # Project guidance
 
+Read [DEVELOPMENT_GUIDE.md](DEVELOPMENT_GUIDE.md) first for the compact current-state
+map and startup/check commands. Then read only task-relevant detailed development
+notes and roadmap sections; keep the guide current when contracts or architecture change.
+
 This is a local piano sight-reading practice tool for an experienced pianist
 building reading fluency. Keep it easy to run: a small Python server and a
 responsive browser interface. Uses Flask, native JavaScript modules, SVG and
