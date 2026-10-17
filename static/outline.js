@@ -1,4 +1,5 @@
 import {candidates,spellChord} from './core.js';
+import {reduceAttack} from './passage_filters.js';
 
 export function attackGroups(score) {
   const groups=new Map();
@@ -25,7 +26,7 @@ export function makeOutline(score,settings,{start=1,end=512,tracks=null}={}) {
   };
   start=Math.max(1,Math.min(groups.length,Math.trunc(start)||1));
   end=Math.max(start,Math.min(groups.length,start+511,Math.trunc(end)||groups.length));
-  const targets=[]; let retained=0, considered=0;
+  const targets=[], previous={}; let retained=0, considered=0;
   for(let index=start-1;index<end && index<groups.length;index++) {
     const group=groups[index], included=group.notes.filter(eligible);
     const pitches=[...new Set(included.map(n=>n.midi))].sort((a,b)=>a-b);
@@ -41,7 +42,9 @@ export function makeOutline(score,settings,{start=1,end=512,tracks=null}={}) {
       if(spellChord([...selected,pitch],settings.material==='flats',settings.key)) selected.push(pitch);
     }
     if(!selected.length) continue;
-    const written=spellChord(selected,settings.material==='flats',settings.key);
+    const spelled=spellChord(selected,settings.material==='flats',settings.key);
+    const written=reduceAttack(spelled.map(note=>({...note,staff:staffFor(included.find(original=>original.midi===note.midi))})),settings,previous);
+    if(!written.length) continue;
     targets.push(written.map(note=>{
       const originals=included.filter(n=>n.midi===note.midi), ids=originals.map(n=>n.id); retained+=ids.length;
       return {...note,staff:staffFor(originals[0]),sourceTick:group.tick,sourceOnset:index+1,sourceIds:ids};

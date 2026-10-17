@@ -1,3 +1,4 @@
+import {filterStudy} from './passage_filters.js';
 import {compileScore,compareBeat} from './score_model.js';
 import {ScorePractice} from './score_practice.js';
 import {ScoreEngraver} from './engraving.js';
@@ -35,11 +36,11 @@ export class ScoreWorkspace {
     $('study-exit').value=score.moments.length-1; $('study-position').max=score.moments.length-1;
     if(this.active) {this.draw(); this.onChange();}
   }
-  async loadExample(id) {
+  async loadExample(id,settings) {
     const revision=this.loadRevision=(this.loadRevision??0)+1;
     const response=await fetch('/static/studies/'+(id==='notation-cases'?id:'independent-voices')+'.json');
     if(!response.ok) throw new Error('The local study could not load.');
-    const score=compileScore(await response.json()); if(revision===this.loadRevision) await this.setScore(score);
+    const score=compileScore(await response.json()); if(revision===this.loadRevision) await this.setScore(settings?filterStudy(score,settings):score);
   }
   draw() {
     if(!this.active || !this.score || !globalThis.VexFlow) return;

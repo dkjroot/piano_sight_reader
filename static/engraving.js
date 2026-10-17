@@ -10,7 +10,7 @@ export class ScoreEngraver {
     const V=this.engine;
     if(!V) throw new Error('The local notation engine is unavailable.');
     if(score.staves.length!==2) throw new Error('The piano renderer requires two staves.');
-    this.score=score; this.nodes.clear(); this.active.clear(); this.container.replaceChildren();
+    this.score=score; this.nodes.clear(); this.active.clear(); this.container.replaceChildren(); this.pageCount=0;
     this.columns=this.barsPerLine??(this.container.clientWidth>=1000 ? 2 : 1);
     const pageSize=Math.floor(8/this.columns)*this.columns;
     for(let offset=0;offset<score.measures.length;offset+=pageSize) this.drawPage(score,score.measures.slice(offset,offset+pageSize),offset);
@@ -44,7 +44,7 @@ export class ScoreEngraver {
     const context=factory.getContext(); context.setFillStyle('currentColor'); context.setStrokeStyle('currentColor');
     const noteToEvent=new Map(), pedalAnchors=[];
     for(const [index,measure] of measures.entries()) {
-      const system=factory.System({x:15+(index%columns)*measureWidth,y:topMargin+Math.floor(index/columns)*rowHeight,width:measureWidth,spaceBetweenStaves:staffDistance/10});
+      const system=factory.System({x:15+(index%columns)*measureWidth,y:topMargin+Math.floor(index/columns)*rowHeight,width:measureWidth,spaceBetweenStaves:staffDistance/10,formatOptions:{alignRests:true},formatIterations:2});
       const row=Math.floor(index/columns), byVoice=new Map(), tuples=new Map();
       for(const voice of score.voices) {
         const events=measure.events.filter(event=>event.voiceId===voice.id).sort((a,b)=>compareBeat(a.start,b.start));
@@ -52,7 +52,7 @@ export class ScoreEngraver {
           const staff=score.staves.find(staff=>staff.id===event.staffId);
           const clef=measure.clefs[staff.id];
           const keys=event.kind==='rest' ? [clef==='bass' ? 'd/3' : 'b/4'] : event.notes.map(note=>`${note.letter.toLowerCase()}${accidental[note.accidental]}/${note.octave}`);
-          const node=factory.StaveNote({clef,keys,duration:event.value+'d'.repeat(event.dots??0)+(event.kind==='rest' ? 'r' : ''),stemDirection:voice.stem==='down' ? V.Stem.DOWN : V.Stem.UP});
+          const node=factory.StaveNote({clef,keys,duration:event.value+'d'.repeat(event.dots??0)+(event.kind==='rest' ? 'r' : ''),autoStem:!voice.stem,stemDirection:voice.stem==='down' ? V.Stem.DOWN : V.Stem.UP});
           for(let dot=0;dot<(event.dots??0);dot++) V.Dot.buildAndAttach([node],{all:true});
           event.notes.forEach((note,keyIndex)=>noteToEvent.set(note.id,{node,event,keyIndex,row}));
           for(const rule of event.tuplets) {if(!tuples.has(rule.group)) tuples.set(rule.group,[]); tuples.get(rule.group).push({node,event,rule});}
@@ -119,17 +119,23 @@ export class ScoreEngraver {
         pedalAnchors.push({pedal,anchor,measure,stave:staveById.get(score.staves.at(-1).id)});
       }
     }
+    const tieStyles=[];
     for(const tie of score.source.ties??[]) {
       const from=noteToEvent.get(tie.from), to=noteToEvent.get(tie.to);
       if(!from && !to) continue;
-      if(from && to && from.row===to.row) factory.StaveTie({from:from.node,to:to.node,firstIndexes:[from.keyIndex],lastIndexes:[to.keyIndex]});
+      const voice=score.voices.find(voice=>voice.id===(from??to).event.voiceId);
+      const options={direction:voice.stem==='down'?V.Stem.UP:voice.stem==='up'?V.Stem.DOWN:(from??to).node.getStemDirection()};
+      const drawTie=spec=>{tieStyles.push({voice:voice.id,direction:options.direction}); factory.StaveTie({...spec,options});};
+      if(from && to && from.row===to.row) drawTie({from:from.node,to:to.node,firstIndexes:[from.keyIndex],lastIndexes:[to.keyIndex]});
       else {
-        if(from) factory.StaveTie({from:from.node,firstIndexes:[from.keyIndex],lastIndexes:[from.keyIndex]});
-        if(to) factory.StaveTie({to:to.node,firstIndexes:[to.keyIndex],lastIndexes:[to.keyIndex]});
+        if(from) drawTie({from:from.node,firstIndexes:[from.keyIndex],lastIndexes:[from.keyIndex]});
+        if(to) drawTie({to:to.node,firstIndexes:[to.keyIndex],lastIndexes:[to.keyIndex]});
       }
     }
     factory.draw();
-    const svg=page.querySelector('svg'); svg.dataset.scorePage=String(offset/8+1);
+    const svg=page.querySelector('svg');
+    [...svg.querySelectorAll('.vf-stavetie')].forEach((element,index)=>{element.dataset.scoreVoice=tieStyles[index].voice; element.dataset.tieSide=tieStyles[index].direction<0?'above':'below';});
+    svg.dataset.scorePage=String(++this.pageCount);
     for(const {pedal,anchor,measure,stave} of pedalAnchors) {
       const text=document.createElementNS('http://www.w3.org/2000/svg','text');
       const local=pedal.at[0]/pedal.at[1]-measure.start[0]/measure.start[1], fraction=local/(measure.length[0]/measure.length[1]);

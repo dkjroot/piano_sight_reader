@@ -1,6 +1,7 @@
 import {GeneratedStream} from '../static/generated_stream.js';
 import './score_practice.test.js';
 import './midi_study.test.js';
+import './passage_filters.test.js';
 import {handDistance,attackHands} from '../static/generation.js';
 import {scoreSecondsAt,authoredPlan} from '../static/score_transport.js';
 import {scoreKeyForPassage} from '../static/score_key.js';

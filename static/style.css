@@ -429,3 +429,8 @@ button.layout-resize { position:absolute; bottom:0; right:0; width:18px; height:
   .score-banner .header-actions { grid-column:2; }
   .score-banner .practice-modes { grid-column:1 / -1; grid-row:2; justify-content:center; }
 }
+
+/* Align the title, bar label and reading controls on one compact header row. */
+.practice-top h2 { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; margin:0 auto 0 0; line-height:1.35; }
+#phrase-position { display:inline; white-space:nowrap; }
+.study-bars { margin:0; flex:none; }

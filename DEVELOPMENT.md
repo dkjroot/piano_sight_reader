@@ -646,9 +646,11 @@ mutually cancel, including in-flight sample loading. Live audio remains independ
 
 Settings are hierarchical. Generated exercise controls belong to Pitch practice;
 advanced/cadence/hand-specific controls are hidden when irrelevant. Study controls
-follow its selected source. The same key/staff/density/material/range filter DOM
-moves into the loaded-MIDI study branch, preserving values/listeners. Original
-examples keep their authored notation. Presentation and physical/audio controls
+follow its selected source. The same key/staff/density/material/range, per-hand
+note/leap, span and ledger filter DOM moves between both views for every study
+source, preserving values/listeners. passage_filters.js reduces complete sounds
+in authored examples while retaining written identities, rhythm and ties. Key
+is pitch eligibility for Notes in key, not authored-score transposition. Presentation and physical/audio controls
 remain shared. Hidden study settings never start MIDI or audio by themselves.
 
 midi_study.js derives a bounded immutable study from the committed active MIDI
@@ -664,8 +666,10 @@ notation approximation, with their original release retained.
 
 The derivation uses source tempo/key/meter markers where present, 4/4 only as an
 explicit default when absent, and preserves cut position within source measures.
-Spelling follows the selected key/preferences; voice lanes are interval-coloured
-by selected staff and are not recovered hands or counterpoint. Independent rests
+Spelling follows the selected key/preferences. Coincident, distinct written
+pitches sharing a start/end form chords; other durations and unisons retain
+independent interval lanes. Reuse favours pitch continuity, with consistent
+outer voice stem/tie directions. These are not recovered hands or counterpoint. Independent rests
 fill lanes, including omitted material; bar boundaries and source meter changes
 split durations. Source-channel damper/panic determines a separate playbackEnd;
 physical/notated releases remain independent. compileScore validates that optional

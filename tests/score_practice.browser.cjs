@@ -10,6 +10,7 @@ module.exports=async function scorePracticeChecks(browser,url) {
   });
   try {
     await page.goto(url); await page.waitForSelector('.key');
+    await page.evaluate(()=>{for(const [id,value] of Object.entries({hand:'both',size:10,span:'full',material:'sharps',low:0,high:127,'hand-span':24})) document.getElementById(id).value=value;document.getElementById('high').dispatchEvent(new Event('change'));});
     const original=await page.locator('#staff').innerHTML(), position=await page.locator('#phrase-position').innerText();
     const nodes=await page.evaluate(()=>{window.originalKeyboard=document.getElementById('keyboard');window.originalPanels=[document.getElementById('staff-panel'),document.getElementById('keyboard-panel')];return true;});
     await page.locator('#mode-study').click(); await page.waitForSelector('[data-score-note]');
@@ -50,9 +51,28 @@ module.exports=async function scorePracticeChecks(browser,url) {
     await page.locator('#study-stop').click();
     assert.equal(await page.locator('#staff-panel #study-play').count(),1);
     assert.equal(await page.locator('#study-settings #study-play').count(),0);
+    for(const id of ['key','hand','size','material','span','hand-span','left-density','right-density','left-leap','right-leap','ledger-limit']) {
+      assert.equal(await page.locator('#'+id).isVisible(),true,'authored study exposes '+id);
+      assert.equal(await page.locator('#'+id).isEnabled(),true);
+    }
+    await page.selectOption('#hand','left');
+    await page.waitForFunction(()=>document.querySelectorAll('[data-score-note]').length>0 && document.querySelectorAll('[data-score-note]').length<17);
+    assert.equal(await page.locator('#right-density').isVisible(),false);
+    assert.equal(await page.locator('#left-density').isVisible(),true);
+    await page.selectOption('#hand','both'); await page.waitForFunction(()=>document.querySelectorAll('[data-score-note]').length===17);
+    await page.locator('#high').fill('0'); await page.locator('#high').dispatchEvent('change');
+    await page.waitForFunction(()=>document.getElementById('feedback').textContent.includes('No retained notes'));
+    assert.equal(await page.locator('[data-score-note]').count(),0,'an empty filter never leaves a stale score visible');
+    assert.equal(await page.locator('#study-start').isDisabled(),true);
+    await page.locator('#high').fill('127'); await page.locator('#high').dispatchEvent('change');
+    await page.waitForFunction(()=>document.querySelectorAll('[data-score-note]').length===17);
+    await page.selectOption('#right-density','1');
+    await page.waitForFunction(()=>document.querySelectorAll('[data-score-note]').length<17);
+    await page.selectOption('#right-density','5'); await page.waitForFunction(()=>document.querySelectorAll('[data-score-note]').length===17);
     await page.selectOption('#study-source','notation-cases'); await page.waitForSelector('[data-score-page="2"]');
     await page.selectOption('#study-bars','3');
     assert.equal(await page.locator('.score-page').nth(1).getAttribute('id'),'authored-engraving-page-6','page boundaries preserve complete three-bar rows');
+    assert.equal(await page.locator('.score-page svg').nth(1).getAttribute('data-score-page'),'2');
     await page.selectOption('#study-bars','auto');
     assert.ok(await page.locator('.vf-tuplet').count()>=4); assert.equal(await page.locator('.vf-stavetie').count(),2);
     await page.locator('#mode-outline').click();
@@ -60,6 +80,7 @@ module.exports=async function scorePracticeChecks(browser,url) {
     await page.waitForFunction(()=>!document.getElementById('practice-score').disabled);
     await page.evaluate(()=>{for(const [id,value] of Object.entries({hand:'both',span:'full',low:21,high:108,size:10})) document.getElementById(id).value=value;document.getElementById('high').dispatchEvent(new Event('change'));});
     await page.locator('#practice-score').click();
+    for(const id of ['hand-span','right-density','left-density','right-leap','left-leap','ledger-limit']) assert.equal(await page.locator('#'+id).isVisible(),true,'MIDI pitch practice exposes '+id);
     await page.locator('#mode-study').click(); await page.waitForSelector('[data-score-note]');
     await page.waitForFunction(()=>document.getElementById('exercise-summary').textContent.includes('Loaded MIDI'));
     assert.match(await page.locator('#practice-title').innerText(),/polyphony/); assert.ok(await page.locator('.vf-stave').count()>0);
@@ -97,10 +118,18 @@ module.exports=async function scorePracticeChecks(browser,url) {
     await page.setViewportSize({width:1440,height:900});
     await page.selectOption('#library-piece','rachmaninoff-op3-2'); await page.locator('#load-piece').click();
     await page.waitForFunction(()=>document.getElementById('score-status').textContent.includes('Prelude in C-sharp minor'));
-    await page.selectOption('#suggested-passages','0');
+    await page.selectOption('#suggested-passages','1');
     await page.waitForFunction(()=>document.getElementById('practice-title').textContent.includes('Prelude in C-sharp minor'));
     await page.waitForFunction(()=>!document.getElementById('study-start').disabled);
     await page.selectOption('#study-bars','1');
+    assert.ok(await page.locator('[data-score-note]').evaluateAll(notes=>new Set(notes.map(note=>note.getAttribute('aria-label').split(' · ')[1])).size)<=4,'Rachmaninoff Section 2 uses chord voices');
+    assert.equal(await page.locator('.vf-stavenote').evaluateAll(nodes=>nodes.some(node=>node.querySelectorAll('[data-score-note]').length>1)),true);
+    const tieSides=await page.locator('.vf-stavetie').evaluateAll(ties=>ties.map(tie=>[tie.dataset.scoreVoice,tie.dataset.tieSide]));
+    assert.ok(tieSides.length>0);
+    for(const voice of new Set(tieSides.map(tie=>tie[0]))) assert.equal(new Set(tieSides.filter(tie=>tie[0]===voice).map(tie=>tie[1])).size,1,'ties stay on a consistent side within each voice');
+    const header=await page.evaluate(()=>{const rect=id=>document.getElementById(id).getBoundingClientRect();return {bar:rect('phrase-position').y+rect('phrase-position').height/2,bars:rect('study-bars-control').y+rect('study-bars-control').height/2};});
+    assert.ok(Math.abs(header.bar-header.bars)<8,JSON.stringify(header));
+    await page.evaluate(()=>window.scrollTo(0,0)); await page.screenshot({path:'test-results/rach-section-two.png'});
     await page.locator('#density').selectOption('custom');
     await page.locator('#staff-scale').fill('160'); await page.locator('#staff-scale').dispatchEvent('input');
     for(const height of [180,300,600]) {

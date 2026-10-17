@@ -38,6 +38,7 @@ No frontend build or Node requirement for users. Assets, fonts and audio are loc
 | Remembered panel positions, resizing and staff scale | `static/layout_editor.js`, `layout.js` |
 | Main SVG staff, keyboard, viewport and reading windows | `static/notation.js`, `keyboard.js`, `layout.js` |
 | Library/preview UI; filtering/search/recent pieces | `static/score.js`, `library.js` |
+| Shared authored/MIDI passage reduction | `static/passage_filters.js` |
 | Derived MIDI targets, section suggestions, bookmarks, key detection | `static/outline.js`, `sections.js`, `passages.js`, `score_key.js` |
 | Synth/samples, independent live/Target controls, metronome | `static/audio.js`, `samples.js`, `sound.js` |
 | Source MIDI playback, scheduling, beat/count-in map | `static/playback.js`, `transport.js`, `beats.js` |
@@ -168,3 +169,13 @@ coverage is separate from browser/controller and physical-device coverage.
 Study layout: remembered Automatic/1–4 bars per line sits beside Scale. Reflow
 preserves the study gate/cursor; study transport is beneath the staff. Engraving
 uses the pane width after a stable vertical scrollbar gutter, including Custom scaling.
+
+Shared passage filters now include per-hand density/leaps, hand span and ledger
+limits in both views and all study sources. Authored reductions retain complete
+sounds/ties and written identities; Key controls pitch eligibility, not transposition.
+MIDI derivation groups coincident equal-duration tones into chords before assigning
+independent duration lanes. Dotted values and voice-directed ties reduce clutter.
+
+Passage-control/readability verification, 17 October 2026: 112 JavaScript and
+21 Python checks pass, including complete-tie reduction, held-note limits,
+authored hand/clef changes and the Rachmaninoff Section 2 reproduction.

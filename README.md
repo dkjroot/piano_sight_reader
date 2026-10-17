@@ -252,16 +252,28 @@ For a MIDI study, load a library piece or local MIDI, choose tracks and passage
 endpoints (section and endpoint changes apply automatically). **Start practising
 this passage**, beside Save passage, also activates the selection. Choose
 **Passage study**: its Source is now **Loaded MIDI passage**. Key, staff, range, pitch material and density
-filters remain available in that branch. Browsing another preview does not replace
+filters remain available in both views. Browsing another preview does not replace
 active practice. Source playback remains available to hear the MIDI timing and
 pedal; **Play study** previews the derived notation with the shared Target sound.
 Starting either preview stops the other. Live sound remains independent.
+
+Key, staff/hand, reading range, pitch material, maximum chord size, per-hand
+note limits, hand span, leap limits and ledger limits are available for MIDI
+passages in both views, and for the authored studies. Passage filters remove
+notes; they never add substitute pitches or rewrite the source file. Authored
+studies retain their written keys, spelling, timing and complete ties: Key is
+used by the Notes in key filter, rather than transposing the written score.
+Study limits include continuing physical holds. An empty selection asks you to
+widen the filters. Texture, attack pattern,
+minimum generated chord size and generated phrase length apply to generation.
 
 MIDI study notation is a local derivation, not a recovery of a printed edition.
 It preserves every retained source attack and its note IDs, original ticks,
 track/channel and source hash, while retaining the raw inspection unchanged.
 Written timing is rounded to a 1/32-note grid; spelling and independent voice lanes
-are derived. A source note spanning a bar is split with explicit ties referring
+are derived. Coincident notes with matching releases form chords; distinct
+durations remain separate voices. Dotted values avoid unnecessary tied fragments.
+A source note spanning a bar is split with explicit ties referring
 back to that one attack; separate source attacks are never converted into shared
 holds. Meter/key/tempo changes are used where supplied. Without meter metadata,
 4/4 is a notation default. Damper resonance follows the source channel independently

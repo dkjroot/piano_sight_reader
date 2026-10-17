@@ -14,6 +14,7 @@ import {layoutPreset,staffViewport} from './layout.js';
 import {SourcePlayer} from './playback.js';
 import {keyboardGeometry,keyboardKeyWidth} from './keyboard.js';
 import {ScoreWorkspace} from './score_workspace.js';
+import {passageControls} from './passage_filters.js';
 import {midiStudy} from './midi_study.js';
 
 const $ = id => document.getElementById(id);
@@ -62,13 +63,13 @@ if (+$('min-size').value > +$('size').value) $('min-size').value = $('size').val
 function settings() { return {...Object.fromEntries(controls.map(id => [id, ['low', 'high', 'size','min-size','length','preview'].includes(id) ? +$(id).value : $(id).value])), endAction:document.querySelector('[name="end-action"]:checked').value,scoreId:$('source').value==='midi' ? activePiece?.score.sha256 : null,passage:$('source').value==='midi' ? activePiece?.bounds : null,scoreTitle:$('source').value==='midi' ? activePiece?.filename : null}; }
 function persist() { try { localStorage.setItem(storageKey, JSON.stringify(settings())); } catch { /* Session still works. */ } }
 function syncMode() {
-  const imported=$('source').value==='midi';
+  const imported=workspace==='study' || $('source').value==='midi';
   $('end-new').disabled=imported;
-  if(imported) $('end-repeat').checked=true;
+  if($('source').value==='midi') $('end-repeat').checked=true;
   const continuous = settings().endAction === 'new';
   $('length').disabled = continuous || imported; $('min-size').disabled=imported;
-  const harmonic=['triads','cadence','advanced'].includes($('source').value);
-  for(const id of [...planningControls,'hand-span']) $(id).disabled=imported;
+  const harmonic=workspace==='outline' && ['triads','cadence','advanced'].includes($('source').value);
+  for(const id of [...planningControls,'hand-span']) $(id).disabled=imported && !passageControls.includes(id);
   $('attack-pattern').disabled=imported || $('hand').value!=='both';
   $('advanced-kind').disabled=$('source').value!=='advanced';
   $('harmony-scale').querySelector('[value="minor"]').textContent=$('source').value==='advanced'?'Minor':'Natural minor';
@@ -84,10 +85,8 @@ function syncMode() {
     $(id).closest('label').hidden=$(id).disabled;
   }
   // Preserve a source's saved settings while showing only its applicable branch.
-  if(!imported) {
-    $('left-density').closest('label').hidden=$('left-leap').closest('label').hidden=$('hand').value==='right';
-    $('right-density').closest('label').hidden=$('right-leap').closest('label').hidden=$('hand').value==='left';
-  }
+  $('left-density').closest('label').hidden=$('left-leap').closest('label').hidden=$('hand').value==='right';
+  $('right-density').closest('label').hidden=$('right-leap').closest('label').hidden=$('hand').value==='left';
 }
 syncMode();
 function rangeLabels() {
@@ -444,7 +443,7 @@ function update() {
 }
 
 for (const id of controls) $(id).addEventListener('change', () => {
-  if(workspace==='study') {if(+$('low').value>+$('high').value) $(id==='low'?'high':'low').value=$(id).value; rangeLabels(); persist(); if(['low','high'].includes(id)) drawKeyboard(); if(['hand','key','material','span','size','low','high'].includes(id)) {outlineSettingsDirty=true; if($('study-source').value==='loaded') void loadStudy(); else update();} else update(); return;}
+  if(workspace==='study') {syncMode(); if(+$('low').value>+$('high').value) $(id==='low'?'high':'low').value=$(id).value; rangeLabels(); persist(); if(['low','high'].includes(id)) drawKeyboard(); if([...passageControls,'low','high'].includes(id)) {outlineSettingsDirty=true; void loadStudy();} else update(); return;}
   if (['preview','scroll-mode'].includes(id)) {persist(); drawStaff(); update(); return;}
   if (+$('low').value > +$('high').value) $(id === 'low' ? 'high' : 'low').value = $(id).value;
   if (+$('min-size').value > +$('size').value) {
@@ -561,15 +560,15 @@ async function loadStudy() {
       if(!activePiece) throw new Error('Load a MIDI passage in Music library, then choose Start practising this passage.');
       const score=midiStudy(activePiece.score,settings(),activePiece.bounds,activePiece.filename);
       if(revision===workspaceRevision) await authored.setScore(score);
-    } else await authored.loadExample(source);
+    } else await authored.loadExample(source,settings());
     if(revision!==workspaceRevision) return;
     authored.sourceKey=studyKey();
     $('study-start').disabled=false; $('study-position').disabled=false;
     $('study-source-status').textContent=source==='loaded'?'Derived from the active MIDI passage. Source ticks and note IDs are preserved.':'Original authored example';
     if(workspace==='study') {drawStaff(); update();}
-  } catch(error) {if(revision===workspaceRevision) {$('study-source-status').textContent=error.message; $('feedback').textContent=error.message;}}
+  } catch(error) {if(revision===workspaceRevision) {authored.score=null; authored.engraver=null; $('staff').replaceChildren(); $('pause-practice').disabled=true; $('study-source-status').textContent=error.message; $('feedback').textContent=error.message; update();}}
 }
-function studyKey() {return $('study-source').value==='loaded'?'loaded:'+activePiece?.score.sha256+JSON.stringify([activePiece?.bounds,...['low','high','hand','key','material','span','size'].map(id=>$(id).value)]):$('study-source').value;}
+function studyKey() {return $('study-source').value==='loaded'?'loaded:'+activePiece?.score.sha256+JSON.stringify([activePiece?.bounds,...['low','high',...passageControls].map(id=>$(id).value)]):$('study-source').value+JSON.stringify(['low','high',...passageControls].map(id=>$(id).value));}
 async function switchWorkspace(mode) {
   if(workspace===mode) return;
   workspace=mode; clearTimeout(settleTimer); clearTimeout(nextTimer); sourcePlayer.stop(); sound.stopClock();
@@ -600,19 +599,17 @@ $('mode-outline').addEventListener('click',()=>void switchWorkspace('outline'));
 $('mode-study').addEventListener('click',()=>void switchWorkspace('study'));
 $('study-source').addEventListener('change',()=>{syncSettingsTree(); void loadStudy();});
 function syncSettingsTree() {
-  const loaded=workspace==='study' && $('study-source').value==='loaded';
   const filters=$('pitch-filters');
   $(workspace==='study'?'study-filter-slot':'outline-filter-slot').append(filters);
-  filters.hidden=workspace==='study' && !loaded;
-  if(workspace==='outline') syncMode();
-  else if(loaded) {$('material').disabled=false; $('material').closest('label').hidden=false;}
+  filters.hidden=false;
+  syncMode();
   // Source playback remains available while studying notation, using the same
   // sound engine. Starting either preview stops the other scheduler.
   $('source-preview-controls').hidden=false;
 }
 $('play-source').addEventListener('click',()=>{authored.pause(); if(workspace==='study') update();});
 const filters=document.createElement('div'); filters.id='pitch-filters';
-for(const id of ['key','hand','size','material','span']) filters.append($(id).closest('label'));
+for(const id of passageControls) filters.append($(id).closest('label'));
 $('outline-filter-slot').append(filters);
 document.querySelector('.settings-stack .settings').append(document.querySelector('.practice-actions'));
 syncSettingsTree();

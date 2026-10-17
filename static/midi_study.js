@@ -1,6 +1,7 @@
 import {attackGroups,makeOutline} from './outline.js';
 import {compileScore} from './score_model.js';
 import {KEYS} from './core.js';
+import {filterStudy} from './passage_filters.js';
 
 // A separate, explicit derivation. Raw ticks, controllers, note IDs and hashes
 // remain in the inspection. Notation uses a 1/32 grid; no source attack is merged.
@@ -36,13 +37,29 @@ export function midiStudy(inspection,settings,bounds={},title='MIDI passage') {
     if(before!==undefined && before!==row.source.start_tick) throw new Error('Separate repeated attacks fall inside one notation-grid cell; choose a less densely articulated passage.');
     onset.set(key,row.source.start_tick);
   }
-  const voices=[];
+  // Coincident pitches with the same release form a chord, not one voice per
+  // finger. Different releases and repeated/unison source attacks remain separate.
+  const chords=[];
   for(const row of rows) {
     const staff=row.written.staff==='bass'?'lower':'upper';
-    let voice=voices.find(voice=>voice.staff===staff && voice.end<=row.start);
-    if(!voice) {voice={id:'derived-voice-'+voices.length,staff,end:0,rows:[],stem:voices.filter(v=>v.staff===staff).length%2?'down':'up'}; voices.push(voice);}
+    let chord=chords.find(chord=>chord.staff===staff && chord.start===row.start && chord.end===row.end && chord.rows.every(other=>other.source.midi!==row.source.midi && other.written.letter+other.written.octave!==row.written.letter+row.written.octave));
+    if(!chord) {chord={staff,start:row.start,end:row.end,rows:[]}; chords.push(chord);}
+    chord.rows.push(row);
+  }
+  chords.sort((a,b)=>a.start-b.start || Math.max(...b.rows.map(row=>row.source.midi))-Math.max(...a.rows.map(row=>row.source.midi)));
+  const voices=[];
+  for(const chord of chords) {
+    const centre=chord.rows.reduce((sum,row)=>sum+row.source.midi,0)/chord.rows.length;
+    const available=voices.filter(voice=>voice.staff===chord.staff && voice.end<=chord.start);
+    available.sort((a,b)=>Math.abs(a.centre-centre)-Math.abs(b.centre-centre));
+    let voice=available[0];
+    if(!voice) {voice={id:'derived-voice-'+voices.length,staff:chord.staff,end:0,rows:[]}; voices.push(voice);}
     if(voices.length>16) throw new Error('This passage needs more than 16 notated voices; reduce its density or select a shorter passage.');
-    voice.rows.push(row); voice.end=row.end;
+    voice.rows.push(chord); voice.end=chord.end; voice.centre=centre;
+  }
+  for(const staff of ['upper','lower']) {
+    const lanes=voices.filter(voice=>voice.staff===staff).sort((a,b)=>b.rows.reduce((sum,chord)=>sum+Math.max(...chord.rows.map(row=>row.source.midi)),0)/b.rows.length-a.rows.reduce((sum,chord)=>sum+Math.max(...chord.rows.map(row=>row.source.midi)),0)/a.rows.length);
+    lanes.forEach((voice,index)=>{voice.stem=lanes.length===1?undefined:index===0?'up':'down';});
   }
   const events=inspection.events??[], meterEvents=events.filter(event=>event.message.type==='time_signature').sort((a,b)=>a.tick-b.tick);
   const meterAt=tick=>meterEvents.filter(event=>event.tick<=tick).at(-1)??{tick:0,message:{numerator:4,denominator:4}};
@@ -54,7 +71,7 @@ export function midiStudy(inspection,settings,bounds={},title='MIDI passage') {
     return KEYS.some(key=>key.id===raw)?raw:minor.includes(raw)?KEYS[minor.indexOf(raw)].id:settings.key;
   };
   const duration=Math.max(...rows.flatMap(row=>[row.end,row.soundEnd])), measures=[], ties=[], lastNote=new Map(); let at=0, serial=0;
-  const values=[[32,'w'],[16,'h'],[8,'q'],[4,'8'],[2,'16'],[1,'32']];
+  const values=[[48,'w',1],[32,'w',0],[28,'h',2],[24,'h',1],[16,'h',0],[14,'q',2],[12,'q',1],[8,'q',0],[7,'8',2],[6,'8',1],[4,'8',0],[3,'16',1],[2,'16',0],[1,'32',0]];
   while(at<duration) {
     if(measures.length>=256) throw new Error('Choose a passage of at most 256 measures.');
     const absolute=origin+at*resolution/8, signature=meterAt(absolute), meter=[signature.message.numerator,signature.message.denominator];
@@ -69,10 +86,10 @@ export function midiStudy(inspection,settings,bounds={},title='MIDI passage') {
       while(cursor<end) {
         const row=voice.rows.find(row=>row.start<=cursor && row.end>cursor), next=voice.rows.find(row=>row.start>cursor);
         const finish=Math.min(end,row?.end??next?.start??end);
-        const [units,value]=values.find(([units])=>units<=finish-cursor), id='derived-event-'+serial++;
-        const note=row?{id:id+'-note',letter:row.written.letter,octave:row.written.octave,accidental:row.written.accidental,playbackEnd:lastNote.has(row.source.id)?undefined:[row.soundEnd,8],sourceIds:[row.source.id],sourceStart:row.source.start_tick,sourceEnd:row.source.end_tick,sourceTrack:row.source.track,sourceChannel:row.source.channel}:null;
-        measure.events.push({id,voice:voice.id,at:[cursor-at,8],value,kind:row?'note':'rest',notes:note?[note]:[]});
-        if(row) {if(lastNote.has(row.source.id)) ties.push({from:lastNote.get(row.source.id),to:note.id}); lastNote.set(row.source.id,note.id);}
+        const [units,value,dots]=values.find(([units])=>units<=finish-cursor), id='derived-event-'+serial++;
+        const notes=(row?.rows??[]).map((member,index)=>({id:id+'-note-'+index,letter:member.written.letter,octave:member.written.octave,accidental:member.written.accidental,playbackEnd:lastNote.has(member.source.id)?undefined:[member.soundEnd,8],sourceIds:[member.source.id],sourceStart:member.source.start_tick,sourceEnd:member.source.end_tick,sourceTrack:member.source.track,sourceChannel:member.source.channel}));
+        measure.events.push({id,voice:voice.id,at:[cursor-at,8],value,dots,kind:row?'note':'rest',notes});
+        if(row) row.rows.forEach((member,index)=>{const note=notes[index]; if(lastNote.has(member.source.id)) ties.push({from:lastNote.get(member.source.id),to:note.id}); lastNote.set(member.source.id,note.id);});
         cursor+=units;
       }
     }
@@ -80,6 +97,6 @@ export function midiStudy(inspection,settings,bounds={},title='MIDI passage') {
   }
   const tempos=new Map([['0',{at:[0,1],bpm:60_000_000/(inspection.tempo_map.filter(tempo=>tempo.tick<=origin).at(-1)?.microseconds_per_quarter??500000)}]]);
   for(const tempo of inspection.tempo_map) {const point=position(tempo.tick); if(point>0 && point<duration) tempos.set(String(point),{at:[point,8],bpm:60_000_000/tempo.microseconds_per_quarter});}
-  const source={version:1,id:'midi-derived-study',title,staves:[{id:'upper',clef:'treble'},{id:'lower',clef:'bass'}],voices:voices.map(({id,staff,stem})=>({id,staff,stem})),measures,ties,tempos:[...tempos.values()],provenance:{kind:'midi-derived',sha256:inspection.sha256,bounds:{start:outline.start,end:outline.end},grid:[1,8],spelling:'selected key and explicit track staff choices',voices:'derived interval lanes, not recovered hands',retainedNotes:rows.length,omittedNotes:outline.omittedNotes,sourceOriginTick:origin,sourceEndTick:stop}};
-  return compileScore(source);
+  const source={version:1,id:'midi-derived-study',title,staves:[{id:'upper',clef:'treble'},{id:'lower',clef:'bass'}],voices:voices.map(({id,staff,stem})=>({id,staff,stem})),measures,ties,tempos:[...tempos.values()],provenance:{kind:'midi-derived',sha256:inspection.sha256,bounds:{start:outline.start,end:outline.end},grid:[1,8],spelling:'selected key and explicit track staff choices',voices:'derived chord and duration lanes, not recovered hands',retainedNotes:rows.length,omittedNotes:outline.omittedNotes,sourceOriginTick:origin,sourceEndTick:stop}};
+  return filterStudy(compileScore(source),settings);
 }
