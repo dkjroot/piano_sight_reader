@@ -417,6 +417,10 @@ file preview leaves this description intact; selecting a section updates it.
 
 ## Help
 
+For a first session, follow the illustrated [pianist’s user guide](user-guide/README.md).
+A separate [detailed agent’s usage guide](user-guide/AGENT_USER_GUIDE.md) covers
+every workflow for creating an audio or video tutorial.
+
 Choose **Help** beside **Connect MIDI** at the top (a **?** on narrow screens), or
 **Help & guide** beside Music library, for the local help page. Either link opens in
 a separate tab, with a quick start, piece/passage instructions, repeated-note
