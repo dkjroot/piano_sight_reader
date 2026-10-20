@@ -7,5 +7,6 @@
   },
   "devDependencies": {
     "playwright": "1.62.1"
-  }
+  },
+  "license": "GPL-3.0-only"
 }
